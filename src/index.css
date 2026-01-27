@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+   body {
+            font-family: 'Lexend', 'Noto Sans SC', sans-serif;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }.chinese-border {
+            position: relative;
+        }
+        .chinese-border::before, .chinese-border::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        .chinese-border::before {
+            top: 0;
+            left: 0;
+            border-top: 2px solid #FFD700;
+            border-left: 2px solid #FFD700;
+        }
+        .chinese-border::after {
+            bottom: 0;
+            right: 0;
+            border-bottom: 2px solid #FFD700;
+            border-right: 2px solid #FFD700;
+        }
+        .chinese-border:hover::before, .chinese-border:hover::after {
+            width: 100%;
+            height: 100%;
+        }
