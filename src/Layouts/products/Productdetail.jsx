@@ -52,17 +52,17 @@ export default function Productdetail() {
 
       <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-8 relative z-10">
         {/* LOGO */}
-        <div className="flex items-center gap-3 shrink-0">
-          <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />
-          <div>
-            <h1 className="text-2xl font-black tracking-tighter leading-none">
-              TOXI
-            </h1>
-            <p className="text-[8px] uppercase tracking-widest text-secondary font-bold">
-              学以致用
-            </p>
-          </div>
-        </div>
+       <Link to="/Home" className="flex items-center gap-3 shrink-0">
+                 <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />
+                 <div>
+                   <h1 className="text-2xl font-black tracking-tighter leading-none">
+                     TOXI
+                   </h1>
+                   <p className="text-[8px] uppercase tracking-widest text-secondary font-bold">
+                     学以致用
+                   </p>
+                 </div>
+               </Link>
 
         {/* SEARCH */}
         <div className="flex-1 max-w-2xl hidden md:block">

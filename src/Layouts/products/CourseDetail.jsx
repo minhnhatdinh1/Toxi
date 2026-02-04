@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import logo from '../../assets/image/LOGO (1).png'
 
 const courseData = {
@@ -67,6 +67,7 @@ export default function CourseDetail() {
   ];
   const { id } = useParams(); // 👈 ID từ URL
   const course = courseData[id];
+  const navigate = useNavigate();
 
   return (
     <>
@@ -76,17 +77,17 @@ export default function CourseDetail() {
 
         <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-8 relative z-10">
           {/* LOGO */}
-          <div className="flex items-center gap-3 shrink-0">
-            <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />
-            <div>
-              <h1 className="text-2xl font-black tracking-tighter leading-none">
-                TOXI
-              </h1>
-              <p className="text-[8px] uppercase tracking-widest text-secondary font-bold">
-                学以致用
-              </p>
-            </div>
-          </div>
+          <Link to="/Home" className="flex items-center gap-3 shrink-0">
+                    <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />
+                    <div>
+                      <h1 className="text-2xl font-black tracking-tighter leading-none">
+                        TOXI
+                      </h1>
+                      <p className="text-[8px] uppercase tracking-widest text-secondary font-bold">
+                        学以致用
+                      </p>
+                    </div>
+                  </Link>
 
           {/* SEARCH */}
           <div className="flex-1 max-w-2xl hidden md:block">
@@ -316,7 +317,10 @@ export default function CourseDetail() {
         ].map((lesson, i) => (
           <div
             key={i}
-            className="p-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-700/50"
+            onClick={() => {
+              if (lesson.preview) navigate(`/video?course=${id}&lesson=${i}`);
+            }}
+            className={`p-4 flex justify-between items-center ${lesson.preview ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50' : ''}`}
           >
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-primary text-[20px]">

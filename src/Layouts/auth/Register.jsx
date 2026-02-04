@@ -30,7 +30,7 @@ export default function Register() {
 
           {/* Modal */}
           <div className="relative z-10 w-full max-w-[1000px] p-4 animate-in fade-in zoom-in duration-300">
-            <div className="relative flex flex-col w-full bg-surface/95 backdrop-blur-xl border border-secondary/40 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="relative flex flex-col w-full bg-surface/95 backdrop-blur-xl border border-secondary/40 rounded-2xl shadow-2xl overflow-hidden min-h-[520px]">
 
               {/* Top gradient */}
               <div className="h-2 w-full bg-gradient-to-r from-primary via-secondary to-primary"></div>

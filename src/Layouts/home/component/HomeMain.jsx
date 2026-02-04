@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 
-export function HomePage()  {
-    return (
-      <>
-       {/* HERO SECTION */}
+export function HomePage() {
+  return (
+    <>
+    {/* HERO SECTION */}
       <section className="relative h-[500px] md:h-[600px] w-full bg-primary group overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center transition-transform duration-[2000ms] ease-out group-hover:scale-105"
@@ -186,7 +186,7 @@ export function HomePage()  {
           </a>
         </div>
 {/* Grid */}
-<div className="grid md:grid-cols-3 gap-8">
+<div className="grid grid-cols-2 md:grid-cols-3 gap-8">
   {/* HSK 1-2 */}
   <Link
     to="/courses/1"
@@ -802,4 +802,4 @@ export function HomePage()  {
     </div>
     </>
   );
-};
+}

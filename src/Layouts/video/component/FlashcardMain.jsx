@@ -1,70 +1,119 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Link } from "react-router-dom";
+import logo from '../../../assets/image/LOGO (1).png'
 export default function FlashcardMain() {
     const [openLeft, setOpenLeft] = useState(false);
     const [openRight, setOpenRight] = useState(false);
     const [view, setView] = useState("video");
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // simple mapping to change flashcard content per lesson
+    const lessons = [
+      { title: 'Chào hỏi', hanzi: '你好', pinyin: 'Nǐ hǎo', meaning: 'Chào bạn' },
+      { title: 'Vận mẫu & Thanh mẫu', hanzi: '妈', pinyin: 'mā', meaning: 'Mẹ' },
+      { title: 'Biến điệu', hanzi: '好', pinyin: 'hǎo', meaning: 'Tốt' },
+    ];
+
+    const [selectedLessonIdx, setSelectedLessonIdx] = useState(0);
+
+    useEffect(() => {
+      const params = new URLSearchParams(location.search);
+      const lessonParam = params.get('lesson');
+      if (lessonParam !== null) {
+        const idx = parseInt(lessonParam, 10);
+        if (!isNaN(idx) && idx >= 0 && idx < lessons.length) {
+          setSelectedLessonIdx(idx);
+        }
+      }
+    }, [location.search]);
     return(
         <>
-            <header className="h-14 shrink-0 bg-primary dark:bg-surface-dark border-b border-primary-dark dark:border-slate-800 flex items-center justify-between px-4 md:px-6 z-20 shadow-md">
-  
-  {/* LEFT */}
-  <div className="flex items-center gap-3">
+           {/* Header */}
+       <div className="w-full bg-white dark:bg-surface-dark shadow-sm z-50 sticky top-0">
+       <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
+      {/* Background pattern */}
+      <div className="absolute inset-0 bg-chinese-pattern opacity-10 pointer-events-none"></div>
 
-    {/* HAMBURGER – MOBILE ONLY */}
-   <button
-  onClick={() => setOpenLeft(true)}
-  className="md:hidden text-white"
->
-      <span className="material-symbols-outlined text-[28px]">
-        menu
+      <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-8 relative z-10">
+        {/* LOGO */}
+        <Link to="/Home" className="flex items-center gap-3 shrink-0">
+          <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />
+          <div>
+            <h1 className="text-2xl font-black tracking-tighter leading-none">
+              TOXI
+            </h1>
+            <p className="text-[8px] uppercase tracking-widest text-secondary font-bold">
+              学以致用
+            </p>
+          </div>
+        </Link>
+
+        {/* SEARCH */}
+        <div className="flex-1 max-w-2xl hidden md:block">
+          <div className="relative group">
+            <input
+              type="text"
+              placeholder="Tìm kiếm sản phẩm, giáo trình, dụng cụ..."
+              className="w-full pl-12 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-full text-sm focus:ring-2 focus:ring-secondary focus:bg-white focus:text-primary transition-all placeholder-white/60"
+            />
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/60 group-focus-within:text-primary">
+              search
+            </span>
+          </div>
+        </div>
+
+        {/* ACTIONS */}
+        <div className="flex items-center gap-6 shrink-0">
+          {/* CHAT */}
+          <button 
+            onClick={() => setOpenRight(true)}
+            className="hidden md:flex items-center justify-center size-10 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors"
+          >
+            <span className="material-symbols-outlined">
+              forum
+            </span>
+          </button>
+
+          {/* CART */}
+          <div className="relative group cursor-pointer">
+          <button className="flex-[1.5] px-8 py-5 bg-primary text-secondary font-bold rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 group">
+      
+      <span
+        className="material-symbols-outlined group-hover:scale-110 transition-transform cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation();
+          navigate("/cart");
+        }}
+      >
+        shopping_cart
       </span>
-    </button>
+      </button>
+          </div>
 
-    {/* LOGO */}
-    <div className="flex items-center gap-3">
-      <div className="size-8 bg-white/20 rounded-lg flex items-center justify-center text-white">
-        <span className="material-symbols-outlined text-[20px]">
-          school
-        </span>
+        {/* Avatar */}
+<div className="hidden sm:flex items-center">
+  <div
+    className="bg-center bg-no-repeat bg-cover rounded-full size-9 border-2 border-white shadow-sm cursor-pointer"
+    style={{
+      backgroundImage:
+        'url("https://lh3.googleusercontent.com/aida-public/AB6AXuANadJSyOfDTclENxTAo2sw3Zjh7pnp9KKg6h2O4DPIjBYyTW71cyBejL6epjf4bncopuLtFsS_S28mcoEHv7h1zzA9eQlltIXtwDZfsYjCeMxjDdAPnQkvKLCnuYjrECMphza2dJScBgPHRGqoIUccTQUhZWLevuqN5gbt-Gdi0v_35rRW79Z__1-tjeWPfsTpAYBzqjrPwvrzKlKTY8K7uLo1-SOwA3-7T7eW-upJSD1KOVr7iIff5utR8-CjWJTlAFJYfsztm9s")',
+    }}
+  />
+</div>
+
+          {/* MOBILE MENU */}
+          <button 
+            onClick={() => setOpenLeft(true)}
+            className="md:hidden text-white"
+          >
+            <span className="material-symbols-outlined">menu</span>
+          </button>
+        </div>
       </div>
-
-      <div className="flex flex-col">
-        <h2 className="text-white text-lg font-bold leading-none tracking-tight">
-          TOXI
-        </h2>
-        <span className="text-[9px] text-primary-100 font-medium tracking-wider uppercase">
-          学以致用
-        </span>
+    </header>
       </div>
-    </div>
-  </div>
-
-  {/* RIGHT */}
-  <div className="flex items-center gap-4">
-    <button
-  onClick={() => setOpenRight(true)}
-  className="md:hidden flex items-center justify-center size-8 rounded-lg bg-white/10 text-white hover:bg-white/20"
->
-  <span className="material-symbols-outlined text-[20px]">
-    forum
-  </span>
-</button>
-    <button className="flex items-center justify-center h-8 px-3 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold gap-1 transition-colors border border-white/10">
-      <span className="material-symbols-outlined text-[16px]">
-        translate
-      </span>
-      <span>VI/CN</span>
-    </button>
-
-    <div className="size-8 rounded-full bg-white/20 overflow-hidden border border-white/40 cursor-pointer">
-      <img
-        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIDl5UhO3nPRg1P8zw2_tF3oA19tTQUjywB45B3W6DR1lctL2G9TldR0bSzFmBicGNkYvHp5JbtzlEu8J2YAXOJMIJlpSINaVlT_vgiZpeF99TNDeNuUk7Z5lleTR5HiJad72meZnEcARo8aXOXPmx-GyWJ2Bfeo-Yy8Wjw__FxsswCG8tMxEUWx6N7ZCEqAw6fLzDv_21KFQrGLH-cTfKuFxwrZhnKawTONeKOHrGA7Zg71V7ZUu26kbm3K-uNl7sjY0RqyxJRF4"
-        alt="User Profile"
-        className="w-full h-full object-cover"
-      />
-    </div>
-  </div>
-</header>
       <div className="flex flex-1 relative">
         {openLeft && (
   <div
@@ -153,8 +202,8 @@ export default function FlashcardMain() {
               <div className="pb-2 px-2 space-y-1">
                <button
   onClick={() => {
-    setView("video");
-    setOpenLeft(false); // đóng sidebar trên mobile
+    navigate("/video");
+    setOpenLeft(false);
   }}
   className="w-full flex items-center gap-3 p-3 pl-8 rounded-lg bg-primary text-white shadow-sm transition-all group"
 >
@@ -169,7 +218,7 @@ export default function FlashcardMain() {
 
                <button
   onClick={() => {
-    setView("flashcards");
+    navigate("/flashcard");
     setOpenLeft(false);
   }}
   className="w-full flex items-center gap-3 p-3 pl-8 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-all group"
@@ -214,12 +263,12 @@ export default function FlashcardMain() {
         {/* Header + Progress */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <div className="flex flex-col">
-              <span className="text-[10px] text-primary font-bold uppercase tracking-widest">
+              <div className="flex flex-col">
+                <span className="text-[10px] text-primary font-bold uppercase tracking-widest">
                 Học từ vựng
               </span>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                Flashcards: Chào hỏi
+                {`Flashcards: ${lessons[selectedLessonIdx]?.title}`}
               </h2>
             </div>
             <div className="text-right">
@@ -254,7 +303,7 @@ export default function FlashcardMain() {
 
                 <div className="text-center">
                   <h3 className="text-8xl font-black text-primary dark:text-accent tracking-tighter mb-4 drop-shadow-lg">
-                    你好
+                    {lessons[selectedLessonIdx]?.hanzi}
                   </h3>
                   <p className="text-slate-500 dark:text-slate-400 text-base font-medium animate-pulse">
                     Nhấp để lật thẻ
@@ -276,10 +325,10 @@ export default function FlashcardMain() {
                 <div className="flex flex-col items-center space-y-6">
                   <div>
                     <span className="text-3xl font-bold text-accent mb-2 block">
-                      Nǐ hǎo
+                      {lessons[selectedLessonIdx]?.pinyin}
                     </span>
                     <h3 className="text-4xl font-black text-white mb-2">
-                      Chào bạn
+                      {lessons[selectedLessonIdx]?.meaning}
                     </h3>
                     <div className="w-16 h-1 bg-accent/50 rounded-full mx-auto"></div>
                   </div>

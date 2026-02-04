@@ -1,5 +1,53 @@
 import react from 'react';
+import { useNavigate } from 'react-router-dom';
+
 export default function FlashcardMain() {
+    const navigate = useNavigate();
+    
+    // Dữ liệu các bài thi
+    const examData = [
+        {
+            id: 1,
+            title: 'Đề thi HSK 1 - Mã đề 101',
+            level: 'HSK 1 • Sơ cấp',
+            description: 'Khởi đầu hành trình với 150 từ vựng căn bản và các cấu trúc giao tiếp hằng ngày.',
+            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCcZYi4iWQj7LDhIxYWvRnqIbWknLgO_-cjF6r3iw8JS2LxhmUGpvgLi4cDWWPLM7szb8vgG4kqqrATxkcqsYG80baGK32RWXAvdqoTm-XkCKi-FnYzsAxfhLw3deZ17P6JOHGylnO09eeXWxMld19_5A0KJ72jKG-pS6qygetOBpIKl1P1ZqP2hA5VARNGl-IsOzTTFAA1JI3AdO_ULMq5yVSQ08y8X4iTyyMVNQLIFkiMhDBZbFKrLvLb2h7ExlodpKFfC9g_HzM',
+            duration: '35 Phút',
+            questions: '40 Câu',
+            attempts: '1.2k Lượt',
+            badge: 'primary'
+        },
+        {
+            id: 4,
+            title: 'Đề HSK 4 - Chuyên sâu',
+            level: 'HSK 4 • Trung cấp',
+            description: 'Mở rộng vốn từ lên 1200 từ và làm quen với các chủ đề thảo luận xã hội phức tạp.',
+            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuChVVwENFyaMtxcqMdQ50jnZhlR-oR3OQ-anvGnZzYY05g8GgY9CvGz5gQLqAm11WS1K8ySwDFPrwjlS-Fm2cesUXHT9B801LhS736VAhWHYvIO7DxFUhIthDZ6FzPrNg-uG3JhBY7vYd7sLjSjTCAMjOpYHlRU5Qja45htNVMEsWG0dz1OO6_L653ZqYB3MRXyPSYc6yKK5EXsC6isgcvCE1AsaMv3KrJ0Cg8ZS5XRfCkbxelgstJm6iKhDHoEzlcBUs96zE7HWUg',
+            duration: '105 Phút',
+            questions: '100 Câu',
+            attempts: '3.5k Lượt',
+            badge: 'primary'
+        },
+        {
+            id: 6,
+            title: 'Mock-test HSK 6 Toàn diện',
+            level: 'HSK 6 • Cao cấp',
+            description: 'Thử thách đỉnh cao với 5000 từ vựng và các văn bản học thuật, thời sự chuyên sâu.',
+            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCo3rfHu6dYIHk2CLOl2wy0nSXRkS9iejaVXU3EF91disyV3juO0NxV7WzXvXJACqBlyE8E25vHySxbXdYyaf4KC3FX4LnJ4WB4cZ_vehOfkLUvho-oweTMOewnbim5pYUWr8iS2Rz33QEBz6rPe_BMghSOt5BBb_nzT1ZIzjBBmXLzA4PPj9jXUdCFqpHjRwdwiQbkTjj1JMQqXaQ8DA4wVmjXXzOQGK_caXcB0ikFpscjnDSyqh6RBhYzInbwciYsYUgjzoWqFFI',
+            duration: '140 Phút',
+            questions: '101 Câu',
+            attempts: '850 Lượt',
+            badge: 'accent-red'
+        }
+    ];
+
+    // Hàm xử lý click card
+    const handleCardClick = (exam) => {
+        // Lưu dữ liệu exam vào sessionStorage để truyền sang trang ExamPage
+        sessionStorage.setItem('selectedExam', JSON.stringify(exam));
+        navigate('/Exam');
+    };
+
     return(
         <>
         <section className="relative px-8 pt-20 pb-24 overflow-hidden">
@@ -86,175 +134,67 @@ export default function FlashcardMain() {
 
       {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+        {examData.map((exam) => (
+          <div 
+            key={exam.id}
+            onClick={() => handleCardClick(exam)}
+            className="chinese-border-card bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl group flex flex-col cursor-pointer transition-all duration-300"
+          >
+            <div className="h-44 overflow-hidden relative">
+              <img
+                src={exam.image}
+                alt={exam.title}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              />
 
-        {/* Card */}
-        <div className="chinese-border-card bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl group flex flex-col">
+              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
 
-          <div className="h-44 overflow-hidden relative">
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcZYi4iWQj7LDhIxYWvRnqIbWknLgO_-cjF6r3iw8JS2LxhmUGpvgLi4cDWWPLM7szb8vgG4kqqrATxkcqsYG80baGK32RWXAvdqoTm-XkCKi-FnYzsAxfhLw3deZ17P6JOHGylnO09eeXWxMld19_5A0KJ72jKG-pS6qygetOBpIKl1P1ZqP2hA5VARNGl-IsOzTTFAA1JI3AdO_ULMq5yVSQ08y8X4iTyyMVNQLIFkiMhDBZbFKrLvLb2h7ExlodpKFfC9g_HzM"
-              alt="Lanterns"
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-            />
-
-            <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
-
-            <div className="absolute top-4 left-4 bg-primary/90 backdrop-blur-md text-secondary text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest border border-secondary/20">
-              HSK 1 • Sơ cấp
-            </div>
-          </div>
-
-          <div className="p-8 pt-2 flex-1 flex flex-col">
-            <h3 className="text-xl font-bold text-primary mb-3 group-hover:text-secondary transition-colors duration-300">
-              Đề thi HSK 1 - Mã đề 101
-            </h3>
-
-            <p className="text-sm text-slate-500 mb-8 font-light leading-relaxed">
-              Khởi đầu hành trình với 150 từ vựng căn bản và các cấu trúc giao tiếp hằng ngày.
-            </p>
-
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="flex flex-col items-center">
-                <span className="material-symbols-outlined text-secondary text-2xl mb-1">
-                  schedule
-                </span>
-                <p className="text-[10px] font-bold text-primary">35 Phút</p>
-              </div>
-
-              <div className="flex flex-col items-center border-x border-slate-100">
-                <span className="material-symbols-outlined text-secondary text-2xl mb-1">
-                  list_alt
-                </span>
-                <p className="text-[10px] font-bold text-primary">40 Câu</p>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <span className="material-symbols-outlined text-secondary text-2xl mb-1">
-                  person_play
-                </span>
-                <p className="text-[10px] font-bold text-primary">1.2k Lượt</p>
+              <div className={`absolute top-4 left-4 ${exam.badge === 'accent-red' ? 'bg-accent-red/90 text-white' : 'bg-primary/90 text-secondary'} backdrop-blur-md text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest border ${exam.badge === 'accent-red' ? 'border-white/20' : 'border-secondary/20'}`}>
+                {exam.level}
               </div>
             </div>
 
-            <button className="w-full py-4 gradient-btn text-primary font-black rounded-2xl text-sm tracking-widest flex items-center justify-center gap-3">
-              LÀM BÀI NGAY
-              <span className="material-symbols-outlined text-lg">
-                arrow_right_alt
-              </span>
-            </button>
-          </div>
-        </div>
-      {/* Card HSK 4 */}
-      <div className="chinese-border-card bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl group flex flex-col">
-        <div className="h-44 overflow-hidden relative">
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuChVVwENFyaMtxcqMdQ50jnZhlR-oR3OQ-anvGnZzYY05g8GgY9CvGz5gQLqAm11WS1K8ySwDFPrwjlS-Fm2cesUXHT9B801LhS736VAhWHYvIO7DxFUhIthDZ6FzPrNg-uG3JhBY7vYd7sLjSjTCAMjOpYHlRU5Qja45htNVMEsWG0dz1OO6_L653ZqYB3MRXyPSYc6yKK5EXsC6isgcvCE1AsaMv3KrJ0Cg8ZS5XRfCkbxelgstJm6iKhDHoEzlcBUs96zE7HWUg"
-            alt="Pagoda"
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+            <div className="p-8 pt-2 flex-1 flex flex-col">
+              <h3 className="text-xl font-bold text-primary mb-3 group-hover:text-secondary transition-colors duration-300">
+                {exam.title}
+              </h3>
 
-          <div className="absolute top-4 left-4 bg-primary/90 backdrop-blur-md text-secondary text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest border border-secondary/20">
-            HSK 4 • Trung cấp
-          </div>
-        </div>
+              <p className="text-sm text-slate-500 mb-8 font-light leading-relaxed">
+                {exam.description}
+              </p>
 
-        <div className="p-8 pt-2 flex-1 flex flex-col">
-          <h3 className="text-xl font-bold text-primary mb-3 group-hover:text-secondary transition-colors duration-300">
-            Đề HSK 4 - Chuyên sâu
-          </h3>
+              <div className="grid grid-cols-3 gap-4 mb-8">
+                <div className="flex flex-col items-center">
+                  <span className="material-symbols-outlined text-secondary text-2xl mb-1">
+                    schedule
+                  </span>
+                  <p className="text-[10px] font-bold text-primary">{exam.duration}</p>
+                </div>
 
-          <p className="text-sm text-slate-500 mb-8 font-light leading-relaxed">
-            Mở rộng vốn từ lên 1200 từ và làm quen với các chủ đề thảo luận xã hội phức tạp.
-          </p>
+                <div className="flex flex-col items-center border-x border-slate-100">
+                  <span className="material-symbols-outlined text-secondary text-2xl mb-1">
+                    list_alt
+                  </span>
+                  <p className="text-[10px] font-bold text-primary">{exam.questions}</p>
+                </div>
 
-          <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="flex flex-col items-center">
-              <span className="material-symbols-outlined text-secondary text-2xl mb-1">
-                schedule
-              </span>
-              <p className="text-[10px] font-bold text-primary">105 Phút</p>
-            </div>
+                <div className="flex flex-col items-center">
+                  <span className="material-symbols-outlined text-secondary text-2xl mb-1">
+                    person_play
+                  </span>
+                  <p className="text-[10px] font-bold text-primary">{exam.attempts}</p>
+                </div>
+              </div>
 
-            <div className="flex flex-col items-center border-x border-slate-100">
-              <span className="material-symbols-outlined text-secondary text-2xl mb-1">
-                list_alt
-              </span>
-              <p className="text-[10px] font-bold text-primary">100 Câu</p>
-            </div>
-
-            <div className="flex flex-col items-center">
-              <span className="material-symbols-outlined text-secondary text-2xl mb-1">
-                person_play
-              </span>
-              <p className="text-[10px] font-bold text-primary">3.5k Lượt</p>
+              <button className="w-full py-4 gradient-btn text-primary font-black rounded-2xl text-sm tracking-widest flex items-center justify-center gap-3 group-hover:shadow-lg transition-shadow">
+                LÀM BÀI NGAY
+                <span className="material-symbols-outlined text-lg">
+                  arrow_right_alt
+                </span>
+              </button>
             </div>
           </div>
-
-          <button className="w-full py-4 gradient-btn text-primary font-black rounded-2xl text-sm tracking-widest flex items-center justify-center gap-3">
-            LÀM BÀI NGAY
-            <span className="material-symbols-outlined text-lg">
-              arrow_right_alt
-            </span>
-          </button>
-        </div>
-      </div>
-
-      {/* Card HSK 6 */}
-      <div className="chinese-border-card bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl group flex flex-col">
-        <div className="h-44 overflow-hidden relative">
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCo3rfHu6dYIHk2CLOl2wy0nSXRkS9iejaVXU3EF91disyV3juO0NxV7WzXvXJACqBlyE8E25vHySxbXdYyaf4KC3FX4LnJ4WB4cZ_vehOfkLUvho-oweTMOewnbim5pYUWr8iS2Rz33QEBz6rPe_BMghSOt5BBb_nzT1ZIzjBBmXLzA4PPj9jXUdCFqpHjRwdwiQbkTjj1JMQqXaQ8DA4wVmjXXzOQGK_caXcB0ikFpscjnDSyqh6RBhYzInbwciYsYUgjzoWqFFI"
-            alt="Great Wall"
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
-
-          <div className="absolute top-4 left-4 bg-accent-red/90 backdrop-blur-md text-white text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest border border-white/20">
-            HSK 6 • Cao cấp
-          </div>
-        </div>
-
-        <div className="p-8 pt-2 flex-1 flex flex-col">
-          <h3 className="text-xl font-bold text-primary mb-3 group-hover:text-secondary transition-colors duration-300">
-            Mock-test HSK 6 Toàn diện
-          </h3>
-
-          <p className="text-sm text-slate-500 mb-8 font-light leading-relaxed">
-            Thử thách đỉnh cao với 5000 từ vựng và các văn bản học thuật, thời sự chuyên sâu.
-          </p>
-
-          <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="flex flex-col items-center">
-              <span className="material-symbols-outlined text-secondary text-2xl mb-1">
-                schedule
-              </span>
-              <p className="text-[10px] font-bold text-primary">140 Phút</p>
-            </div>
-
-            <div className="flex flex-col items-center border-x border-slate-100">
-              <span className="material-symbols-outlined text-secondary text-2xl mb-1">
-                list_alt
-              </span>
-              <p className="text-[10px] font-bold text-primary">101 Câu</p>
-            </div>
-
-            <div className="flex flex-col items-center">
-              <span className="material-symbols-outlined text-secondary text-2xl mb-1">
-                person_play
-              </span>
-              <p className="text-[10px] font-bold text-primary">850 Lượt</p>
-            </div>
-          </div>
-
-          <button className="w-full py-4 gradient-btn text-primary font-black rounded-2xl text-sm tracking-widest flex items-center justify-center gap-3">
-            LÀM BÀI NGAY
-            <span className="material-symbols-outlined text-lg">
-              arrow_right_alt
-            </span>
-          </button>
-        </div>
-      </div>
+        ))}
       </div>
        {/* Pagination */}
       <div className="mt-24 flex items-center justify-center gap-3">
