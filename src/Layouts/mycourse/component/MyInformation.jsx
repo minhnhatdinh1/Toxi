@@ -59,7 +59,7 @@ export default function MyInformation () {
       </div>
     </header>
          </div>
-         <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+         <main className="flex-grow w-full max-w-[1920px] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
         {/* SIDEBAR */}
@@ -101,18 +101,18 @@ export default function MyInformation () {
                 Thông tin cá nhân
               </Link>
 
-              <a
-                href="#"
+              <Link
+                to="/MyVocabulary"
                 className="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium rounded-xl transition-colors group"
               >
                 <span className="material-symbols-outlined text-[22px] text-slate-400 group-hover:text-primary transition-colors">
                   bookmarks
                 </span>
                 Từ vựng đã lưu
-              </a>
+              </Link>
 
               <a
-                href="#"
+                href="/MyProduct"
                 className="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium rounded-xl transition-colors group"
               >
                 <span className="material-symbols-outlined text-[22px] text-slate-400 group-hover:text-primary transition-colors">
@@ -265,44 +265,6 @@ export default function MyInformation () {
           </div>
         </div>
 
-        {/* PASSWORD */}
-        <div className="p-8 border-t border-slate-100 bg-slate-50/30">
-          <h5 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">
-              lock_reset
-            </span>
-            Đổi mật khẩu
-          </h5>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label htmlFor="current_password">Mật khẩu hiện tại</label>
-              <input
-                id="current_password"
-                type="password"
-                placeholder="••••••••"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="new_password">Mật khẩu mới</label>
-              <input
-                id="new_password"
-                type="password"
-                placeholder="Tối thiểu 8 ký tự"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="confirm_password">Xác nhận mật khẩu</label>
-              <input
-                id="confirm_password"
-                type="password"
-                placeholder="Nhập lại mật khẩu mới"
-              />
-            </div>
-          </div>
-        </div>
 
         {/* ACTIONS */}
         <div className="p-8 border-t border-slate-100 bg-white flex flex-col md:flex-row items-center justify-between gap-4">
@@ -315,7 +277,7 @@ export default function MyInformation () {
               Hủy bỏ
             </button>
 
-            <button className="flex-1 md:flex-none px-8 py-3 bg-accent hover:bg-accent-hover text-white font-bold rounded-xl shadow-lg shadow-accent/20 transition-all flex items-center justify-center gap-2">
+            <button className="flex-1 md:flex-none px-8 py-3 bg-secondary hover:bg-secondary-dark text-white font-bold rounded-xl shadow-lg shadow-secondary/20 transition-all flex items-center justify-center gap-2">
               <span>Lưu thay đổi</span>
               <span className="material-symbols-outlined text-lg">
                 save

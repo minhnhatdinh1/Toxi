@@ -20,6 +20,7 @@ import ExamResultPage from './Layouts/exam/ExamResultPage.jsx'
 import MyCoursePage from './Layouts/mycourse/MyCoursePage.jsx'
 import MyInformationPage from './Layouts/mycourse/MyInformationPage.jsx'
 import MyProductMain from './Layouts/mycourse/component/MyProductMain.jsx'
+import MyVocabularyPage from './Layouts/mycourse/MyVocabularyPage.jsx'
 import './App.css'
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
         <Route path="/MyCourse" element={<MyCoursePage />} />
         <Route path="/Profile" element={<MyInformationPage />} />
         <Route path="/MyProduct" element={<MyProductMain />} />
+        <Route path="/MyVocabulary" element={<MyVocabularyPage />} />
       </Routes>
  
   )

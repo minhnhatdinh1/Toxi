@@ -90,7 +90,7 @@ export default function MyCourseMain() {
               </Link>
 
               <Link
-                to="/MyInformation"
+                to="/Profile"
                 className="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium rounded-xl transition-colors group"
               >
                 <span className="material-symbols-outlined text-[22px] text-slate-400 group-hover:text-primary transition-colors">
@@ -99,15 +99,15 @@ export default function MyCourseMain() {
                 Thông tin cá nhân
               </Link>
 
-              <a
-                href="#"
+              <Link
+                to="/MyVocabulary"
                 className="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium rounded-xl transition-colors group"
               >
                 <span className="material-symbols-outlined text-[22px] text-slate-400 group-hover:text-primary transition-colors">
                   bookmarks
                 </span>
                 Từ vựng đã lưu
-              </a>
+              </Link>
 
               <Link
                 to="/MyProduct"
@@ -123,7 +123,7 @@ export default function MyCourseMain() {
             {/* LOGOUT */}
             <div className="p-3 border-t border-slate-100 mt-2">
               <a
-                href="#"
+                href="/logout"
                 className="flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 font-medium rounded-xl transition-colors"
               >
                 <span className="material-symbols-outlined text-[22px]">
