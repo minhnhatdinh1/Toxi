@@ -1,56 +1,76 @@
 import react from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import logo from '../../../assets/image/LOGO (1).png';
 export default function CheckOutMain() {
     return (
      <>
-      <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-surface-light/95 dark:bg-background-dark/95 backdrop-blur supports-[backdrop-filter]:bg-surface-light/60">
-        <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
-          
-          {/* Left */}
-          <div className="flex items-center gap-3">
-            <div className="size-8 text-primary flex items-center justify-center rounded-lg bg-primary/10">
-              <span className="material-symbols-outlined text-2xl">
-                school
-              </span>
-            </div>
+       <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
+      {/* Background pattern */}
+      <div className="absolute inset-0 bg-chinese-pattern opacity-10 pointer-events-none"></div>
 
-            <div className="flex flex-col">
-              <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">
-                TOXI
-              </h1>
-              <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Học để ứng dụng
-              </span>
-            </div>
+      <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-8 relative z-10">
+        {/* LOGO */}
+       <Link to="/Home" className="flex items-center gap-3 shrink-0">
+                 <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />
+                 <div>
+                   <h1 className="text-2xl font-black tracking-tighter leading-none">
+                     TOXI
+                   </h1>
+                   <p className="text-[8px] uppercase tracking-widest text-secondary font-bold">
+                     学以致用
+                   </p>
+                 </div>
+               </Link>
 
-            <div className="hidden md:flex h-6 w-px bg-slate-200 dark:bg-slate-700 mx-4"></div>
-
-            <div className="hidden md:flex items-center gap-2 text-slate-500 dark:text-slate-400">
-              <span className="material-symbols-outlined text-[20px]">
-                lock
-              </span>
-              <span className="text-sm font-medium">
-                Thanh toán an toàn
-              </span>
-            </div>
+        {/* SEARCH */}
+        <div className="flex-1 max-w-2xl hidden md:block">
+          <div className="relative group">
+            <input
+              type="text"
+              placeholder="Tìm kiếm sản phẩm, giáo trình, dụng cụ..."
+              className="w-full pl-12 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-full text-sm focus:ring-2 focus:ring-secondary focus:bg-white focus:text-primary transition-all placeholder-white/60"
+            />
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/60 group-focus-within:text-primary">
+              search
+            </span>
           </div>
-
-          {/* Right */}
-          <div className="flex items-center gap-4">
-            <button className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
-              Trợ giúp
-            </button>
-
-            <div className="size-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTQGx7FvBWhpLdwFpHcSkqi3QIy0CT-QG_kUMQBwmoSnwZnBhelHAEvjVPSIFDNN81tRrSb4_TCOB_x3TIP7R4nuX0McUwnkO0HOvhK1ibTxCsLK0KD6y1LEVhcKlPkHMxgOvPhOY2p8_Zih9fZeQnBroksp1E5lXPtUo-22bWnMYGHEmFPOlxdmyandEZZYiuhpXF3ZSCHpGaWr8NSN6gfSki3YG9xN6rXU62USqQ_ojVluztPvwm_7fJpqt8CW4PtTYFnl72a7A"
-                alt="User Avatar"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-
         </div>
-      </header>
+
+        {/* ACTIONS */}
+        <div className="flex items-center gap-6 shrink-0">
+          {/* CART */}
+          <div className="relative group cursor-pointer">
+          <button className="flex-[1.5] px-8 py-5 bg-primary text-secondary font-bold rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 group">
+      
+      <span
+        className="material-symbols-outlined group-hover:scale-110 transition-transform cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation(); // không trigger click của button
+          navigate("/cart");
+        }}
+      >
+        shopping_cart
+      </span>
+      </button>
+          </div>
+
+          {/* AUTH BUTTONS */}
+          <div className="hidden sm:flex items-center gap-4">
+            <Link to="/login" className="text-sm font-bold hover:text-secondary transition-colors">
+              Đăng nhập
+            </Link>
+            <Link to="/register" className="bg-secondary text-primary px-6 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-secondary-dark transition-all transform hover:scale-105">
+              Đăng ký tư vấn
+            </Link>
+          </div>
+
+          {/* MOBILE MENU */}
+          <button className="md:hidden text-white">
+            <span className="material-symbols-outlined">menu</span>
+          </button>
+        </div>
+      </div>
+    </header>
       <main className="flex-grow container mx-auto px-4 lg:px-8 py-8">
   <nav className="flex mb-8 text-sm font-medium">
     <ol className="flex items-center gap-2">

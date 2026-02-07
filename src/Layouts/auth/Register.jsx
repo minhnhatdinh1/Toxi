@@ -2,8 +2,10 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "@/services/api";
 export default function Register() {
   const [formData, setFormData] = useState({
+    
     username: "",
     password: "",
     confirmPassword: "",
@@ -13,6 +15,8 @@ export default function Register() {
   });
 
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+const [error, setError] = useState(null);
   return (
     <>
       <div className="font-display bg-surface text-slate-800 antialiased selection:bg-primary selection:text-white min-h-screen">
