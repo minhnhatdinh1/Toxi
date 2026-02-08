@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom"
 import toxiLogo from "../../assets/image/LOGO (1).png"
+import { useNavigate } from "react-router-dom";
 export default function Login() {
+    const navigate = useNavigate();
     return (
         <>
         <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
@@ -16,10 +18,15 @@ export default function Login() {
 
       {/* CARD */}
       <div className="relative w-full max-w-[900px] bg-[#fcfbf8] dark:bg-[#1a1a1a] rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden z-10">
-        {/* CLOSE BUTTON */}
-        <button className="absolute top-4 right-4 z-20 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-secondary dark:text-white/80">
-          <span className="material-symbols-outlined text-2xl">close</span>
-        </button>
+        <button
+                type="button"
+                onClick={() => navigate("/home")}
+                className="absolute top-5 right-5 text-slate-400 hover:text-primary transition-colors p-2 rounded-full hover:bg-black/5 group z-20"
+              >
+                <span className="material-symbols-outlined text-2xl group-hover:rotate-90 transition-transform duration-300">
+                  close
+                </span>
+              </button>
 
         {/* LEFT PANEL */}
         <div className="hidden md:flex md:w-5/12 bg-secondary relative flex-col items-center justify-center p-8 text-center overflow-hidden">
@@ -105,7 +112,7 @@ export default function Login() {
               Mật khẩu
             </label>
             <a
-              href="#"
+              href="/MissingPassword"
               className="text-sm text-gray-500 hover:text-secondary dark:hover:text-primary transition-colors"
             >
               Quên mật khẩu?

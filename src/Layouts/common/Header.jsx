@@ -4,19 +4,26 @@ import toxiLogo from "../../assets/image/LOGO (1).png";
 const Header = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleSmoothScroll = (sectionId) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setSidebarOpen(false);
-    }
-  };
+  
 
   return (
     <div className="bg-surface text-slate-900 antialiased overflow-x-hidden">
       <div className="flex flex-col lg:flex-row ">
         {/* SIDEBAR */}
-        <aside className={`lg:fixed lg:top-0 lg:left-0 lg:h-screen lg:w-72 w-full bg-primary text-white flex flex-col z-50 shadow-2xl overflow-y-auto lg:border-r-4 border-secondary/20 bg-chinese-pattern fixed top-0 left-0 h-screen transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+      <aside
+  className={`
+    fixed top-0 bottom-0 left-0
+    lg:w-72 w-full
+    bg-primary text-white
+    flex flex-col
+    z-50 shadow-2xl
+    overflow-y-auto
+    lg:border-r-4 border-secondary/20
+    bg-chinese-pattern
+    transition-transform duration-300
+    ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+  `}
+>
           {/* Logo */}
           <div className="p-4 flex flex-col items-center border-b border-white/10 relative">
             <div className="h-16 w-16 rounded-2xl  text-primary flex items-center ">
@@ -50,21 +57,21 @@ const Header = ({ children }) => {
   </a>
 
   {[
-    { icon: "self_improvement", label: "Khóa học", sectionId: "gioithieu" },
-    { icon: "school", label: "Sản phẩm", sectionId: "store" },
-    { icon: "storefront", label: "Tiếng Trung cơ bản", sectionId: "basic" },
-    { icon: "auto_stories", label: "Tiếng Trung Nâng cao", sectionId: "advanced" },
+    { icon: "self_improvement", label: "Khóa học", to: "/course" },
+    { icon: "school", label: "Sản phẩm", to: "/store" },
+    { icon: "storefront", label: "Tiếng Trung cơ bản", to: "/basic" },
+    { icon: "auto_stories", label: "Tiếng Trung Nâng cao", to: "/advanced" },
   ].map((item) => (
-    <button
+    <Link
       key={item.label}
-      onClick={() => handleSmoothScroll(item.sectionId)}
-      className="group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all border border-transparent hover:border-secondary/30 text-left bg-transparent hover:text-white"
+      to={item.to}
+      className="group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all border border-transparent hover:border-secondary/30 text-left bg-transparent"
     >
       <span className="material-symbols-outlined text-secondary/70 group-hover:text-secondary group-hover:scale-110 transition-transform">
         {item.icon}
       </span>
       <span className="font-medium">{item.label}</span>
-    </button>
+    </Link>
   ))}
 
   {/* QUICK LINKS */}
