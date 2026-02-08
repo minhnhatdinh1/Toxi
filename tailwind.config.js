@@ -12,6 +12,12 @@ export default {
         "accent-red": "#C8102E", // Chinese Red
         "surface": "#FDFBF7", // Rice paper white
         "gold-light": "#FFF5C2",
+        "white": "#FFFFFF",
+           /* 👇 THÊM MÀU CHỮ RIÊNG */
+       
+        "text-main": "#0D121B",
+        "text-muted": "#6B7280",
+        "text-invert": "#FFFFFF",
       },
       fontFamily: {
         "display": ["Lexend", "Noto Sans SC", "sans-serif"],

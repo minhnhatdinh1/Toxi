@@ -23,6 +23,7 @@ import MyProductMain from './Layouts/mycourse/component/MyProductMain.jsx'
 import MyVocabularyPage from './Layouts/mycourse/MyVocabularyPage.jsx'
 import Course from './Layouts/products/Course.jsx'
 import './App.css'
+import Product from './Layouts/products/Product.jsx';
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
         <Route path="/Profile" element={<MyInformationPage />} />
         <Route path="/MyProduct" element={<MyProductMain />} />
         <Route path="/MyVocabulary" element={<MyVocabularyPage />} />
+        <Route path="/store" element={<Product />} />
         
       </Routes>
  

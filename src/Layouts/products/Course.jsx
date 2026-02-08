@@ -1,10 +1,10 @@
 import react from 'react'
 import { Link } from "react-router-dom";
 export default function Course() {
+  
     return (
         <>
-        
-          <main className="flex-1 lg:ml-72 bg-surface relative">
+         <main className="flex-1 lg:ml-72 bg-surface relative">
       {/* HEADER */}
 
       {/* HERO */}
