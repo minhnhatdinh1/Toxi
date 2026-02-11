@@ -18,12 +18,12 @@ export default function ExamMain({ selectedExam }) {
         <>
         <div className="relative flex h-auto min-h-screen w-full flex-col bg-chinese-pattern overflow-x-hidden">
       {/* Header */}
-       <div className="w-full bg-white dark:bg-surface-dark shadow-sm z-50 sticky top-0">
+       <div className="max-w-5xl mx-auto bg-white dark:bg-surface-dark shadow-sm z-50 sticky top-0">
        <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
       {/* Background pattern */}
       <div className="absolute inset-0 bg-chinese-pattern opacity-10 pointer-events-none"></div>
 
-      <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-8 relative z-10">
+      <div className="max-w-6xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-8 relative z-10">
         {/* LOGO */}
         <Link to="/Home" className="flex items-center gap-3 shrink-0">
           <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />

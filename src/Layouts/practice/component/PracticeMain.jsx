@@ -56,13 +56,13 @@ export default function FlashcardMain() {
         <img
           src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUVBMmZTqB5ybemlPvHqHTvylCyKtS1vMFPajE9Rs-XiSDcA8YQmpQJEDSPwQrr2bDdOkyRzVu93DVfM581UNXLVCw5GuPYXTSb4fZOqS6gRzhB6U5EW6QIvjuc9EdXupYIQHT37zeOWWN7KFzcJ0c--HmFJIaofJGJ91vjabc6UUbWo1rI36SgH43-iEXzyVssUaqLdeeuuFnZJ5-WZTiZCPMcPspBorFGUk6iF7eZ_iuVNXwMJr80Y1V_SnsoN_wm10rHnAFonE"
           alt="Landscape"
-          className="w-full h-full object-cover opacity-10 blur-sm ink-overlay"
+          className="max-w-6xl h-full object-cover opacity-10 blur-sm ink-overlay"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-surface via-transparent to-surface" />
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto relative z-10 text-center">
+      <div className="max-w-5xl mx-auto relative z-10 text-center">
         <div className="inline-flex items-center gap-3 mb-6">
           <div className="h-[2px] w-8 bg-secondary" />
           <span className="text-secondary font-bold text-xs uppercase tracking-[0.4em]">
@@ -84,13 +84,13 @@ export default function FlashcardMain() {
         </p>
       </div>
     </section>
-    <section className="px-8 pb-24 max-w-7xl w-full mx-auto relative z-10">
+    <section className="px-8 pb-24 max-w-6xl w-full mx-auto relative z-10">
 
       {/* Filter */}
       <div className="bg-white/60 backdrop-blur-md p-8 rounded-[2rem] border border-white shadow-xl -mt-10 mb-16 flex flex-col lg:flex-row gap-10 items-center">
 
         {/* HSK Level */}
-        <div className="flex-1 w-full">
+        <div className="flex-1 max-w-5xl">
           <label className="text-[10px] font-black text-primary/40 uppercase tracking-widest mb-3 block text-center lg:text-left">
             Cấp độ HSK
           </label>
@@ -114,7 +114,7 @@ export default function FlashcardMain() {
         </div>
 
         {/* Select box */}
-        <div className="w-full lg:w-auto flex gap-4">
+        <div className="max-w-5xl lg:w-auto flex gap-4">
           <div className="flex-1 lg:w-56">
             <select className="w-full bg-slate-100/50 border-none rounded-2xl text-xs font-bold text-primary focus:ring-secondary py-3">
               <option>Tất cả loại đề</option>
