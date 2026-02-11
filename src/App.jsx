@@ -21,7 +21,9 @@ import MyCoursePage from './Layouts/mycourse/MyCoursePage.jsx'
 import MyInformationPage from './Layouts/mycourse/MyInformationPage.jsx'
 import MyProductMain from './Layouts/mycourse/component/MyProductMain.jsx'
 import MyVocabularyPage from './Layouts/mycourse/MyVocabularyPage.jsx'
+import Course from './Layouts/products/Course.jsx'
 import './App.css'
+import Product from './Layouts/products/Product.jsx';
 
 function App() {
   return (
@@ -31,6 +33,7 @@ function App() {
           <Route path="home" element={<HomePage />} />
           <Route path="blog" element={<BlogPage />} />
           <Route path="Practice" element={<PracticePage />} />
+          <Route path="/course" element={<Course />} />
         </Route>
 
         <Route path="/products/:id" element={<Productdetail />} />
@@ -47,6 +50,8 @@ function App() {
         <Route path="/Profile" element={<MyInformationPage />} />
         <Route path="/MyProduct" element={<MyProductMain />} />
         <Route path="/MyVocabulary" element={<MyVocabularyPage />} />
+        <Route path="/store" element={<Product />} />
+        
       </Routes>
  
   )

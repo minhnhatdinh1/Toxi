@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+<<<<<<< HEAD
 import { registerApi } from "./api/authApi";
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -16,6 +17,39 @@ export default function Register() {
       alert("Mật khẩu xác nhận không khớp");
       return;
     }
+=======
+import * as api from "../service/ApiService";
+export default function Register() {
+ const handleRegister = async () => {
+  if (formData.password !== formData.confirmPassword) {
+    setError("Mật khẩu xác nhận không khớp");
+    return;
+  }
+
+  try {
+    setLoading(true);
+    setError(null);
+
+    const payload = {
+      username: formData.username,
+      password: formData.password,
+      email: formData.email,
+      full_name: formData.full_name,
+      phone: formData.phone,
+      address: formData.address || "",
+      avatar_url: formData.avatar_url || "",
+      status: 1,
+    };
+
+    await api.register(payload);
+    navigate("/login");
+  } catch (err) {
+    setError("Đăng ký thất bại");
+  } finally {
+    setLoading(false);
+  }
+};
+>>>>>>> f0ebb05027f3fe9bb7ea2a5fa9b50504ed64224f
 
     try {
       await registerApi({
@@ -58,6 +92,7 @@ export default function Register() {
               {/* Close button */}
               <button
                 type="button"
+                onClick={() => navigate("/home")}
                 className="absolute top-5 right-5 text-slate-400 hover:text-primary transition-colors p-2 rounded-full hover:bg-black/5 group z-20"
               >
                 <span className="material-symbols-outlined text-2xl group-hover:rotate-90 transition-transform duration-300">
