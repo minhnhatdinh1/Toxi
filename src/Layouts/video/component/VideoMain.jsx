@@ -38,7 +38,7 @@ useEffect(() => {
       {/* Background pattern */}
       <div className="absolute inset-0 bg-chinese-pattern opacity-10 pointer-events-none"></div>
 
-      <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-8 relative z-10">
         {/* LOGO */}
         <Link to="/Home" className="flex items-center gap-3 shrink-0">
           <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />

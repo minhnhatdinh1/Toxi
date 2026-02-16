@@ -1,4 +1,4 @@
-import react from 'react'
+import react, { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import logo from '../../assets/image/LOGO (1).png'
 import { useNavigate } from "react-router-dom";
@@ -44,6 +44,8 @@ export default function Productdetail() {
     const products = productsData
     const product = products.find(p => p.id === parseInt(id))
       const navigate = useNavigate();
+      const [activeImage, setActiveImage] = useState(product?.image || images[0]);
+      const [quantity, setQuantity] = useState(1);
     return (
        <>
         <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
@@ -149,7 +151,7 @@ export default function Productdetail() {
             <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center group overflow-hidden">
               <div className="chinese-border w-full">
                 <img
-                  src={product?.image}
+                  src={activeImage}
                   alt="Product Main"
                   className="w-full h-auto aspect-square object-cover rounded-lg group-hover:scale-105 transition-transform duration-500"
                 />
@@ -248,9 +250,32 @@ export default function Productdetail() {
 <div className="flex items-center gap-6">
 <span className="text-sm font-bold text-slate-900 w-24">Số lượng:</span>
 <div className="flex items-center border-2 border-slate-200 rounded-xl bg-white overflow-hidden">
-<button className="px-5 py-3 hover:bg-slate-50 text-xl font-bold transition-colors">-</button>
-<input className="w-16 text-center border-none focus:ring-0 font-black text-primary text-xl" type="number" value="1"/>
-<button className="px-5 py-3 hover:bg-slate-50 text-xl font-bold transition-colors">+</button>
+  <button
+    type="button"
+    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+    className="px-5 py-3 hover:bg-slate-50 text-xl font-bold transition-colors"
+  >
+    -
+  </button>
+
+  <input
+    type="number"
+    min={1}
+    value={quantity}
+    onChange={(e) => {
+      const v = parseInt(e.target.value || '0', 10);
+      setQuantity(Number.isNaN(v) || v < 1 ? 1 : v);
+    }}
+    className="w-16 text-center border-none focus:ring-0 font-black text-primary text-xl"
+  />
+
+  <button
+    type="button"
+    onClick={() => setQuantity(q => q + 1)}
+    className="px-5 py-3 hover:bg-slate-50 text-xl font-bold transition-colors"
+  >
+    +
+  </button>
 </div>
 </div>
 </div>

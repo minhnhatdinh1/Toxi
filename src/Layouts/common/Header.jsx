@@ -13,19 +13,19 @@ const Header = ({ children }) => {
       <aside
   className={`
     fixed top-0 bottom-0 left-0
-    lg:w-72 w-full
+   lg:w-64 w-64
     bg-primary text-white
     flex flex-col
-    z-50 shadow-2xl
+    z-50 shadow-xl
     overflow-y-auto
-    lg:border-r-4 border-secondary/20
+    lg:border-r border-secondary/20
     bg-chinese-pattern
     transition-transform duration-300
     ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
   `}
 >
           {/* Logo */}
-          <div className="p-4 flex flex-col items-center border-b border-white/10 relative">
+          <div className="px-3 py-2.5 flex flex-col items-center border-b border-white/10 relative">
             <div className="h-16 w-16 rounded-2xl  text-primary flex items-center ">
               <img src={toxiLogo} alt="TOXI Logo" className=" object-contain" />
             </div>
@@ -103,7 +103,7 @@ const Header = ({ children }) => {
           {/* SUPPORT */}
           <div className="p-6 bg-primary-dark/50 border-t border-white/10 text-center relative overflow-hidden">
             <div className="absolute -right-4 -bottom-4 text-white/5 pointer-events-none">
-              <span className="material-symbols-outlined text-8xl">
+              <span className="material-symbols-outlined text-6xl">
                 support_agent
               </span>
             </div>

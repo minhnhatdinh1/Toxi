@@ -22,6 +22,7 @@ import MyInformationPage from './Layouts/mycourse/MyInformationPage.jsx'
 import MyProductMain from './Layouts/mycourse/component/MyProductMain.jsx'
 import MyVocabularyPage from './Layouts/mycourse/MyVocabularyPage.jsx'
 import Course from './Layouts/products/Course.jsx'
+import StepEmail from './Layouts/auth/ForgotPassword/StepEmail.jsx'
 import './App.css'
 import Product from './Layouts/products/Product.jsx';
 
@@ -51,6 +52,8 @@ function App() {
         <Route path="/MyProduct" element={<MyProductMain />} />
         <Route path="/MyVocabulary" element={<MyVocabularyPage />} />
         <Route path="/store" element={<Product />} />
+        <Route path="/course" element={<Course />} />
+        <Route path ="/MissingPassword" element={<StepEmail />} />
         
       </Routes>
  

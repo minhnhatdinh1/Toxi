@@ -6,82 +6,71 @@ export default function CartpageMain() {
   const navigate = useNavigate();
     return (
         <>
-        <main className="flex-grow w-full max-w-[1440px] mx-auto px-4 md:px-6 lg:px-10 py-8">
-      {/* Header */}
-       <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-chinese-pattern opacity-10 pointer-events-none"></div>
+        {/* Header (separated from main for clearer spacing) */}
+        <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
+          {/* Background pattern */}
+          <div className="absolute inset-0 bg-chinese-pattern opacity-10 pointer-events-none"></div>
 
-      <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-8 relative z-10">
-        {/* LOGO */}
-       <Link to="/Home" className="flex items-center gap-3 shrink-0">
-                 <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />
-                 <div>
-                   <h1 className="text-2xl font-black tracking-tighter leading-none">
-                     TOXI
-                   </h1>
-                   <p className="text-[8px] uppercase tracking-widest text-secondary font-bold">
-                     学以致用
-                   </p>
-                 </div>
-               </Link>
-
-        {/* SEARCH */}
-        <div className="flex-1 max-w-2xl hidden md:block">
-          <div className="relative group">
-            <input
-              type="text"
-              placeholder="Tìm kiếm sản phẩm, giáo trình, dụng cụ..."
-              className="w-full pl-12 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-full text-sm focus:ring-2 focus:ring-secondary focus:bg-white focus:text-primary transition-all placeholder-white/60"
-            />
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/60 group-focus-within:text-primary">
-              search
-            </span>
-          </div>
-        </div>
-
-        {/* ACTIONS */}
-        <div className="flex items-center gap-6 shrink-0">
-          {/* CART */}
-          <div className="relative group cursor-pointer">
-          <button className="flex-[1.5] px-8 py-5 bg-primary text-secondary font-bold rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 group">
-      
-      <span
-        className="material-symbols-outlined group-hover:scale-110 transition-transform cursor-pointer"
-        onClick={(e) => {
-          e.stopPropagation(); // không trigger click của button
-          navigate("/cart");
-        }}
-      >
-        shopping_cart
-      </span>
-      </button>
-          </div>
-
-          {/* AUTH BUTTONS */}
-          <div className="hidden sm:flex items-center gap-4">
-            <Link to="/login" className="text-sm font-bold hover:text-secondary transition-colors">
-              Đăng nhập
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-8 relative z-10">
+            {/* LOGO */}
+            <Link to="/Home" className="flex items-center gap-3 shrink-0">
+              <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />
+              <div>
+                <h1 className="text-2xl font-black tracking-tighter leading-none">TOXI</h1>
+                <p className="text-[8px] uppercase tracking-widest text-secondary font-bold">学以致用</p>
+              </div>
             </Link>
-            <Link to="/register" className="bg-secondary text-primary px-6 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-secondary-dark transition-all transform hover:scale-105">
-              Đăng ký tư vấn
-            </Link>
+
+            {/* SEARCH */}
+            <div className="flex-1 max-w-6xl hidden md:block">
+              <div className="relative group">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm sản phẩm, giáo trình, dụng cụ..."
+                  className="w-full pl-12 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-full text-sm focus:ring-2 focus:ring-secondary focus:bg-white focus:text-primary transition-all placeholder-white/60"
+                />
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/60 group-focus-within:text-primary">search</span>
+              </div>
+            </div>
+
+            {/* ACTIONS */}
+            <div className="flex items-center gap-6 shrink-0">
+              {/* CART */}
+              <div className="relative group cursor-pointer">
+                <button className="flex-[1.5] px-8 py-5 bg-primary text-secondary font-bold rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 group">
+                  <span
+                    className="material-symbols-outlined group-hover:scale-110 transition-transform cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/cart");
+                    }}
+                  >
+                    shopping_cart
+                  </span>
+                </button>
+              </div>
+
+              {/* AUTH BUTTONS */}
+              <div className="hidden sm:flex items-center gap-4">
+                <Link to="/login" className="text-sm font-bold hover:text-secondary transition-colors">Đăng nhập</Link>
+                <Link to="/register" className="bg-secondary text-primary px-6 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-secondary-dark transition-all transform hover:scale-105">Đăng ký tư vấn</Link>
+              </div>
+
+              {/* MOBILE MENU */}
+              <button className="md:hidden text-white">
+                <span className="material-symbols-outlined">menu</span>
+              </button>
+            </div>
           </div>
+        </header>
 
-          {/* MOBILE MENU */}
-          <button className="md:hidden text-white">
-            <span className="material-symbols-outlined">menu</span>
-          </button>
-        </div>
-      </div>
-    </header>
-
-      {/* Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <main className="flex-grow w-full max-w-[1920px] mx-auto px-4 md:px-6 lg:px-10 py-8 mt-6">
+          {/* Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-8 flex flex-col gap-6">
           <div className="bg-white dark:bg-slate-850 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
             <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-left border-collapse">
+              <table className="max-w-7x1 text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-xs uppercase text-slate-500 dark:text-slate-400 font-semibold tracking-wider">
                     <th className="px-6 py-4 min-w-[300px]">
