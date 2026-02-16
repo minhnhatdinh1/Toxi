@@ -25,6 +25,8 @@ import Course from './Layouts/products/Course.jsx'
 import StepEmail from './Layouts/auth/ForgotPassword/StepEmail.jsx'
 import './App.css'
 import Product from './Layouts/products/Product.jsx';
+import StepCode from './Layouts/auth/ForgotPassword/StepCode.jsx';
+import StepReset from './Layouts/auth/ForgotPassword/StepReset.jsx';
 
 function App() {
   return (
@@ -54,6 +56,8 @@ function App() {
         <Route path="/store" element={<Product />} />
         <Route path="/course" element={<Course />} />
         <Route path ="/MissingPassword" element={<StepEmail />} />
+        <Route path ="/MissingPasswordStepCode" element={<StepCode />} />
+        <Route path="/reset-password" element={<StepReset />} />
         
       </Routes>
  

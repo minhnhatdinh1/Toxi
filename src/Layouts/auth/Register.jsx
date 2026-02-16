@@ -1,61 +1,35 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-<<<<<<< HEAD
-import { registerApi } from "./api/authApi";
+import * as api from "../service/ApiService";
+
 export default function Register() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    userName: "",
-    passWord: "",
+    username: "",
+    password: "",
     confirmPassword: "",
     fullName: "",
     email: "",
     phone: "",
   });
+
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
   const handleRegister = async () => {
-    if (formData.passWord !== formData.confirmPassword) {
-      alert("Mật khẩu xác nhận không khớp");
+    if (formData.password !== formData.confirmPassword) {
+      setError("Mật khẩu xác nhận không khớp");
       return;
     }
-=======
-import * as api from "../service/ApiService";
-export default function Register() {
- const handleRegister = async () => {
-  if (formData.password !== formData.confirmPassword) {
-    setError("Mật khẩu xác nhận không khớp");
-    return;
-  }
-
-  try {
-    setLoading(true);
-    setError(null);
-
-    const payload = {
-      username: formData.username,
-      password: formData.password,
-      email: formData.email,
-      full_name: formData.full_name,
-      phone: formData.phone,
-      address: formData.address || "",
-      avatar_url: formData.avatar_url || "",
-      status: 1,
-    };
-
-    await api.register(payload);
-    navigate("/login");
-  } catch (err) {
-    setError("Đăng ký thất bại");
-  } finally {
-    setLoading(false);
-  }
-};
->>>>>>> f0ebb05027f3fe9bb7ea2a5fa9b50504ed64224f
 
     try {
-      await registerApi({
-        userName: formData.userName,
-        passWord: formData.passWord,
-        confirmPassword: formData.confirmPassword,
+      setLoading(true);
+      setError(null);
+
+      await api.register({
+        username: formData.username,
+        password: formData.password,
         fullName: formData.fullName,
         email: formData.email,
         phone: formData.phone,
@@ -64,11 +38,10 @@ export default function Register() {
       alert("Đăng ký thành công");
       navigate("/login");
     } catch (err) {
-      const message = err.response?.data?.message || "Đăng ký thất bại";
-      alert(message);
+      setError("Đăng ký thất bại");
+    } finally {
+      setLoading(false);
     }
-  };
-  const navigate = useNavigate();
   return (
     <>
       <div className="font-display bg-surface text-slate-800 antialiased selection:bg-primary selection:text-white min-h-screen">
@@ -341,3 +314,4 @@ export default function Register() {
     </>
   );
 }
+  };

@@ -1,8 +1,8 @@
-<<<<<<< HEAD
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toxiLogo from "../../assets/image/LOGO (1).png";
-import { loginApi } from "./api/authApi";
+//import { loginApi } from "./api/authApi";
 export default function Login() {
   const [userName, setUserName] = useState("");
   const [passWord, setPassWord] = useState("");
@@ -15,37 +15,6 @@ export default function Login() {
         userName: userName,
         passWord: passWord,
       });
-=======
-import { Link } from "react-router-dom"
-import toxiLogo from "../../assets/image/LOGO (1).png"
-import { useNavigate } from "react-router-dom";
-export default function Login() {
-    const navigate = useNavigate();
-    return (
-        <>
-        <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      {/* BACKGROUND */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-secondary/80 mix-blend-multiply"></div>
-        <img
-          alt="Abstract ink wash painting style background representing Chinese culture"
-          className="w-full h-full object-cover opacity-30 grayscale"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEE4ACSy_8D3F3acz2enodKsiKuBRE2kN21op5MA9cbj26Yy4V8RTRusff-Q_l_4TVcTG8b3Z8_eIDTnxKi9VvjZMFCGnRzS0hHcx2wwlJqSRWHf7ipu8BMo3o_sA2aKsurdoq8IwFBpXPDxQWkU10I1enmjFS9Cl9V_EEbjzC2qNXCnmlnCwC3AYqrLEeAm7FMI4qbMt4nOecFhlFC7yGvyPw3cA0AvzCsWy8oAxGEieZDASvONePzr-b4mYGyM3lIyLbe7F4dMg"
-        />
-      </div>
-
-      {/* CARD */}
-      <div className="relative w-full max-w-[900px] bg-[#fcfbf8] dark:bg-[#1a1a1a] rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden z-10">
-        <button
-                type="button"
-                onClick={() => navigate("/home")}
-                className="absolute top-5 right-5 text-slate-400 hover:text-primary transition-colors p-2 rounded-full hover:bg-black/5 group z-20"
-              >
-                <span className="material-symbols-outlined text-2xl group-hover:rotate-90 transition-transform duration-300">
-                  close
-                </span>
-              </button>
->>>>>>> f0ebb05027f3fe9bb7ea2a5fa9b50504ed64224f
 
       console.log("Login success:", res.data);
       alert("Đăng nhập thành công");
@@ -171,7 +140,7 @@ export default function Login() {
                     Mật khẩu
                   </label>
                   <a
-                    href="#"
+                    href="/MissingPassword"
                     className="text-sm text-gray-500 hover:text-secondary dark:hover:text-primary transition-colors"
                   >
                     Quên mật khẩu?
@@ -199,8 +168,6 @@ export default function Login() {
                   </button>
                 </div>
               </div>
-
-<<<<<<< HEAD
               {/* SUBMIT */}
               <button
                 type="submit"
@@ -212,21 +179,7 @@ export default function Login() {
                   arrow_forward
                 </span>
               </button>
-=======
-        {/* PASSWORD */}
-        <div className="flex flex-col gap-2">
-          <div className="flex justify-between items-center">
-            <label className="text-secondary dark:text-white text-sm font-semibold">
-              Mật khẩu
-            </label>
-            <a
-              href="/MissingPassword"
-              className="text-sm text-gray-500 hover:text-secondary dark:hover:text-primary transition-colors"
-            >
-              Quên mật khẩu?
-            </a>
-          </div>
->>>>>>> f0ebb05027f3fe9bb7ea2a5fa9b50504ed64224f
+
 
               {/* DIVIDER */}
               <div className="relative flex py-2 items-center">
