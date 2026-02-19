@@ -13,6 +13,7 @@ export default {
         "surface": "#FDFBF7", // Rice paper white
         "gold-light": "#FFF5C2",
         "white": "#FFFFFF",
+         "accent-yellow": "#FFD700",
            /* 👇 THÊM MÀU CHỮ RIÊNG */
        
         "text-main": "#0D121B",
