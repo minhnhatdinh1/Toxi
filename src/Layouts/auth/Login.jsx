@@ -1,4 +1,4 @@
-
+<<<<<<< HEAD
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toxiLogo from "../../assets/image/LOGO (1).png";
@@ -7,25 +7,26 @@ export default function Login() {
   const [userName, setUserName] = useState("");
   const [passWord, setPassWord] = useState("");
   const navigate = useNavigate();
+
   const handleLogin = async (e) => {
-    e.preventDefault(); // chặn reload form
+    e.preventDefault();
 
     try {
       const res = await loginApi({
-        userName: userName,
-        passWord: passWord,
+        userName,
+        passWord,
       });
 
       console.log("Login success:", res.data);
       alert("Đăng nhập thành công");
 
-      // tạm thời chỉ redirect, CHƯA cần token
       navigate("/");
     } catch (err) {
       const message = err.response?.data?.message || "Đăng nhập thất bại";
       alert(message);
     }
   };
+
   return (
     <>
       <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
@@ -168,6 +169,8 @@ export default function Login() {
                   </button>
                 </div>
               </div>
+
+<<<<<<< HEAD
               {/* SUBMIT */}
               <button
                 type="submit"
@@ -179,7 +182,21 @@ export default function Login() {
                   arrow_forward
                 </span>
               </button>
-
+=======
+        {/* PASSWORD */}
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between items-center">
+            <label className="text-secondary dark:text-white text-sm font-semibold">
+              Mật khẩu
+            </label>
+            <a
+              href="/MissingPassword"
+              className="text-sm text-gray-500 hover:text-secondary dark:hover:text-primary transition-colors"
+            >
+              Quên mật khẩu?
+            </a>
+          </div>
+>>>>>>> f0ebb05027f3fe9bb7ea2a5fa9b50504ed64224f
 
               {/* DIVIDER */}
               <div className="relative flex py-2 items-center">
