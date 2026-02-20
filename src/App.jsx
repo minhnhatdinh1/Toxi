@@ -28,6 +28,9 @@ import Product from './Layouts/products/Product.jsx';
 import StepCode from './Layouts/auth/ForgotPassword/StepCode.jsx';
 import StepReset from './Layouts/auth/ForgotPassword/StepReset.jsx';
 import AdminPage from './Layouts/admin/AdminPage.jsx';
+import AdminCourse from './Layouts/admin/AdminCourse.jsx';
+import AdminProduct from './Layouts/admin/AdminProduct.jsx';
+import AdminExample from './Layouts/admin/AdminExample.jsx';
 
 function App() {
   return (
@@ -60,6 +63,9 @@ function App() {
         <Route path ="/MissingPasswordStepCode" element={<StepCode />} />
         <Route path="/reset-password" element={<StepReset />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/adminCourse" element={<AdminCourse />} />
+        <Route path="/adminStore" element={<AdminProduct />} />
+        <Route path="/adminExample" element={<AdminExample />} />
         
       </Routes>
  

@@ -1,4 +1,5 @@
 import react from "react";
+import toxiLogo from "../../assets/image/LOGO (1).png";
 export default function AdminPage() {
     return (
     <>
@@ -6,19 +7,21 @@ export default function AdminPage() {
           <aside className="w-72 bg-primary dark:bg-slate-900 flex-shrink-0 flex flex-col relative chinese-cloud-bg shadow-2xl z-20">
   
   {/* Logo */}
-  <div className="p-6 flex items-center gap-3">
-    <div className="size-10 bg-accent-yellow rounded-xl flex items-center justify-center shadow-lg">
-      <span className="material-symbols-outlined text-primary font-bold text-2xl">
-        school
-      </span>
+  <div className="px-3 py-2.5 flex flex-col items-center border-b border-white/10 relative">
+    <div className="h-16 w-16 rounded-2xl  text-primary flex items-center ">
+      <img src={toxiLogo} alt="TOXI Logo" className=" object-contain" />
     </div>
-    <div>
-      <h1 className="text-white text-xl font-bold tracking-tight">
-        TOXI Admin
-      </h1>
-      <p className="text-white/60 text-xs font-light">
-        Học để ứng dụng
+
+    <h1 className="text-3xl font-black tracking-tighter text-white">
+      TOXI
+    </h1>
+
+    <div className="flex items-center gap-2 mt-1">
+      <div className="h-[1px] w-4 bg-secondary"></div>
+      <p className="text-[10px] uppercase tracking-widest text-secondary font-bold">
+        Education
       </p>
+      <div className="h-[1px] w-4 bg-secondary"></div>
     </div>
   </div>
 
@@ -27,7 +30,7 @@ export default function AdminPage() {
     
     <a
       className="sidebar-active flex items-center gap-3 px-4 py-3 rounded-lg text-white transition-all"
-      href="#"
+      href="/admin"
     >
       <span className="material-symbols-outlined">dashboard</span>
       <span className="font-medium">Tổng quan</span>
@@ -43,7 +46,7 @@ export default function AdminPage() {
 
     <a
       className="flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-all"
-      href="#"
+      href="/adminCourse"
     >
       <span className="material-symbols-outlined">menu_book</span>
       <span className="font-medium">Quản lý khóa học</span>
@@ -51,7 +54,7 @@ export default function AdminPage() {
 
     <a
       className="flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-all"
-      href="#"
+      href="/adminStore"
     >
       <span className="material-symbols-outlined">shopping_bag</span>
       <span className="font-medium">Quản lý Store (Sách)</span>
@@ -59,7 +62,7 @@ export default function AdminPage() {
 
     <a
       className="flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-all"
-      href="#"
+      href="/adminExample"
     >
       <span className="material-symbols-outlined">quiz</span>
       <span className="font-medium">Ngân hàng đề thi HSK</span>
