@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toxiLogo from "../../assets/image/LOGO (1).png";
@@ -170,7 +170,7 @@ export default function Login() {
                 </div>
               </div>
 
-<<<<<<< HEAD
+
               {/* SUBMIT */}
               <button
                 type="submit"
@@ -182,7 +182,6 @@ export default function Login() {
                   arrow_forward
                 </span>
               </button>
-=======
         {/* PASSWORD */}
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-center">
@@ -196,7 +195,7 @@ export default function Login() {
               Quên mật khẩu?
             </a>
           </div>
->>>>>>> f0ebb05027f3fe9bb7ea2a5fa9b50504ed64224f
+          </div>
 
               {/* DIVIDER */}
               <div className="relative flex py-2 items-center">
