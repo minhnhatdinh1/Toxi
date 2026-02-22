@@ -31,6 +31,8 @@ import AdminPage from './Layouts/admin/AdminPage.jsx';
 import AdminCourse from './Layouts/admin/AdminCourse.jsx';
 import AdminProduct from './Layouts/admin/AdminProduct.jsx';
 import AdminExample from './Layouts/admin/AdminExample.jsx';
+import AdminStudent from './Layouts/admin/AdminStudent.jsx';
+import AdminFinance from './Layouts/admin/AdminFinance.jsx';
 
 function App() {
   return (
@@ -66,6 +68,8 @@ function App() {
         <Route path="/adminCourse" element={<AdminCourse />} />
         <Route path="/adminStore" element={<AdminProduct />} />
         <Route path="/adminExample" element={<AdminExample />} />
+        <Route path="/adminStudent" element={<AdminStudent />} />
+        <Route path="/adminFinance" element={<AdminFinance />} />
         
       </Routes>
  
