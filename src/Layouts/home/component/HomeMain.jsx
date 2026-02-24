@@ -268,7 +268,7 @@ export function HomePage() {
                 </span>
               </div>
               <h3 className="font-bold text-lg mb-2 text-slate-900">
-                Giao tiếp Cơ bản
+                Giao tiếp Cơ bản\
               </h3>
               <p className="text-sm text-slate-500 mb-4">
                 Dành cho người mới bắt đầu. Học phát âm chuẩn và các mẫu câu thông dụng hàng ngày.

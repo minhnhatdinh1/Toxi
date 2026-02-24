@@ -1,4 +1,4 @@
-import react, { useState } from 'react'
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import logo from '../../assets/image/LOGO (1).png'
 import { useNavigate } from "react-router-dom";

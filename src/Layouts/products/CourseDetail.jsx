@@ -57,7 +57,7 @@ const courseData = {
   },
 };
 export default function CourseDetail() {
-  const learningOutcomes = [
+  const LearningOutcomes = [
     "Nắm vững phát âm chuẩn (Pinyin, Thanh điệu) ngay từ đầu.",
     "Hơn 500 từ vựng cốt lõi và 50 cấu trúc ngữ pháp thông dụng.",
     "Tự tin giới thiệu bản thân, mua sắm, hỏi đường, gọi món.",

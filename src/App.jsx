@@ -1,14 +1,14 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { UseState } from 'react'
+import ReactLogo from './assets/react.svg'
+import ViteLogo from '/vite.svg'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Link } from "react-router-dom";
 import MainLayout from './Layouts/common/MainLayout'
 import { HomePage } from './Layouts/home/HomePage'
 import { BlogPage } from './Layouts/blog/BlogPage'
-import Register from './Layouts/auth/register'
+import Register from './Layouts/auth/Register'
 import Login from './Layouts/auth/Login'
-import Productdetail from './Layouts/products/productdetail'
+import Productdetail from './Layouts/products/Productdetail'
 import CourseDetail from './Layouts/products/CourseDetail'
 import Cartpage from "./Layouts/cart/Cartpage";
 import CheckOutPage from "./Layouts/checkout/CheckOutPage";
