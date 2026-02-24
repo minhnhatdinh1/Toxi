@@ -1,7 +1,8 @@
 import react from "react";
 import toxiLogo from "../../assets/image/LOGO (1).png";
-
+import React, { useState } from "react";
 export default function AdminSidebar() {
+   const [open, setOpen] = useState(false);
   return (
     <aside className="w-72 bg-primary dark:bg-slate-900 flex-shrink-0 flex flex-col relative chinese-cloud-bg shadow-2xl z-20">
 
@@ -48,7 +49,7 @@ export default function AdminSidebar() {
           href="/adminCourse"
         >
           <span className="material-symbols-outlined">menu_book</span>
-          <span className="font-medium">Quản lý khóa học</span>
+          <span className="font-medium">Quản lý Store (Sách)</span>
         </a>
 
         <a
@@ -56,7 +57,7 @@ export default function AdminSidebar() {
           href="/adminStore"
         >
           <span className="material-symbols-outlined">shopping_bag</span>
-          <span className="font-medium">Quản lý Store (Sách)</span>
+          <span className="font-medium">Quản lý khóa học</span>
         </a>
 
         <a
@@ -69,7 +70,7 @@ export default function AdminSidebar() {
 
         <a
           className="flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-all"
-          href="#"
+          href="/adminBlog"
         >
           <span className="material-symbols-outlined">article</span>
           <span className="font-medium">Bài viết Blog</span>
@@ -128,3 +129,4 @@ export default function AdminSidebar() {
     </aside>
   );
 }
+

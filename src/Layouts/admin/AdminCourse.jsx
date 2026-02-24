@@ -1,465 +1,243 @@
-import react from 'react'
+import React, { useState } from 'react';
 import AdminSidebar from "./AdminSidebar";
+import { Link } from "react-router-dom";
 export default function AdminCourse() {
-    return(
-        <>
-       <div class="flex h-screen overflow-hidden">
-             <AdminSidebar />
-        {/* Main Content */}
-<main className="flex-1 overflow-y-auto bg-background-light">
-  {/* Top Header */}
-  <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-[#e7ebf3] px-8 py-4 flex items-center justify-between">
-    <div>
-      <div className="flex items-center gap-2 text-sm text-[#4c669a] mb-1">
-        <span>Store Management</span>
-        <span className="material-symbols-outlined text-xs">
-          chevron_right
-        </span>
-        <span className="text-[#0d121b] font-medium">
-          Product List
-        </span>
-      </div>
-      <h2 className="text-2xl font-bold text-[#0d121b]">
-        Product Inventory
-      </h2>
-    </div>
+  // sample courses data (replace with real data source)
+  const COURSES = Array.from({ length: 24 }).map((_, i) => {
+    const id = i + 1;
+    const categories = ["HSK", "Business", "Communication"];
+    const category = categories[i % categories.length];
+    return {
+      id,
+      name:
+        i === 0
+          ? 'HSK 4 Intensive Prep'
+          : i === 1
+          ? 'Business Chinese Basics'
+          : i === 2
+          ? 'Daily Communication'
+          : i === 3
+          ? 'HSK 1 Beginner'
+          : `Course ${id}`,
+      category,
+      enrolled: Math.floor(Math.random() * 3000) + 50,
+      status: i % 4 === 3 ? 'Draft' : 'Active',
+    };
+  });
 
-    <div className="flex items-center gap-4">
-      <button className="flex items-center gap-2 px-4 py-2.5 bg-accent-yellow hover:bg-accent-yellow-hover text-black font-bold rounded-lg transition-all shadow-sm">
-        <span className="material-symbols-outlined">add</span>
-        <span>Add New Product</span>
-      </button>
-    </div>
-  </header>
-
-  <div className="p-8 space-y-6">
-    {/* Stats Overview */}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      
-      {/* Total Products */}
-      <div className="bg-white p-6 rounded-xl border border-[#e7ebf3] shadow-sm">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[#4c669a] text-sm font-medium">
-            Total Products
-          </span>
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <span className="material-symbols-outlined text-primary">
-              inventory_2
-            </span>
-          </div>
-        </div>
-        <div className="flex items-baseline gap-2">
-          <h3 className="text-3xl font-bold">1,248</h3>
-          <span className="text-green-600 text-sm font-bold flex items-center gap-0.5">
-            <span className="material-symbols-outlined text-xs">
-              arrow_upward
-            </span>
-            5.2%
-          </span>
-        </div>
-      </div>
-
-      {/* Low Stock */}
-      <div className="bg-white p-6 rounded-xl border border-[#e7ebf3] shadow-sm">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[#4c669a] text-sm font-medium">
-            Low Stock Items
-          </span>
-          <div className="p-2 bg-orange-100 rounded-lg">
-            <span className="material-symbols-outlined text-orange-600">
-              warning
-            </span>
-          </div>
-        </div>
-        <div className="flex items-baseline gap-2">
-          <h3 className="text-3xl font-bold">12</h3>
-          <span className="text-orange-600 text-sm font-medium italic">
-            Requires attention
-          </span>
-        </div>
-      </div>
-
-      {/* Total Sales */}
-      <div className="bg-white p-6 rounded-xl border border-[#e7ebf3] shadow-sm">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[#4c669a] text-sm font-medium">
-            Total Sales (MTD)
-          </span>
-          <div className="p-2 bg-green-100 rounded-lg">
-            <span className="material-symbols-outlined text-green-600">
-              payments
-            </span>
-          </div>
-        </div>
-        <div className="flex items-baseline gap-2">
-          <h3 className="text-3xl font-bold">¥45,000</h3>
-          <span className="text-green-600 text-sm font-bold flex items-center gap-0.5">
-            <span className="material-symbols-outlined text-xs">
-              arrow_upward
-            </span>
-            12.4%
-          </span>
-        </div>
-      </div>
-
-    </div>
-    {/* Product Table Container */}
-<div className="bg-white rounded-xl border border-[#e7ebf3] shadow-sm overflow-hidden">
-  
-  {/* Filters & Search */}
-  <div className="p-4 border-b border-[#e7ebf3] flex flex-wrap items-center justify-between gap-4">
-    
-    <div className="flex items-center gap-4 flex-1 min-w-[300px]">
-      
-      {/* Search */}
-      <div className="relative flex-1 max-w-md">
-        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#4c669a] text-xl">
-          search
-        </span>
-        <input
-          type="text"
-          placeholder="Search product name, SKU..."
-          className="w-full pl-10 pr-4 py-2 rounded-lg border-[#e7ebf3] focus:border-primary focus:ring-primary text-sm"
-        />
-      </div>
-
-      {/* Category Filter */}
-      <div className="flex items-center gap-2">
-        <select className="rounded-lg border-[#e7ebf3] text-sm focus:border-primary focus:ring-primary py-2 px-3">
-          <option>All Categories</option>
-          <option>Books</option>
-          <option>Flashcards</option>
-          <option>Tools</option>
-        </select>
-      </div>
-    </div>
-
-    {/* Buttons */}
-    <div className="flex items-center gap-2">
-      <button className="flex items-center gap-2 px-3 py-2 border border-[#e7ebf3] rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
-        <span className="material-symbols-outlined text-sm">filter_list</span>
-        <span>Advanced Filters</span>
-      </button>
-
-      <button className="flex items-center gap-2 px-3 py-2 border border-[#e7ebf3] rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
-        <span className="material-symbols-outlined text-sm">download</span>
-        <span>Export</span>
-      </button>
-    </div>
-  </div>
-
-  {/* Table */}
-  <div className="overflow-x-auto">
-    <table className="w-full text-left">
-      
-      <thead className="bg-gray-50 border-b border-[#e7ebf3]">
-        <tr>
-          <th className="px-6 py-4 text-xs font-bold text-[#4c669a] uppercase tracking-wider">
-            Product Image
-          </th>
-          <th className="px-6 py-4 text-xs font-bold text-[#4c669a] uppercase tracking-wider">
-            Product Name
-          </th>
-          <th className="px-6 py-4 text-xs font-bold text-[#4c669a] uppercase tracking-wider">
-            Category
-          </th>
-          <th className="px-6 py-4 text-xs font-bold text-[#4c669a] uppercase tracking-wider text-right">
-            Price
-          </th>
-          <th className="px-6 py-4 text-xs font-bold text-[#4c669a] uppercase tracking-wider text-right">
-            Stock
-          </th>
-          <th className="px-6 py-4 text-xs font-bold text-[#4c669a] uppercase tracking-wider text-center">
-            Actions
-          </th>
-        </tr>
-      </thead>
-
-      <tbody className="divide-y divide-[#e7ebf3]">
-        
-        {/* Row 1 */}
-        <tr className="hover:bg-gray-50/50 transition-colors">
-          
-          {/* Image */}
-          <td className="px-6 py-4">
-            <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border border-[#e7ebf3]">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvKqR-Jw1KEqY5fZbkhhFH7ia8bUlafYxll2Xs7DLz8MbqgJQ6ztyMueAql-_pudtdnAVErKhgwCTVwCkphVWrfzZHdu7nUJpuSicrhowkH6JHePOyyFsahlBMNv_-snOXRdOLnjT8PmWIOOzF8-MXFcOmo7ixvuGG7vJ1k7ofIyhe522wRJFcYkxE2LQ2K1VlQH_Q_e-GmdAVoGdm01m1O4vzt5DL1H5VhiaesLlKZFDtuuyHcEjbTt9X78Nly2RNA4ki6ioubC4"
-                alt="Chinese textbook cover for HSK 4 level"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </td>
-
-          {/* Name */}
-          <td className="px-6 py-4">
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 4;
+  const total = COURSES.length;
+  const totalPages = Math.ceil(total / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, total);
+  const paginated = COURSES.slice(startIndex, endIndex);
+  return (
+    <>
+      <div class="flex h-screen overflow-hidden">
+        <AdminSidebar />
+        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+          {/* Header */}
+          <header className="h-20 bg-white dark:bg-background-dark border-b border-gray-200 dark:border-white/10 flex items-center justify-between px-8 shrink-0">
             <div className="flex flex-col">
-              <span className="text-sm font-bold text-[#0d121b]">
-                Standard HSK 4 Textbook
-              </span>
-              <span className="text-xs text-[#4c669a]">
-                SKU: TX-BK-001
-              </span>
+              <h2 className="text-2xl font-black text-primary dark:text-accent tracking-tight uppercase">
+                Course Management
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Manage your active and draft curriculum
+              </p>
             </div>
-          </td>
 
-          {/* Category */}
-          <td className="px-6 py-4">
-            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700">
-              Books
+            <div className="flex items-center gap-4">
+              {/* Search */}
+              <div className="relative group">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors">
+                  search
+                </span>
+                <input
+                  className="pl-10 pr-4 py-2 bg-gray-100 dark:bg-white/5 border-none rounded-lg focus:ring-2 focus:ring-primary w-64 text-sm transition-all"
+                  placeholder="Search courses..."
+                  type="text"
+                />
+              </div>
+
+              <Link
+                to="/addnewCourse"
+                className="bg-accent hover:bg-yellow-400 text-primary px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-accent/20 transition-all active:scale-95"
+              >
+                <span className="material-symbols-outlined font-bold">add</span>
+                Add New Course
+              </Link>
+            </div>
+          </header>
+
+          {/* Table Section */}
+          <div className="flex-1 overflow-auto p-8">
+            {/* Tabs */}
+            <div className="flex gap-8 mb-6 border-b border-gray-200 dark:border-white/10">
+              <button className="pb-4 text-primary dark:text-accent font-bold border-b-2 border-primary dark:border-accent flex items-center gap-2">
+                All Courses
+                <span className="bg-primary/10 text-primary dark:bg-accent/10 dark:text-accent px-2 py-0.5 rounded text-xs">
+                  24
+                </span>
+              </button>
+
+              <button className="pb-4 text-gray-400 font-medium hover:text-primary dark:hover:text-accent transition-colors">
+                Active
+              </button>
+
+              <button className="pb-4 text-gray-400 font-medium hover:text-primary dark:hover:text-accent transition-colors">
+                Draft
+              </button>
+            </div>
+
+            {/* Table */}
+            <div className="bg-white dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-white/5">
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Course Name
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Category
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Students Enrolled
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+
+           <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+  {paginated.map((course) => (
+    <tr
+      key={course.id}
+      className="hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+    >
+      <td className="px-6 py-5">
+        <div className="flex items-center gap-3">
+          <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <span className="material-symbols-outlined text-primary">
+              menu_book
             </span>
-          </td>
+          </div>
+          <span className="font-semibold text-gray-900 dark:text-white">
+            {course.name}
+          </span>
+        </div>
+      </td>
 
-          {/* Price */}
-          <td className="px-6 py-4 text-right">
-            <span className="text-sm font-bold">¥128.00</span>
-          </td>
+      <td className="px-6 py-5">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+          {course.category}
+        </span>
+      </td>
 
-          {/* Stock */}
-          <td className="px-6 py-4 text-right">
-            <span className="text-sm font-medium">450</span>
-          </td>
+      <td className="px-6 py-5 text-gray-600 dark:text-gray-300">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-gray-400 text-sm">
+            person
+          </span>
+          {course.enrolled.toLocaleString()}
+        </div>
+      </td>
 
-          {/* Actions */}
-          <td className="px-6 py-4 text-center">
-            <div className="flex items-center justify-center gap-2">
-              
-              <button className="p-1.5 text-[#4c669a] hover:text-primary transition-colors">
-                <span className="material-symbols-outlined text-lg">
-                  edit
-                </span>
-              </button>
+      <td className="px-6 py-5">
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
+            course.status === "Active"
+              ? "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400"
+              : "bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-400"
+          }`}
+        >
+          <span
+            className={`size-1.5 rounded-full ${
+              course.status === "Active"
+                ? "bg-green-500"
+                : "bg-gray-400"
+            }`}
+          ></span>
+          {course.status}
+        </span>
+      </td>
 
-              <button className="p-1.5 text-[#4c669a] hover:text-primary transition-colors">
-                <span className="material-symbols-outlined text-lg">
-                  visibility
-                </span>
-              </button>
-
-              <button className="p-1.5 text-[#4c669a] hover:text-red-600 transition-colors">
-                <span className="material-symbols-outlined text-lg">
-                  delete
-                </span>
-              </button>
-
+      <td className="px-6 py-5 text-right">
+        <div className="flex justify-end gap-2">
+          <button className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all">
+            <span className="material-symbols-outlined text-xl">
+              edit
+            </span>
+          </button>
+          <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+            <span className="material-symbols-outlined text-xl">
+              delete
+            </span>
+          </button>
+        </div>
+      </td>
+    </tr>
+  ))}
+</tbody>
+              </table>
             </div>
-          </td>
-
-        </tr>
-{/* Row 2 */}
-<tr className="hover:bg-gray-50/50 transition-colors">
-  <td className="px-6 py-4">
-    <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border border-[#e7ebf3]">
-      <img
-        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwWIhiqTdx6mkwZlmHOE_sCreBSqrnevaFsZYXPwLAUsZ4s_YyCo69XvN-imI1qFctj9CnuidLK16pY-g56IN_1y2w1gR8BBHsReZjU1JlrlwWOPeGNQ4V8RdfKMuY27EiHyxa7KXPhEyYMzoqesNQ50cG7svlpSrACEkZ9NO_m0Vq64eJPF_u3aNk3Qdz0EIuiMA_LRALnHOvQ6RWt5emXgFezWcm_ESoA7ifSUewV3bORgFVLFWrRFSkTpghrHI8Ld7BP9xnzK0"
-        alt="Set of Chinese character flashcards"
-        className="w-full h-full object-cover"
-      />
-    </div>
-  </td>
-
-  <td className="px-6 py-4">
-    <div className="flex flex-col">
-      <span className="text-sm font-bold text-[#0d121b]">
-        Elementary 500 Flashcards
-      </span>
-      <span className="text-xs text-[#4c669a]">
-        SKU: TX-FC-204
-      </span>
-    </div>
-  </td>
-
-  <td className="px-6 py-4">
-    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-700">
-      Flashcards
-    </span>
-  </td>
-
-  <td className="px-6 py-4 text-right">
-    <span className="text-sm font-bold">¥89.00</span>
-  </td>
-
-  <td className="px-6 py-4 text-right">
-    <span className="text-sm font-medium text-orange-600 font-bold">
-      8
-    </span>
-  </td>
-
-  <td className="px-6 py-4 text-center">
-    <div className="flex items-center justify-center gap-2">
-      <button className="p-1.5 text-[#4c669a] hover:text-primary transition-colors">
-        <span className="material-symbols-outlined text-lg">edit</span>
-      </button>
-      <button className="p-1.5 text-[#4c669a] hover:text-primary transition-colors">
-        <span className="material-symbols-outlined text-lg">visibility</span>
-      </button>
-      <button className="p-1.5 text-[#4c669a] hover:text-red-600 transition-colors">
-        <span className="material-symbols-outlined text-lg">delete</span>
-      </button>
-    </div>
-  </td>
-</tr>
-
-{/* Row 3 */}
-<tr className="hover:bg-gray-50/50 transition-colors">
-  <td className="px-6 py-4">
-    <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border border-[#e7ebf3]">
-      <img
-        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDb4oqBf1Y_UJyDo902oE5KmL13gBOdpLdM6YPAYF8cQUH2dxHOuEy8SQ-0Cfr0fe2zUvkzPRNT4UV6LkxkrEL0BHWJX8wbOeq5uzXh4e5rSTykmcUUvFjoym-f1PVB8NvzmOj_x5uNVU-JGHS4QCzyqDC45dxLiJfp5d3dFO0o2pjO5c6XNUvNSBr2J3fsZWl_3KgykauB0QYaQ2w94a6cUJzC6-_YT9TtgcicPxh8ZybK_AYiuSpWN0RKbbJF8tKG4QzOOw5tQhg"
-        alt="Calligraphy brush and ink set"
-        className="w-full h-full object-cover"
-      />
-    </div>
-  </td>
-
-  <td className="px-6 py-4">
-    <div className="flex flex-col">
-      <span className="text-sm font-bold text-[#0d121b]">
-        Calligraphy Master Set
-      </span>
-      <span className="text-xs text-[#4c669a]">
-        SKU: TX-TL-092
-      </span>
-    </div>
-  </td>
-
-  <td className="px-6 py-4">
-    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-teal-100 text-teal-700">
-      Tools
-    </span>
-  </td>
-
-  <td className="px-6 py-4 text-right">
-    <span className="text-sm font-bold">¥255.00</span>
-  </td>
-
-  <td className="px-6 py-4 text-right">
-    <span className="text-sm font-medium">124</span>
-  </td>
-
-  <td className="px-6 py-4 text-center">
-    <div className="flex items-center justify-center gap-2">
-      <button className="p-1.5 text-[#4c669a] hover:text-primary transition-colors">
-        <span className="material-symbols-outlined text-lg">edit</span>
-      </button>
-      <button className="p-1.5 text-[#4c669a] hover:text-primary transition-colors">
-        <span className="material-symbols-outlined text-lg">visibility</span>
-      </button>
-      <button className="p-1.5 text-[#4c669a] hover:text-red-600 transition-colors">
-        <span className="material-symbols-outlined text-lg">delete</span>
-      </button>
-    </div>
-  </td>
-</tr>
-
-{/* Row 4 */}
-<tr className="hover:bg-gray-50/50 transition-colors">
-  <td className="px-6 py-4">
-    <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border border-[#e7ebf3]">
-      <img
-        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeU5mDK193ypN4M7Fon2i5p-3KGKv-tHzJeYFemmijJq0h6USpuGMyh8xN5cOLC7v-SH1mIo5PC6zoR84y7BuvYm3wtRhyjxNHlJBKtMjAPhMqUs2jvUtiPgqAmWj09nDfSdUtyoCJMVpxV-h7oOie43uUmn4scV1SWn6RcILDiL5D3-cQD5zQhjuiT83fWqETcd_OgWVRmgyFCndKmtuSlfEFH0w9bBKxjuqS9yoKP-3lEimyrkbTpLaRTA4v62pl0TKmp3F0grM"
-        alt="Collection of Chinese grammar guides"
-        className="w-full h-full object-cover"
-      />
-    </div>
-  </td>
-
-  <td className="px-6 py-4">
-    <div className="flex flex-col">
-      <span className="text-sm font-bold text-[#0d121b]">
-        Grammar Guide Level 1-3
-      </span>
-      <span className="text-xs text-[#4c669a]">
-        SKU: TX-BK-042
-      </span>
-    </div>
-  </td>
-
-  <td className="px-6 py-4">
-    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700">
-      Books
-    </span>
-  </td>
-
-  <td className="px-6 py-4 text-right">
-    <span className="text-sm font-bold">¥65.00</span>
-  </td>
-
-  <td className="px-6 py-4 text-right">
-    <span className="text-sm font-medium">89</span>
-  </td>
-
-  <td className="px-6 py-4 text-center">
-    <div className="flex items-center justify-center gap-2">
-      <button className="p-1.5 text-[#4c669a] hover:text-primary transition-colors">
-        <span className="material-symbols-outlined text-lg">edit</span>
-      </button>
-      <button className="p-1.5 text-[#4c669a] hover:text-primary transition-colors">
-        <span className="material-symbols-outlined text-lg">visibility</span>
-      </button>
-      <button className="p-1.5 text-[#4c669a] hover:text-red-600 transition-colors">
-        <span className="material-symbols-outlined text-lg">delete</span>
-      </button>
-    </div>
-  </td>
-</tr>
-      </tbody>
-    </table>
-  </div>
-  {/* Pagination */}
+            {/* Pagination */}
 <div className="p-4 bg-gray-50 border-t border-[#e7ebf3] flex items-center justify-between">
-  
+
   <p className="text-sm text-[#4c669a]">
-    Showing{" "}
-    <span className="font-bold text-[#0d121b]">1</span> to{" "}
-    <span className="font-bold text-[#0d121b]">4</span> of{" "}
-    <span className="font-bold text-[#0d121b]">1,248</span> results
+    Page <span className="font-bold text-[#0d121b]">{currentPage}</span> of{" "}
+    <span className="font-bold text-[#0d121b]">{totalPages}</span>
   </p>
 
   <div className="flex items-center gap-2">
-    
-    {/* Prev Button */}
+
+    {/* Prev */}
     <button
-      disabled
-      className="p-2 rounded-lg border border-[#e7ebf3] bg-white text-[#4c669a] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+      disabled={currentPage === 1}
+      className="px-3 py-1 border rounded disabled:opacity-50"
     >
-      <span className="material-symbols-outlined">
-        chevron_left
-      </span>
+      Prev
     </button>
 
     {/* Page Numbers */}
-    <button className="w-8 h-8 rounded-lg bg-primary text-white text-sm font-bold">
-      1
-    </button>
+    {Array.from({ length: totalPages }, (_, index) => (
+      <button
+        key={index}
+        onClick={() => setCurrentPage(index + 1)}
+        className={`px-3 py-1 rounded ${
+          currentPage === index + 1
+            ? "bg-primary text-white"
+            : "bg-white border"
+        }`}
+      >
+        {index + 1}
+      </button>
+    ))}
 
-    <button className="w-8 h-8 rounded-lg text-sm font-medium hover:bg-gray-200">
-      2
-    </button>
-
-    <button className="w-8 h-8 rounded-lg text-sm font-medium hover:bg-gray-200">
-      3
-    </button>
-
-    <span className="text-[#4c669a]">...</span>
-
-    <button className="w-8 h-8 rounded-lg text-sm font-medium hover:bg-gray-200">
-      312
-    </button>
-
-    {/* Next Button */}
-    <button className="p-2 rounded-lg border border-[#e7ebf3] bg-white text-[#4c669a] hover:bg-gray-50">
-      <span className="material-symbols-outlined">
-        chevron_right
-      </span>
+    {/* Next */}
+    <button
+      onClick={() =>
+        setCurrentPage((prev) =>
+          Math.min(prev + 1, totalPages)
+        )
+      }
+      disabled={currentPage === totalPages}
+      className="px-3 py-1 border rounded disabled:opacity-50"
+    >
+      Next
     </button>
 
   </div>
 </div>
-</div>
-  </div>
-</main>
-        </div>
-        </>
-    )
+          </div>
+        </main>
+      </div>
+    </>
+  )
 };

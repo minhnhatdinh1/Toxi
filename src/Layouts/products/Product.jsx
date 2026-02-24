@@ -14,7 +14,8 @@ const PRODUCTS_DATA = [
     originalPrice: 150000,
     discount: "-20%",
     badge: "discount",
-    description: "Cuốn sách nhập môn hoàn hảo cho người mới bắt đầu, kèm Audio nghe."
+    description: "Cuốn sách nhập môn hoàn hảo cho người mới bắt đầu, kèm Audio nghe.",
+    topics: ["Luyện thi HSK", "Giao tiếp công sở"]
   },
   {
     id: 2,
@@ -24,7 +25,8 @@ const PRODUCTS_DATA = [
     price: 250000,
     originalPrice: null,
     badge: "new",
-    description: "Bộ thẻ học từ vựng nhỏ gọn, tiện lợi, in màu sắc nét."
+    description: "Bộ thẻ học từ vựng nhỏ gọn, tiện lợi, in màu sắc nét.",
+    topics: ["Tiếng Trung du lịch"]
   },
   {
     id: 3,
@@ -33,7 +35,8 @@ const PRODUCTS_DATA = [
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDxXQEh3uENc7Ow34GwuF8gN9R4erGSWyIOYcbkVeGCidIOkafnILrWOMGcleN8OfOirRkwE3EM0donlNS6ZFLtO91nT4KPK9lWIcB9yNVI3F7uoZ6CerSMzLYNsF0YKKaDCQJViQLUNv0H_zQBAqSXETBqNcMovlooiCJXAhi8Z6a7G1t0yH-Yjvlms4Fh0j-skFw9ZFt3ExpPZvcZAB-00AfBcvSceBSx_mICZrpVTueKsEZzSDgOCeg55DTwyD2YYgkH-H5cPCc",
     price: 350000,
     originalPrice: null,
-    description: "Đầy đủ bút lông, mực, giấy và hướng dẫn chi tiết."
+    description: "Đầy đủ bút lông, mực, giấy và hướng dẫn chi tiết.",
+    topics: ["Giao tiếp công sở"]
   },
   {
     id: 4,
@@ -42,7 +45,8 @@ const PRODUCTS_DATA = [
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDgm9W3saf-1OfkDghA5ZDjH3H5ZQQ1Ss5827ks_KmawljKB-hcHwJW4g5CgJgiwaLp7hLgklekw0H_KWqn1CTvHIbszvKRnnjfOY5oiWWKfPKYGsMC6R5Pe5DIWuhVxc1kxrwmmTW5USIN9DwKp4wf8Od3lV61tV9Pplv0nprUBi6cdb0kLoN3N7eOlXRLRp-XcD3O1g8NSGdAzkx55NL9I2-kNFJilnVGGp2hPOoULsu6IAl6-les6NGuXDIQgstfC85NZhIBTyw",
     price: 180000,
     originalPrice: null,
-    description: "Tra cứu nhanh chóng 50.000 từ vựng thông dụng."
+    description: "Tra cứu nhanh chóng 50.000 từ vựng thông dụng.",
+    topics: ["Luyện thi HSK"]
   },
   {
     id: 5,
@@ -51,7 +55,8 @@ const PRODUCTS_DATA = [
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDm1Ik0zNR8jb04orcmpz2UB0wFPXtMwXyxcgsMlBUZZh7tZTltsglVPHcUjxDxnQ3IjJh8Pv5kz_SFHBvzGw4kIUVrKRLDUcNZKN9bNiBUv9AYzl1ZyR5SuwCBqNaNHrmsDtZlDr7qOmQMB63oCvEqTG9cX8Ax_Q3D8CmyLa8IOUnnjB5TxlL7YttblHSiQIB1ucQ5qqvInbs8soA38Pe5y8B3gSGAOWvXjfcdW6J8A2QdRxKzf1N1oebCV1gwYaW9bS9uTf2ZCdc",
     price: 15000,
     originalPrice: null,
-    description: "Giấy chất lượng cao, không lem mực, chuẩn ô chữ điền."
+    description: "Giấy chất lượng cao, không lem mực, chuẩn ô chữ điền.",
+    topics: []
   },
   {
     id: 6,
@@ -61,17 +66,15 @@ const PRODUCTS_DATA = [
     price: 95000,
     originalPrice: null,
     badge: "bestseller",
-    description: "Sách học giao tiếp cấp tốc hiệu quả nhất."
+    description: "Sách học giao tiếp cấp tốc hiệu quả nhất.",
+    topics: ["Giao tiếp công sở"]
   }
 ];
 
-// Filter categories
+// Filter categories (derived from product data)
 const FILTER_CATEGORIES = [
   "Tất cả sản phẩm",
-  "Sách giáo trình",
-  "Flashcards",
-  "Vở tập viết",
-  "Dụng cụ học tập"
+  ...Array.from(new Set(PRODUCTS_DATA.map((p) => p.category)))
 ];
 
 // Quick filter chips
@@ -158,6 +161,10 @@ export default function Product() {
   const [sortOpen, setSortOpen] = useState(false);
   const sortRef = useRef(null);
   const [checkedCategories, setCheckedCategories] = useState(['Tất cả sản phẩm']);
+  const MIN_PRICE = 1000; // minimum price filter (always applied)
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [selectedTopics, setSelectedTopics] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -178,7 +185,38 @@ export default function Product() {
   }, []);
 
   // Filter and sort products
-  const filteredProducts = PRODUCTS_DATA; // Add filtering logic when connected to backend
+  const filteredProducts = PRODUCTS_DATA.filter((p) => {
+    // always enforce base minimum
+    if (p.price < MIN_PRICE) return false;
+
+    // category
+    if (!checkedCategories.includes('Tất cả sản phẩm') && !checkedCategories.includes(p.category)) {
+      return false;
+    }
+
+    // price range input
+    const minVal = priceRange.min !== '' ? Number(priceRange.min) : null;
+    const maxVal = priceRange.max !== '' ? Number(priceRange.max) : null;
+    if (minVal !== null && p.price < minVal) return false;
+    if (maxVal !== null && p.price > maxVal) return false;
+
+    // topic filtering (product must have at least one selected topic)
+    if (selectedTopics.length > 0) {
+      if (!p.topics || !p.topics.some((t) => selectedTopics.includes(t))) {
+        return false;
+      }
+    }
+
+    // search term matches name or category
+    if (searchTerm.trim() !== '') {
+      const term = searchTerm.trim().toLowerCase();
+      if (!p.name.toLowerCase().includes(term) && !p.category.toLowerCase().includes(term)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 
   return (
         <>
@@ -208,6 +246,8 @@ export default function Product() {
           <div className="relative group">
             <input
               type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Tìm kiếm sản phẩm, giáo trình, dụng cụ..."
               className="w-full pl-12 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-full text-sm focus:ring-2 focus:ring-secondary focus:bg-white focus:text-primary transition-all placeholder-white/60"
             />
@@ -353,10 +393,21 @@ export default function Product() {
                     type="checkbox"
                     checked={checkedCategories.includes(category)}
                     onChange={(e) => {
-                      if (e.target.checked) {
-                        setCheckedCategories([...checkedCategories, category]);
+                      const checked = e.target.checked;
+                      if (checked) {
+                        if (category === 'Tất cả sản phẩm') {
+                          // select all, clear others
+                          setCheckedCategories(['Tất cả sản phẩm']);
+                        } else {
+                          // add category and remove "all" if present
+                          setCheckedCategories(prev => [
+                            ...prev.filter(c => c !== 'Tất cả sản phẩm'),
+                            category,
+                          ]);
+                        }
                       } else {
-                        setCheckedCategories(checkedCategories.filter(c => c !== category));
+                        // uncheck
+                        setCheckedCategories(prev => prev.filter(c => c !== category));
                       }
                     }}
                     defaultChecked={category === "Tất cả sản phẩm"}
@@ -379,17 +430,26 @@ export default function Product() {
                 <input
                   type="number"
                   placeholder="Từ"
+                  value={priceRange.min}
+                  onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                 />
                 <span className="text-gray-400">-</span>
                 <input
                   type="number"
                   placeholder="Đến"
+                  value={priceRange.max}
+                  onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                 />
               </div>
 
-              <button className="w-full mt-2 bg-primary/10 hover:bg-primary text-primary hover:text-white font-bold py-2 rounded-lg transition-colors text-sm">
+              <button
+                onClick={() => {
+                  /* state already updated; filtering runs automatically */
+                }}
+                className="w-full mt-2 bg-primary/10 hover:bg-primary text-primary hover:text-white font-bold py-2 rounded-lg transition-colors text-sm"
+              >
                 Áp dụng
               </button>
             </div>
@@ -411,6 +471,14 @@ export default function Product() {
                 >
                   <input
                     type="checkbox"
+                    checked={selectedTopics.includes(topic)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setSelectedTopics(prev => {
+                        if (checked) return [...prev, topic];
+                        return prev.filter(t => t !== topic);
+                      });
+                    }}
                     className="form-checkbox rounded text-primary border-gray-300 focus:ring-primary/50 size-5"
                   />
                   <span className="text-text-main group-hover:text-primary transition-colors">

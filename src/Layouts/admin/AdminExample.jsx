@@ -1,11 +1,28 @@
 import react from 'react';
+import React, { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
 export default function AdminExample() {
+  const [currentPage, setCurrentPage] = useState(1);
+const pageSize = 3; // mỗi trang 3 dòng
+
+// Data mẫu
+const exams = [
+  { id: 1, name: "HSK 4 Standard Mock A", category: "HSK 4", duration: "105 min", questions: 100, status: "Active" },
+  { id: 2, name: "Business Chinese Level 1", category: "BCT A", duration: "45 min", questions: 40, status: "Draft" },
+  { id: 3, name: "HSK 6 Advanced Proficiency", category: "HSK 6", duration: "140 min", questions: 101, status: "Active" },
+  { id: 4, name: "HSK 1 Beginner Basics", category: "HSK 1", duration: "35 min", questions: 40, status: "Active" },
+  { id: 5, name: "HSK 3 Intermediate Prep", category: "HSK 3", duration: "90 min", questions: 80, status: "Draft" }
+];
+
+const totalPages = Math.ceil(exams.length / pageSize);
+
+const startIndex = (currentPage - 1) * pageSize;
+const paginatedData = exams.slice(startIndex, startIndex + pageSize);
     return (
         <>
    <div class="flex h-screen overflow-hidden">
             <AdminSidebar />
-                 <main className="flex-1 flex flex-col overflow-hidden">
+                 <main className="flex-1 flex flex-col overflow-y-auto">
       {/* Header */}
       <header className="h-16 border-b border-border-light bg-white flex items-center justify-between px-8 shrink-0">
         <div className="flex items-center gap-6 flex-1">
@@ -159,8 +176,8 @@ export default function AdminExample() {
   <div className="overflow-x-auto">
     <table className="w-full text-left">
       <thead>
-        <tr className="text-slate-400 text-xs uppercase tracking-wider font-bold">
-          <th className="px-6 py-4">Exam Name</th>
+        <tr className="text-slate-400 text-xs uppercase tracking-wider font-bold ">
+          <th className="px-6 py-4 ">Exam Name</th>
           <th className="px-6 py-4">Category</th>
           <th className="px-6 py-4">Duration</th>
           <th className="px-6 py-4">Questions</th>
@@ -169,208 +186,102 @@ export default function AdminExample() {
         </tr>
       </thead>
 
-      <tbody className="divide-y divide-border-light text-slate-600 text-sm">
-        {/* Row 1 */}
-        <tr className="hover:bg-white/5 transition-colors group">
-          <td className="px-6 py-4 font-semibold text-slate-100">
-            HSK 4 Standard Mock A
-          </td>
+     <tbody className="divide-y divide-border-light text-slate-600 text-sm">
+  {paginatedData.map((exam) => (
+    <tr key={exam.id} className="hover:bg-white/5 transition-colors group">
+      <td className="px-6 py-4 font-semibold text-primary">
+        {exam.name}
+      </td>
 
-          <td className="px-6 py-4">
-            <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary text-[11px] font-bold border border-primary/30">
-              HSK 4
-            </span>
-          </td>
+      <td className="px-6 py-4">
+        <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary text-[11px] font-bold border border-primary/30">
+          {exam.category}
+        </span>
+      </td>
 
-          <td className="px-6 py-4">105 min</td>
-          <td className="px-6 py-4">100</td>
+      <td className="px-6 py-4">{exam.duration}</td>
+      <td className="px-6 py-4">{exam.questions}</td>
 
-          <td className="px-6 py-4">
-            <span className="flex items-center gap-1.5 text-emerald-500 font-medium">
-              <span className="size-2 rounded-full bg-emerald-500"></span>
-              Active
-            </span>
-          </td>
+      <td className="px-6 py-4">
+        <span
+          className={`flex items-center gap-1.5 font-medium ${
+            exam.status === "Active"
+              ? "text-emerald-500"
+              : "text-slate-500"
+          }`}
+        >
+          <span
+            className={`size-2 rounded-full ${
+              exam.status === "Active"
+                ? "bg-emerald-500"
+                : "bg-slate-500"
+            }`}
+          ></span>
+          {exam.status}
+        </span>
+      </td>
 
-          <td className="px-6 py-4 text-right">
-            <div className="flex items-center justify-end gap-2">
-              <button className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors">
-                <span className="material-symbols-outlined text-lg">
-                  edit
-                </span>
-              </button>
-
-              <button className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
-                <span className="material-symbols-outlined text-lg">
-                  delete
-                </span>
-              </button>
-            </div>
-          </td>
-        </tr>
-
-        {/* Row 2 */}
-        <tr className="hover:bg-white/5 transition-colors group">
-          <td className="px-6 py-4 font-semibold text-slate-100">
-            Business Chinese Level 1
-          </td>
-
-          <td className="px-6 py-4">
-            <span className="px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-400 text-[11px] font-bold border border-blue-500/30">
-              BCT A
-            </span>
-          </td>
-
-          <td className="px-6 py-4">45 min</td>
-          <td className="px-6 py-4">40</td>
-
-          <td className="px-6 py-4">
-            <span className="flex items-center gap-1.5 text-slate-500 font-medium">
-              <span className="size-2 rounded-full bg-slate-500"></span>
-              Draft
-            </span>
-          </td>
-
-          <td className="px-6 py-4 text-right">
-            <div className="flex items-center justify-end gap-2">
-              <button className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors">
-                <span className="material-symbols-outlined text-lg">
-                  edit
-                </span>
-              </button>
-
-              <button className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
-                <span className="material-symbols-outlined text-lg">
-                  delete
-                </span>
-              </button>
-            </div>
-          </td>
-        </tr>
-        {/* Row 3 */}
-<tr className="hover:bg-white/5 transition-colors group">
-  <td className="px-6 py-4 font-semibold text-slate-100">
-    HSK 6 Advanced Proficiency
-  </td>
-  <td className="px-6 py-4">
-    <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary text-[11px] font-bold border border-primary/30">
-      HSK 6
-    </span>
-  </td>
-  <td className="px-6 py-4">140 min</td>
-  <td className="px-6 py-4">101</td>
-  <td className="px-6 py-4">
-    <span className="flex items-center gap-1.5 text-emerald-500 font-medium">
-      <span className="size-2 rounded-full bg-emerald-500"></span>
-      Active
-    </span>
-  </td>
-  <td className="px-6 py-4 text-right">
-    <div className="flex items-center justify-end gap-2">
-      <button className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors">
-        <span className="material-symbols-outlined text-lg">edit</span>
-      </button>
-      <button className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
-        <span className="material-symbols-outlined text-lg">delete</span>
-      </button>
-    </div>
-  </td>
-</tr>
-
-{/* Row 4 */}
-<tr className="hover:bg-white/5 transition-colors group">
-  <td className="px-6 py-4 font-semibold text-slate-100">
-    HSK 1 Beginner Basics
-  </td>
-  <td className="px-6 py-4">
-    <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary text-[11px] font-bold border border-primary/30">
-      HSK 1
-    </span>
-  </td>
-  <td className="px-6 py-4">35 min</td>
-  <td className="px-6 py-4">40</td>
-  <td className="px-6 py-4">
-    <span className="flex items-center gap-1.5 text-emerald-500 font-medium">
-      <span className="size-2 rounded-full bg-emerald-500"></span>
-      Active
-    </span>
-  </td>
-  <td className="px-6 py-4 text-right">
-    <div className="flex items-center justify-end gap-2">
-      <button className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors">
-        <span className="material-symbols-outlined text-lg">edit</span>
-      </button>
-      <button className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
-        <span className="material-symbols-outlined text-lg">delete</span>
-      </button>
-    </div>
-  </td>
-</tr>
-
-{/* Row 5 */}
-<tr className="hover:bg-white/5 transition-colors group">
-  <td className="px-6 py-4 font-semibold text-slate-100">
-    HSK 3 Intermediate Prep
-  </td>
-  <td className="px-6 py-4">
-    <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary text-[11px] font-bold border border-primary/30">
-      HSK 3
-    </span>
-  </td>
-  <td className="px-6 py-4">90 min</td>
-  <td className="px-6 py-4">80</td>
-  <td className="px-6 py-4">
-    <span className="flex items-center gap-1.5 text-slate-500 font-medium">
-      <span className="size-2 rounded-full bg-slate-500"></span>
-      Draft
-    </span>
-  </td>
-  <td className="px-6 py-4 text-right">
-    <div className="flex items-center justify-end gap-2">
-      <button className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors">
-        <span className="material-symbols-outlined text-lg">edit</span>
-      </button>
-      <button className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
-        <span className="material-symbols-outlined text-lg">delete</span>
-      </button>
-    </div>
-  </td>
-</tr>
-      </tbody>
+      <td className="px-6 py-4 text-right">
+        <div className="flex items-center justify-end gap-2">
+          <button className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors">
+            <span className="material-symbols-outlined text-lg">edit</span>
+          </button>
+          <button className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
+            <span className="material-symbols-outlined text-lg">delete</span>
+          </button>
+        </div>
+      </td>
+    </tr>
+  ))}
+</tbody>
     </table>
   </div>
   {/* Pagination */}
-<div className="px-6 py-4 bg-white/5 border-t border-border-dark flex items-center justify-between">
-  <p className="text-xs text-slate-500 font-medium">
-    Showing <span className="text-slate-300">1 to 5</span> of{" "}
-    <span className="text-slate-300">128</span> exams
+<div className="p-4 bg-gray-50 border-t border-[#e7ebf3] flex items-center justify-between">
+  <p className="text-sm text-[#4c669a]">
+    Page <span className="font-bold text-[#0d121b]">{currentPage}</span> of{" "}
+    <span className="font-bold text-[#0d121b]">{totalPages}</span>
   </p>
 
-  <div className="flex items-center gap-1">
-    <button className="size-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-white transition-colors">
-      <span className="material-symbols-outlined">chevron_left</span>
+  <div className="flex items-center gap-2">
+    {/* Prev */}
+    <button
+      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+      disabled={currentPage === 1}
+      className="px-3 py-1 border rounded disabled:opacity-50"
+    >
+      Prev
     </button>
 
-    <button className="size-8 flex items-center justify-center rounded-lg bg-accent-yellow text-primary text-xs font-bold shadow-lg shadow-yellow-500/20">
-      1
-    </button>
+    {/* Page Numbers */}
+    {Array.from({ length: totalPages }).map((_, index) => {
+      const page = index + 1;
+      return (
+        <button
+          key={page}
+          onClick={() => setCurrentPage(page)}
+          className={`px-3 py-1 rounded ${
+            currentPage === page
+              ? "bg-primary text-white"
+              : "bg-white border"
+          }`}
+        >
+          {page}
+        </button>
+      );
+    })}
 
-    <button className="size-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-white/5 hover:text-white text-xs font-bold transition-all">
-      2
-    </button>
-
-    <button className="size-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-white/5 hover:text-white text-xs font-bold transition-all">
-      3
-    </button>
-
-    <span className="text-slate-600 px-1 font-bold">...</span>
-
-    <button className="size-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-white/5 hover:text-white text-xs font-bold transition-all">
-      26
-    </button>
-
-    <button className="size-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-white transition-colors">
-      <span className="material-symbols-outlined">chevron_right</span>
+    {/* Next */}
+    <button
+      onClick={() =>
+        setCurrentPage((prev) =>
+          Math.min(prev + 1, totalPages)
+        )
+      }
+      disabled={currentPage === totalPages}
+      className="px-3 py-1 border rounded disabled:opacity-50"
+    >
+      Next
     </button>
   </div>
 </div>
