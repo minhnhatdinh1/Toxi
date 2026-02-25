@@ -6,7 +6,7 @@ export default function AdminAddNewCourses() {
   
     const navigate = useNavigate();
  
-  const [FormData, SetFormData] = useState({
+  const [formData, setFormData] = useState({
     courseId: "",
     title: "",
     type: "",
@@ -24,12 +24,12 @@ export default function AdminAddNewCourses() {
   };
 
 
-  const [ThumbnailFile, SetThumbnailFile] = useState(null);
-  const [ThumbnailPreview, SetThumbnailPreview] = useState("");
+  const [ThumbnailFile, setThumbnailFile] = useState(null);
+  const [ThumbnailPreview, setThumbnailPreview] = useState("");
 
 const handleChange = (e) => {
-    SetFormData({
-      ...FormData,
+    setFormData({
+      ...formData,
       [e.target.name]: e.target.value,
     });
   };
@@ -39,30 +39,33 @@ const handleChange = (e) => {
     const file = e.target.files[0];
     if (file) {
 
-      SetThumbnailFile(file);
-      SetThumbnailPreview(URL.createObjectURL(file));
+      setThumbnailFile(file);
+      setThumbnailPreview(URL.createObjectURL(file));
     }
   };
 
   // Submit to backend
-  const HandleSubmit = async (status = "DRAFT") => {
+  const handleSubmit = async (status) => {
     try {
       const data = new FormData();
 
-      data.append("courseId", FormData.courseId);
-      data.append("title", FormData.title);
-      data.append("type", FormData.type);
-      data.append("price", FormData.price);
-      data.append("discountPrice", FormData.discountPrice);
-      data.append("description", FormData.description);
-      data.append("status", status);
+      const courseData = {
+        ...formData,
+        status: status,
+      };
 
+       data.append(
+        "course",
+        new Blob([JSON.stringify(courseData)], {
+          type: "application/json",
+        })
+      ); 
       if (ThumbnailFile) {
         data.append("thumbnail", ThumbnailFile);
       }
 
       const response = await fetch(
-        "http://localhost:8080/api/teacher/courses",
+        "http://localhost:8080/api/admin/courses",
         {
           method: "POST",
           headers: {
@@ -73,11 +76,11 @@ const handleChange = (e) => {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to create course");
+        throw new Error("Tạo khóa học thất bại");
       }
 
-      alert("Course created successfully!");
-      navigate("/teacher/courses");
+      alert("Khóa học đã được tạo thành công!quay lại trang quản lý khóa học.");
+      navigate("/adminCourse");
     } catch (error) {
       console.error(error);
       alert("Error creating course");
@@ -163,7 +166,7 @@ const handleChange = (e) => {
       type="text"
      placeholder="  Course ID"
      name="courseId"
-      value={FormData.courseId}
+      value={formData.courseId}
             onChange={handleChange}
       className="w-full rounded-xl border-primary/10 bg-slate-50 dark:bg-primary/5 focus:border-primary focus:ring-primary dark:text-white transition-all"
     />
@@ -177,7 +180,7 @@ const handleChange = (e) => {
       type="text"
       name="title"
             placeholder=" Course Title"
-       value={FormData.title}
+       value={formData.title}
             onChange={handleChange}
       className="w-full rounded-xl border-primary/10 bg-slate-50 dark:bg-primary/5 focus:border-primary focus:ring-primary dark:text-white transition-all"
     />
@@ -187,7 +190,9 @@ const handleChange = (e) => {
     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
       Course Type
     </label>
-    <select className="w-full rounded-xl border-primary/10 bg-slate-50 dark:bg-primary/5 focus:border-primary focus:ring-primary dark:text-white transition-all">
+    <select name="type"
+              value={formData.type}
+              onChange={handleChange} className="w-full rounded-xl border-primary/10 bg-slate-50 dark:bg-primary/5 focus:border-primary focus:ring-primary dark:text-white transition-all">
       <option value="">Select a category</option>
       <option value="hsk">HSK Preparation</option>
       <option value="business">Business Chinese</option>
@@ -217,6 +222,7 @@ const handleChange = (e) => {
       </label>
       <input
         type="number"
+         value={formData.discountPrice}
            name="discountPrice"
             placeholder=" Discount Price"
                 onChange={handleChange}
@@ -238,7 +244,7 @@ const handleChange = (e) => {
             type="url"
             placeholder="https://example.com/thumbnail.jpg"
             value={ThumbnailPreview}
-            onChange={(e) => SetThumbnailUrl(e.target.value)}
+            onChange={(e) => setThumbnailUrl(e.target.value)}
             className="w-full rounded-xl border border-primary/10 bg-slate-50 dark:bg-primary/5 focus:border-primary focus:ring-primary dark:text-white transition-all p-3"
           />
 
@@ -341,7 +347,7 @@ const handleChange = (e) => {
           {/* Textarea */}
           <textarea
             rows={8}
-            value={FormData.description}
+            value={formData.description}
             onChange={(e) => handleChange(e)}
             name="description"
             placeholder="Course description"

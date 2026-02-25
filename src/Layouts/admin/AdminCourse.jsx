@@ -1,40 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect ,paginated  } from 'react';
 import AdminSidebar from "./AdminSidebar";
 import { Link } from "react-router-dom";
 export default function AdminCourse() {
-  // sample courses data (replace with real data source)
-  const COURSES = Array.from({ length: 24 }).map((_, i) => {
-    const id = i + 1;
-    const categories = ["HSK", "Business", "Communication"];
-    const category = categories[i % categories.length];
-    return {
-      id,
-      name:
-        i === 0
-          ? 'HSK 4 Intensive Prep'
-          : i === 1
-          ? 'Business Chinese Basics'
-          : i === 2
-          ? 'Daily Communication'
-          : i === 3
-          ? 'HSK 1 Beginner'
-          : `Course ${id}`,
-      category,
-      enrolled: Math.floor(Math.random() * 3000) + 50,
-      status: i % 4 === 3 ? 'Draft' : 'Active',
-    };
-  });
+  
+ const [courses, setCourses] = useState([]);
+  const token = localStorage.getItem("token");
+  const fetchCourses = () => {
+    fetch("http://localhost:8080/api/admin/courses", {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    })
+      .then((res) => res.json())
+    .then((data) => {
+  setCourses(data || []);
+  setCurrentPage(1); // reset về trang đầu
+})
+      .catch((err) => console.error(err));
+  };
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 4;
-  const total = COURSES.length;
-  const totalPages = Math.ceil(total / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = Math.min(startIndex + pageSize, total);
-  const paginated = COURSES.slice(startIndex, endIndex);
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bạn chắc chắn muốn xóa khóa học này?")) return;
+
+    await fetch(`http://localhost:8080/api/admin/courses/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    });
+
+    fetchCourses(); // reload lại danh sách
+  };
+const [currentPage, setCurrentPage] = useState(1);
+const coursesPerPage = 5; // mỗi trang 5 khóa học
+ const totalPages = Math.ceil(courses.length / coursesPerPage);
+ const indexOfLastCourse = currentPage * coursesPerPage;
+const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
+
+const paginated = courses.slice(
+  indexOfFirstCourse,
+  indexOfLastCourse
+);
   return (
     <>
-      <div class="flex h-screen overflow-hidden">
+      <div className="flex h-screen overflow-hidden">
         <AdminSidebar />
         <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
           {/* Header */}
@@ -49,17 +62,7 @@ export default function AdminCourse() {
             </div>
 
             <div className="flex items-center gap-4">
-              {/* Search */}
-              <div className="relative group">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors">
-                  search
-                </span>
-                <input
-                  className="pl-10 pr-4 py-2 bg-gray-100 dark:bg-white/5 border-none rounded-lg focus:ring-2 focus:ring-primary w-64 text-sm transition-all"
-                  placeholder="Search courses..."
-                  type="text"
-                />
-              </div>
+        
 
               <Link
                 to="/addnewCourse"
@@ -99,12 +102,13 @@ export default function AdminCourse() {
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                       Course Name
                     </th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      <th className="text-left">Course Type</th>
+                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                       Students Enrolled
                     </th>
+                       <th className="text-left">Price</th>
+                     <th className="text-left">Discount Price</th>
+                   <th className="text-left">Thumbnail</th>
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
@@ -117,7 +121,7 @@ export default function AdminCourse() {
            <tbody className="divide-y divide-gray-100 dark:divide-white/5">
   {paginated.map((course) => (
     <tr
-      key={course.id}
+      key={course.courseId}
       className="hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
     >
       <td className="px-6 py-5">
@@ -128,14 +132,14 @@ export default function AdminCourse() {
             </span>
           </div>
           <span className="font-semibold text-gray-900 dark:text-white">
-            {course.name}
+            {course.title}
           </span>
         </div>
       </td>
 
       <td className="px-6 py-5">
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-          {course.category}
+          {course.courseType}
         </span>
       </td>
 
@@ -144,10 +148,22 @@ export default function AdminCourse() {
           <span className="material-symbols-outlined text-gray-400 text-sm">
             person
           </span>
-          {course.enrolled.toLocaleString()}
+        {(course.enrolled || 0).toLocaleString()}
         </div>
       </td>
-
+      <td className="px-6 py-5 text-gray-900 dark:text-white font-semibold">
+      ${(course.price || 0).toLocaleString()}
+      </td>
+      <td className="px-6 py-5 text-gray-900 dark:text-white font-semibold">
+    ${(course.discountPrice || 0).toLocaleString()}
+      </td>
+       <td>
+      <img
+        src={course.thumbnailUrl}
+        width="80"
+        alt={course.title}
+      />
+    </td>
       <td className="px-6 py-5">
         <span
           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
@@ -169,12 +185,12 @@ export default function AdminCourse() {
 
       <td className="px-6 py-5 text-right">
         <div className="flex justify-end gap-2">
-          <button className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all">
+          <button  to={`/editCourse/${course.id}`} className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all">
             <span className="material-symbols-outlined text-xl">
               edit
             </span>
           </button>
-          <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+          <button  onClick={() => handleDelete(course.courseId)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
             <span className="material-symbols-outlined text-xl">
               delete
             </span>
