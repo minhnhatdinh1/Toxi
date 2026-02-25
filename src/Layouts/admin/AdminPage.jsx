@@ -1,4 +1,4 @@
-import react from "react";
+import React from "react";
 import AdminSidebar from "./AdminSidebar";
 export default function AdminPage() {
     return (

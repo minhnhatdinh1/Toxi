@@ -1,5 +1,7 @@
-import react from 'react';
+
+
 import React, { useState } from "react";
+
 import AdminSidebar from "./AdminSidebar";
 export default function AdminExample() {
   const [currentPage, setCurrentPage] = useState(1);

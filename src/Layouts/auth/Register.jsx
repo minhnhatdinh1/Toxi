@@ -20,10 +20,10 @@ export default function Register() {
     phone: "",
   });
 
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [Error, setError] = useState(null);
+  const [Loading, setLoading] = useState(false);
 
-  const handleRegister = async () => {
+  const HandleRegister = async () => {
     if (formData.password !== formData.confirmPassword) {
       setError("Mật khẩu xác nhận không khớp");
       return;
@@ -264,7 +264,7 @@ export default function Register() {
                   <div className="mt-10 flex flex-col items-center gap-4">
                     <button
                       type="button"
-                      onClick={handleRegister}
+                      onClick={HandleRegister}
                       className="w-full md:max-w-md bg-primary hover:bg-primary-dark text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-3 group border border-transparent"
                     >
                       <span className="tracking-wide text-lg">

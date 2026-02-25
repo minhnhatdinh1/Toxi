@@ -1,5 +1,7 @@
-import react from 'react'
+
+
 import React, { useState } from "react";
+
 import AdminSidebar from "./AdminSidebar";
 import { Link } from "react-router-dom";
 export default function AdminProduct() {

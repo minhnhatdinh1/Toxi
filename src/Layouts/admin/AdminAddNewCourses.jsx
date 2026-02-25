@@ -1,8 +1,20 @@
-import react from "react";
+import React from "react";
 import { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
-import { Link } from "react-router-dom";
+import { Link , useNavigate } from "react-router-dom";
 export default function AdminAddNewCourses() {
+  
+    const navigate = useNavigate();
+ 
+  const [FormData, SetFormData] = useState({
+    courseId: "",
+    title: "",
+    type: "",
+    price: "",
+    discountPrice: "",
+    description: "",
+  });
+  
     const handleCancel = () => {
     console.log("Cancel clicked");
   };
@@ -10,26 +22,68 @@ export default function AdminAddNewCourses() {
   const handleSave = () => {
     console.log("Save Course clicked");
   };
-      const [files, setFiles] = useState([]);
 
-  const [thumbnailUrl, setThumbnailUrl] = useState("");
 
+  const [ThumbnailFile, SetThumbnailFile] = useState(null);
+  const [ThumbnailPreview, SetThumbnailPreview] = useState("");
+
+const handleChange = (e) => {
+    SetFormData({
+      ...FormData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  // Handle thumbnail upload
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setThumbnailUrl(previewUrl);
+
+      SetThumbnailFile(file);
+      SetThumbnailPreview(URL.createObjectURL(file));
     }
   };
-   const [description, setDescription] = useState("");
 
-  const handleDiscard = () => {
-    setDescription("");
+  // Submit to backend
+  const HandleSubmit = async (status = "DRAFT") => {
+    try {
+      const data = new FormData();
+
+      data.append("courseId", FormData.courseId);
+      data.append("title", FormData.title);
+      data.append("type", FormData.type);
+      data.append("price", FormData.price);
+      data.append("discountPrice", FormData.discountPrice);
+      data.append("description", FormData.description);
+      data.append("status", status);
+
+      if (ThumbnailFile) {
+        data.append("thumbnail", ThumbnailFile);
+      }
+
+      const response = await fetch(
+        "http://localhost:8080/api/teacher/courses",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: data,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to create course");
+      }
+
+      alert("Course created successfully!");
+      navigate("/teacher/courses");
+    } catch (error) {
+      console.error(error);
+      alert("Error creating course");
+    }
   };
 
-  const handlePublish = () => {
-    console.log("Publish course:", description);
-  };
 
     return (
         
@@ -107,7 +161,10 @@ export default function AdminAddNewCourses() {
     </label>
     <input
       type="text"
-      placeholder="e.g. TOXI-HSK1-001"
+     placeholder="  Course ID"
+     name="courseId"
+      value={FormData.courseId}
+            onChange={handleChange}
       className="w-full rounded-xl border-primary/10 bg-slate-50 dark:bg-primary/5 focus:border-primary focus:ring-primary dark:text-white transition-all"
     />
   </div>
@@ -118,7 +175,10 @@ export default function AdminAddNewCourses() {
     </label>
     <input
       type="text"
-      placeholder="e.g. Master Business Chinese Level 1"
+      name="title"
+            placeholder=" Course Title"
+       value={FormData.title}
+            onChange={handleChange}
       className="w-full rounded-xl border-primary/10 bg-slate-50 dark:bg-primary/5 focus:border-primary focus:ring-primary dark:text-white transition-all"
     />
   </div>
@@ -144,7 +204,9 @@ export default function AdminAddNewCourses() {
       </label>
       <input
         type="number"
-        placeholder="99.99"
+      name="price"
+            placeholder=" Price"
+            onChange={handleChange}
         className="w-full rounded-xl border-primary/10 bg-slate-50 dark:bg-primary/5 focus:border-primary focus:ring-primary dark:text-white transition-all"
       />
     </div>
@@ -155,7 +217,9 @@ export default function AdminAddNewCourses() {
       </label>
       <input
         type="number"
-        placeholder="79.99"
+           name="discountPrice"
+            placeholder=" Discount Price"
+                onChange={handleChange}
         className="w-full rounded-xl border-primary/10 bg-slate-50 dark:bg-primary/5 focus:border-primary focus:ring-primary dark:text-white transition-all"
       />
     </div>
@@ -173,17 +237,17 @@ export default function AdminAddNewCourses() {
           <input
             type="url"
             placeholder="https://example.com/thumbnail.jpg"
-            value={thumbnailUrl}
-            onChange={(e) => setThumbnailUrl(e.target.value)}
+            value={ThumbnailPreview}
+            onChange={(e) => SetThumbnailUrl(e.target.value)}
             className="w-full rounded-xl border border-primary/10 bg-slate-50 dark:bg-primary/5 focus:border-primary focus:ring-primary dark:text-white transition-all p-3"
           />
 
           {/* Upload Area */}
           <label className="aspect-video w-full rounded-xl border-2 border-dashed border-primary/20 flex flex-col items-center justify-center bg-slate-50 dark:bg-primary/5 group cursor-pointer hover:border-primary hover:bg-primary/10 transition-all overflow-hidden">
             
-            {thumbnailUrl ? (
+            {ThumbnailPreview ? (
               <img
-                src={thumbnailUrl}
+                src={ThumbnailPreview}
                 alt="Thumbnail Preview"
                 className="w-full h-full object-cover rounded-xl"
               />
@@ -193,7 +257,7 @@ export default function AdminAddNewCourses() {
                   image
                 </span>
                 <p className="text-sm text-slate-400 mt-2 font-medium">
-                  Click to upload or drag image
+                  Click to upload image
                 </p>
               </>
             )}
@@ -277,9 +341,10 @@ export default function AdminAddNewCourses() {
           {/* Textarea */}
           <textarea
             rows={8}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter full course curriculum and learning outcomes..."
+            value={FormData.description}
+            onChange={(e) => handleChange(e)}
+            name="description"
+            placeholder="Course description"
             className="w-full border-none bg-transparent focus:ring-0 dark:text-white p-4 resize-none outline-none"
           />
         </div>
@@ -290,7 +355,7 @@ export default function AdminAddNewCourses() {
         
         <button
           type="button"
-          onClick={handleDiscard}
+          onClick={() => handleSubmit("DRAFT")}
           className="px-8 py-3 rounded-xl border border-primary/20 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-primary/10 transition-all"
         >
           Discard Changes
@@ -298,7 +363,7 @@ export default function AdminAddNewCourses() {
 
         <button
           type="button"
-          onClick={handlePublish}
+          onClick={() => handleSubmit("PUBLISHED")}
           className="px-10 py-3 rounded-xl bg-primary text-white font-bold shadow-xl shadow-primary/30 hover:brightness-110 active:scale-95 transition-all flex items-center gap-2"
         >
           <span className="material-symbols-outlined">

@@ -1,9 +1,10 @@
-import react from "react";
+
 import toxiLogo from "../../assets/image/LOGO (1).png";
 import React, { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { Link } from "react-router-dom";
 export default function AdminSidebar() {
+
   const menuItems = [
     { name: "Tổng quan", path: "/admin", icon: "dashboard" },
     { name: "Quản lý học viên", path: "/adminStudent", icon: "group" },
@@ -15,6 +16,9 @@ export default function AdminSidebar() {
     { name: "Quản lý giáo viên ", path: "/adminTeacher", icon: "person" },
   ];
 
+
+
+   const [Open, SetOpen] = useState(false);
 
   return (
    <>
