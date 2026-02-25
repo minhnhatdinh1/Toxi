@@ -5,7 +5,7 @@ export default function AdminPage() {
     <>
         <div class="flex h-screen overflow-hidden">
           <AdminSidebar />
-<main className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-background-dark">
+<main className="flex-1 flex flex-col overflow-y-auto bg-slate-50 dark:bg-background-dark">
   
   {/* Header */}
   <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 z-10">

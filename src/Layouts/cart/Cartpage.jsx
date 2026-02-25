@@ -1,4 +1,4 @@
-import react from 'react';
+import React from 'react';
 import Cartmain from "./component/Cartmain";
 
 export default function Cartpage() {
