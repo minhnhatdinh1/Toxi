@@ -28,14 +28,15 @@ import Product from './Layouts/products/Product.jsx';
 import StepCode from './Layouts/auth/ForgotPassword/StepCode.jsx';
 import StepReset from './Layouts/auth/ForgotPassword/StepReset.jsx';
 import AdminPage from './Layouts/admin/AdminPage.jsx';
-import AdminCourse from './Layouts/admin/AdminProduct.jsx';
-import AdminProduct from './Layouts/admin/AdminCourse.jsx';
+import AdminCourse from './Layouts/admin/AdminCourse.jsx';
+import AdminProduct from './Layouts/admin/AdminProduct.jsx';
 import AdminExample from './Layouts/admin/AdminExample.jsx';
 import AdminStudent from './Layouts/admin/AdminStudent.jsx';
 import AdminFinance from './Layouts/admin/AdminFinance.jsx';
 import AdminAddNewCourses from './Layouts/admin/AdminAddNewCourses.jsx';
 import AdminAddNewProduct from './Layouts/admin/AdminAddNewProduct.jsx';
 import AdminBlog from './Layouts/admin/AdminBlog.jsx';
+import AdminTeacher from './Layouts/admin/AdminTeacher.jsx';
 
 function App() {
   return (
@@ -76,6 +77,7 @@ function App() {
         <Route path="/addnewCourse" element={<AdminAddNewCourses />} />
         <Route path="/addnewProduct" element={<AdminAddNewProduct />} />
         <Route path="/adminBlog" element={<AdminBlog />} />
+        <Route path="/adminTeacher" element={<AdminTeacher />} />
         
       </Routes>
  
