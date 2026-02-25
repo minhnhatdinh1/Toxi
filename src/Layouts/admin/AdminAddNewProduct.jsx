@@ -51,7 +51,7 @@ const [thumbnail, setThumbnail] = useState("");
         {/* Breadcrumb */}
         <div className="flex flex-wrap gap-2 text-sm font-medium text-slate-500 mb-2">
           <Link
-            to="/store"
+            to="/adminStore"
             className="hover:text-primary transition-colors"
           >
             Store

@@ -25,21 +25,23 @@ export default function AdminSidebar() {
    <aside className="w-72 bg-primary dark:bg-slate-900 flex-shrink-0 flex flex-col relative chinese-cloud-bg shadow-2xl z-20">
       
       {/* Logo */}
-      <div className="p-6 flex items-center gap-3">
-        <div className="size-10 bg-accent-yellow rounded-xl flex items-center justify-center shadow-lg">
-          <span className="material-symbols-outlined text-primary font-bold text-2xl">
-            school
-          </span>
-        </div>
-        <div>
-          <h1 className="text-white text-xl font-bold tracking-tight">
-            TOXI Admin
-          </h1>
-          <p className="text-white/60 text-xs font-light">
-            Học để ứng dụng
-          </p>
-        </div>
-      </div>
+               <div className="px-3 py-2.5 flex flex-col items-center border-b border-white/10 relative">
+                 <div className="h-16 w-16 rounded-2xl  text-primary flex items-center ">
+                   <img src={toxiLogo} alt="TOXI Logo" className=" object-contain" />
+                 </div>
+     
+                 <h1 className="text-3xl font-black tracking-tighter text-white">
+                   TOXI
+                 </h1>
+     
+                 <div className="flex items-center gap-2 mt-1">
+                   <div className="h-[1px] w-4 bg-secondary"></div>
+                   <p className="text-[10px] uppercase tracking-widest text-secondary font-bold">
+                     Education
+                   </p>
+                   <div className="h-[1px] w-4 bg-secondary"></div>
+                 </div>
+               </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">

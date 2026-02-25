@@ -3,10 +3,10 @@ import AdminSidebar from "./AdminSidebar";
 import { Link } from "react-router-dom";
 export default function AdminCourse() {
   // sample courses data (replace with real data source)
-  const COURSES = Array.from({ length: 24 }).map((_, i) => {
-    const id = i + 1;
-    const categories = ["HSK", "Business", "Communication"];
-    const category = categories[i % categories.length];
+  const initialCourses = Array.from({ length: 24 }).map((_, i) => {
+  const id = i + 1;
+  const categories = ["HSK", "Business", "Communication"];
+  const category = categories[i % categories.length];
     return {
       id,
       name:
@@ -24,14 +24,23 @@ export default function AdminCourse() {
       status: i % 4 === 3 ? 'Draft' : 'Active',
     };
   });
-
+const [courses, setCourses] = useState(initialCourses);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 4;
-  const total = COURSES.length;
+  const total = courses.length;
   const totalPages = Math.ceil(total / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = Math.min(startIndex + pageSize, total);
-  const paginated = COURSES.slice(startIndex, endIndex);
+  const paginated = courses.slice(startIndex, endIndex);
+  const handleDelete = (id) => {
+  const confirmDelete = window.confirm(
+    "Bạn có chắc muốn xoá khóa học này?"
+  );
+
+  if (!confirmDelete) return;
+
+  setCourses((prev) => prev.filter((course) => course.id !== id));
+};
   return (
     <>
       <div class="flex h-screen overflow-hidden">
@@ -50,16 +59,7 @@ export default function AdminCourse() {
 
             <div className="flex items-center gap-4">
               {/* Search */}
-              <div className="relative group">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors">
-                  search
-                </span>
-                <input
-                  className="pl-10 pr-4 py-2 bg-gray-100 dark:bg-white/5 border-none rounded-lg focus:ring-2 focus:ring-primary w-64 text-sm transition-all"
-                  placeholder="Search courses..."
-                  type="text"
-                />
-              </div>
+            
 
               <Link
                 to="/addnewCourse"
@@ -167,20 +167,31 @@ export default function AdminCourse() {
         </span>
       </td>
 
-      <td className="px-6 py-5 text-right">
-        <div className="flex justify-end gap-2">
-          <button className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all">
-            <span className="material-symbols-outlined text-xl">
-              edit
-            </span>
-          </button>
-          <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
-            <span className="material-symbols-outlined text-xl">
-              delete
-            </span>
-          </button>
-        </div>
-      </td>
+     <td className="px-6 py-5 text-right">
+  <div className="flex justify-end gap-2">
+
+    {/* EDIT */}
+    <Link
+      to={`/admin/courses/edit/${course.id}`}
+      className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+    >
+      <span className="material-symbols-outlined text-xl">
+        edit
+      </span>
+    </Link>
+
+    {/* DELETE */}
+    <button
+      onClick={() => handleDelete(course.id)}
+      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+    >
+      <span className="material-symbols-outlined text-xl">
+        delete
+      </span>
+    </button>
+
+  </div>
+</td>
     </tr>
   ))}
 </tbody>

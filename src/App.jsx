@@ -41,50 +41,74 @@ import AdminAddNewCourses from './Layouts/admin/AdminAddNewCourses.jsx';
 import AdminAddNewProduct from './Layouts/admin/AdminAddNewProduct.jsx';
 import AdminBlog from './Layouts/admin/AdminBlog.jsx';
 import AdminTeacher from './Layouts/admin/AdminTeacher.jsx';
+import AdminAddNewStudent from './Layouts/admin/AdminAddNewStudent.jsx';
+import AdminAddNewExample from './Layouts/admin/AdminAddNewExample.jsx';
+import AdminAddNewTeacher from './Layouts/admin/AdmnAddNewTeacher.jsx';
+import AdminEditCourses from './Layouts/admin/AdminEditCourses.jsx';
 
 function App() {
   return (
-    
-      <Routes>
-        <Route path="/" element={<MainLayout />}>
-          <Route path="home" element={<HomePage />} />
-          <Route path="blog" element={<BlogPage />} />
-          <Route path="Practice" element={<PracticePage />} />
-          <Route path="/course" element={<Course />} />
-        </Route>
 
-        <Route path="/products/:id" element={<Productdetail />} />
-        <Route path="/courses/:id" element={<CourseDetail />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/cart" element={<Cartpage />} />
-        <Route path="/checkout" element={<CheckOutPage />} />
-        <Route path="/video" element={<VideoPage />} />
-        <Route path="/flashcard" element={<FlashcardPage />} />
-        <Route path="/Exam" element={<ExamPage />} />
-        <Route path="/ExamResult" element={<ExamResultPage />} />
-        <Route path="/MyCourse" element={<MyCoursePage />} />
-        <Route path="/Profile" element={<MyInformationPage />} />
-        <Route path="/MyProduct" element={<MyProductMain />} />
-        <Route path="/MyVocabulary" element={<MyVocabularyPage />} />
-        <Route path="/store" element={<Product />} />
+    <Routes>
+      <Route path="/" element={<MainLayout />}>
+        <Route path="home" element={<HomePage />} />
+        <Route path="blog" element={<BlogPage />} />
+        <Route path="Practice" element={<PracticePage />} />
         <Route path="/course" element={<Course />} />
-        <Route path ="/MissingPassword" element={<StepEmail />} />
-        <Route path ="/MissingPasswordStepCode" element={<StepCode />} />
-        <Route path="/reset-password" element={<StepReset />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/adminCourse" element={<AdminCourse />} />
-        <Route path="/adminStore" element={<AdminProduct />} />
-        <Route path="/adminExample" element={<AdminExample />} />
-        <Route path="/adminStudent" element={<AdminStudent />} />
-        <Route path="/adminFinance" element={<AdminFinance />} />
-        <Route path="/addnewCourse" element={<AdminAddNewCourses />} />
-        <Route path="/addnewProduct" element={<AdminAddNewProduct />} />
-        <Route path="/adminBlog" element={<AdminBlog />} />
-        <Route path="/adminTeacher" element={<AdminTeacher />} />
-        
-      </Routes>
- 
+      </Route>
+
+      <Route path="/products/:id" element={<Productdetail />} />
+      <Route path="/courses/:id" element={<CourseDetail />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/cart" element={<Cartpage />} />
+      <Route path="/checkout" element={<CheckOutPage />} />
+      <Route path="/video" element={<VideoPage />} />
+      <Route path="/flashcard" element={<FlashcardPage />} />
+      <Route path="/Exam" element={<ExamPage />} />
+      <Route path="/ExamResult" element={<ExamResultPage />} />
+      <Route path="/MyCourse" element={<MyCoursePage />} />
+      <Route path="/Profile" element={<MyInformationPage />} />
+      <Route path="/MyProduct" element={<MyProductMain />} />
+      <Route path="/MyVocabulary" element={<MyVocabularyPage />} />
+      <Route path="/store" element={<Product />} />
+      <Route path="/course" element={<Course />} />
+      <Route path="/MissingPassword" element={<StepEmail />} />
+      <Route path="/MissingPasswordStepCode" element={<StepCode />} />
+      <Route path="/reset-password" element={<StepReset />} />
+      <Route path="/admin" element={<AdminPage />} />
+      <Route path="/adminCourse" element={<AdminCourse />} />
+      <Route path="/adminStore" element={<AdminProduct />} />
+      <Route path="/adminExample" element={<AdminExample />} />
+      <Route path="/adminStudent" element={<AdminStudent />} />
+      <Route path="/adminFinance" element={<AdminFinance />} />
+      <Route path="/addnewCourse" element={<AdminAddNewCourses />} />
+      <Route path="/addnewProduct" element={<AdminAddNewProduct />} />
+      <Route path="/adminBlog" element={<AdminBlog />} />
+      <Route path="/adminTeacher" element={<AdminTeacher />} />
+      <Route path="/adminAddNewStudent" element={<AdminAddNewStudent />} />
+      <Route path="/adminAddNewTeacher" element={<AdminAddNewTeacher />} />
+      <Route
+        path="/admin/courses/edit/:id"
+        element={<AdminEditCourses />}
+      />
+      <Route
+        path="/admin/products/edit/:id"
+        element={<AdminAddNewProduct />}
+      />
+    <Route
+  path="/adminEditStudent/:id"
+  element={<AdminAddNewStudent />}
+/>
+
+<Route
+  path="/adminAddNewStudent"
+  element={<AdminAddNewStudent />}
+/>
+      <Route path="/adminNewExample" element={<AdminAddNewExample />} />
+
+    </Routes>
+
   )
 };
 

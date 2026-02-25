@@ -1,4 +1,5 @@
 import react from "react";
+import { Link } from "react-router-dom";
 import React, { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
 export default function AdminStudent() {
@@ -11,7 +12,7 @@ const [showAdvanced, setShowAdvanced] = useState(false);
 const pageSize = 2; // mỗi trang 2 học viên
 
 // DATA
-const students = [
+const [studentList, setStudentList] = useState([
   {
     id: 1,
     name: "Trần Minh Quân",
@@ -52,10 +53,10 @@ const students = [
     progress: 85,
     status: "Active",
   },
-];
+]);
 
 // FILTER
-const filteredStudents = students.filter((student) => {
+const filteredStudents = studentList.filter((student) => {
   const matchLevel =
     levelFilter === "all" || student.course === levelFilter;
 
@@ -76,6 +77,24 @@ const paginatedStudents = filteredStudents.slice(
 
 // TOTAL PAGES (phải đặt sau filteredStudents)
 const totalPages = Math.ceil(filteredStudents.length / pageSize);
+const handleDelete = (id) => {
+  const confirmDelete = window.confirm(
+    "Bạn có chắc muốn xóa học viên này?"
+  );
+
+  if (!confirmDelete) return;
+
+  const updatedList = studentList.filter(
+    (student) => student.id !== id
+  );
+
+  setStudentList(updatedList);
+
+  // Nếu xóa hết trang cuối thì tự lùi page
+  if ((currentPage - 1) * pageSize >= updatedList.length) {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  }
+};
     return (
         <>
           <div className="flex h-screen overflow-hidden">
@@ -260,11 +279,13 @@ const totalPages = Math.ceil(filteredStudents.length / pageSize);
 
     </div>
 
-    <button className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-semibold shadow-lg shadow-primary/20 transition-all w-full md:w-auto justify-center">
-      <span className="material-symbols-outlined">add</span>
-      Thêm học viên
-    </button>
-
+   <Link
+  to="/adminAddNewStudent"
+  className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-semibold shadow-lg shadow-primary/20 transition-all w-full md:w-auto justify-center"
+>
+  <span className="material-symbols-outlined">add</span>
+  Thêm học viên
+</Link>
   </div>
 
   {/* Advanced Panel */}
@@ -402,19 +423,30 @@ const totalPages = Math.ceil(filteredStudents.length / pageSize);
 
       {/* Actions */}
       <td className="px-6 py-4 text-right">
-        <div className="flex items-center justify-end gap-2">
-          <button className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
-            <span className="material-symbols-outlined text-lg">
-              edit
-            </span>
-          </button>
-          <button className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors">
-            <span className="material-symbols-outlined text-lg">
-              delete
-            </span>
-          </button>
-        </div>
-      </td>
+  <div className="flex items-center justify-end gap-2">
+
+    {/* EDIT */}
+    <Link
+      to={`/adminEditStudent/${student.id}`}
+      className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+    >
+      <span className="material-symbols-outlined text-lg">
+        edit
+      </span>
+    </Link>
+
+    {/* DELETE */}
+    <button
+      onClick={() => handleDelete(student.id)}
+      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+    >
+      <span className="material-symbols-outlined text-lg">
+        delete
+      </span>
+    </button>
+
+  </div>
+</td>
     </tr>
   ))}
 </tbody>
