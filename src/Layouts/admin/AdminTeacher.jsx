@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
+import { Link } from "react-router-dom";
 export default function AdminTeacher() {
      const instructors = [
     {
@@ -82,11 +83,13 @@ const currentInstructors = instructors.slice(indexOfFirst, indexOfLast);
         />
       </div>
 
-      <button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 transition-all">
-        <span className="material-symbols-outlined">add</span>
-        Add New Instructor
-      </button>
-
+    <Link
+  to="/adminAddNewTeacher"
+  className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 transition-all"
+>
+  <span className="material-symbols-outlined">add</span>
+  Add New Instructor
+</Link>
       <div className="flex items-center gap-3 border-l border-slate-200 dark:border-slate-700 ml-2 pl-6">
         
         <button className="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-primary">

@@ -1,7 +1,8 @@
-import React, { useState,useEffect ,paginated  } from 'react';
+import React, { useState,useEffect   } from 'react';
 import AdminSidebar from "./AdminSidebar";
 import { Link } from "react-router-dom";
 export default function AdminCourse() {
+
   
  const [courses, setCourses] = useState([]);
   const token = localStorage.getItem("token");
@@ -45,6 +46,7 @@ const paginated = courses.slice(
   indexOfFirstCourse,
   indexOfLastCourse
 );
+
   return (
     <>
       <div className="flex h-screen overflow-hidden">
@@ -62,7 +64,7 @@ const paginated = courses.slice(
             </div>
 
             <div className="flex items-center gap-4">
-        
+
 
               <Link
                 to="/addnewCourse"
@@ -183,13 +185,13 @@ const paginated = courses.slice(
         </span>
       </td>
 
+
       <td className="px-6 py-5 text-right">
         <div className="flex justify-end gap-2">
-          <button  to={`/editCourse/${course.id}`} className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all">
-            <span className="material-symbols-outlined text-xl">
-              edit
-            </span>
-          </button>
+         <Link to={`/editCourse/${course.courseId}`} className="p-2 text-gray-400 hover:text-primary">
+                            <span className="material-symbols-outlined">edit</span>
+                          </Link>
+        
           <button  onClick={() => handleDelete(course.courseId)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
             <span className="material-symbols-outlined text-xl">
               delete
@@ -197,6 +199,7 @@ const paginated = courses.slice(
           </button>
         </div>
       </td>
+
     </tr>
   ))}
 </tbody>

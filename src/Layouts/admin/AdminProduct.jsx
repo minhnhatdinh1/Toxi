@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
 import { Link } from "react-router-dom";
 export default function AdminProduct() {
-  const products = [
+  const initialProducts = [
   {
     id: 1,
     name: "Standard HSK 4 Textbook",
@@ -49,7 +49,7 @@ export default function AdminProduct() {
     image: "https://images.unsplash.com/photo-1524578271613-d550eacf6090"
   }
 ];
-
+const [products, setProducts] = useState(initialProducts);
 const itemsPerPage = 4;
 const [currentPage, setCurrentPage] = useState(1);
 
@@ -60,6 +60,15 @@ const currentProducts = products.slice(
   startIndex,
   startIndex + itemsPerPage
 );
+const handleDelete = (id) => {
+  const confirmDelete = window.confirm(
+    "Bạn có chắc muốn xoá sản phẩm này?"
+  );
+
+  if (!confirmDelete) return;
+
+  setProducts((prev) => prev.filter((item) => item.id !== id));
+};
     return(
         <>
        <div class="flex h-screen overflow-hidden">
@@ -237,32 +246,78 @@ const currentProducts = products.slice(
         </tr>
       </thead>
 
-      <tbody className="divide-y divide-[#e7ebf3]">
+     <tbody className="divide-y divide-[#e7ebf3]">
   {currentProducts.map((product) => (
     <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
+      
+      {/* IMAGE */}
       <td className="px-6 py-4">
-        <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center">
-              <img
-      src={product.image}
-      alt={product.name}
-      className="w-full h-full object-cover"
-    />
+        <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden">
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-full object-cover"
+          />
         </div>
       </td>
 
+      {/* NAME */}
       <td className="px-6 py-4">
         <span className="text-sm font-bold text-[#0d121b]">
           {product.name}
         </span>
       </td>
 
+      {/* CATEGORY (Fake demo) */}
+      <td className="px-6 py-4">
+        <span className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-full">
+          Books
+        </span>
+      </td>
+
+      {/* PRICE */}
       <td className="px-6 py-4 text-right font-bold">
         {product.price}
       </td>
 
+      {/* STOCK */}
       <td className="px-6 py-4 text-right">
-        {product.stock}
+        <span
+          className={`font-bold ${
+            product.stock < 10 ? "text-red-500" : "text-green-600"
+          }`}
+        >
+          {product.stock}
+        </span>
       </td>
+
+      {/* ACTIONS */}
+      <td className="px-6 py-4 text-center">
+        <div className="flex justify-center gap-2">
+          
+          {/* EDIT */}
+          <Link
+            to={`/admin/products/edit/${product.id}`}
+            className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+          >
+            <span className="material-symbols-outlined text-xl">
+              edit
+            </span>
+          </Link>
+
+          {/* DELETE */}
+          <button
+            onClick={() => handleDelete(product.id)}
+            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+          >
+            <span className="material-symbols-outlined text-xl">
+              delete
+            </span>
+          </button>
+
+        </div>
+      </td>
+
     </tr>
   ))}
 </tbody>

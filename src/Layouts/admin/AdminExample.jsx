@@ -1,7 +1,6 @@
 
-
-import React, { useState } from "react";
-
+import { Link } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
 export default function AdminExample() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -20,6 +19,20 @@ const totalPages = Math.ceil(exams.length / pageSize);
 
 const startIndex = (currentPage - 1) * pageSize;
 const paginatedData = exams.slice(startIndex, startIndex + pageSize);
+ const [showNoti, setShowNoti] = useState(false);
+const notiRef = useRef(null);
+useEffect(() => {
+  function handleClickOutside(event) {
+    if (notiRef.current && !notiRef.current.contains(event.target)) {
+      setShowNoti(false);
+    }
+  }
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
     return (
         <>
    <div class="flex h-screen overflow-hidden">
@@ -52,19 +65,79 @@ const paginatedData = exams.slice(startIndex, startIndex + pageSize);
 
         <div className="flex items-center gap-3">
           {/* Add Exam Button */}
-          <button className="size-8 flex items-center justify-center rounded-lg bg-accent-yellow text-primary text-xs font-bold shadow-lg shadow-yellow-500/20">
-            <span className="material-symbols-outlined text-xl">add</span>
-          </button>
+          <Link to="/adminNewExample">
+            <button className="size-8 flex items-center justify-center rounded-lg bg-accent-yellow text-primary text-xs font-bold shadow-lg shadow-yellow-500/20">
+              <span className="material-symbols-outlined text-xl">add</span>
+            </button>
+          </Link>
 
           <div className="h-8 w-[1px] bg-border-dark mx-2"></div>
 
           {/* Notification */}
-          <button className="relative bg-white rounded-xl border border-border-light shadow-sm p-2">
-            <span className="material-symbols-outlined">
-              notifications
-            </span>
-            <span className="absolute top-2 right-2 size-2 bg-primary rounded-full border-2 border-surface-dark"></span>
-          </button>
+            <div className="relative" ref={notiRef}>
+  {/* Icon */}
+  <div
+    onClick={() => setShowNoti(!showNoti)}
+    className="relative cursor-pointer group"
+  >
+    <span className="material-symbols-outlined text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">
+      notifications
+    </span>
+
+    <span className="absolute -top-1 -right-1 size-4 bg-red-500 text-[10px] text-white flex items-center justify-center rounded-full font-bold border-2 border-white dark:border-slate-900">
+      4
+    </span>
+  </div>
+
+  {/* Dropdown */}
+  {showNoti && (
+    <div className="absolute right-0 mt-4 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 animate-fadeIn">
+      
+      {/* Header */}
+      <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+        <h4 className="font-bold text-sm">Thông báo</h4>
+        <button className="text-xs text-primary font-semibold hover:underline">
+          Đánh dấu đã đọc
+        </button>
+      </div>
+
+      {/* List */}
+      <div className="max-h-80 overflow-y-auto">
+
+        {/* Item */}
+        <div className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer border-b border-slate-100 dark:border-slate-800">
+          <p className="text-sm font-medium">
+            Nguyễn An đã mua khóa học HSK 4
+          </p>
+          <p className="text-xs text-slate-400 mt-1">2 phút trước</p>
+        </div>
+
+        <div className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer border-b border-slate-100 dark:border-slate-800">
+          <p className="text-sm font-medium">
+            Có đơn hàng mới #TX9827
+          </p>
+          <p className="text-xs text-slate-400 mt-1">10 phút trước</p>
+        </div>
+
+        <div className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+          <p className="text-sm font-medium">
+            Học viên vừa hoàn thành bài thi
+          </p>
+          <p className="text-xs text-slate-400 mt-1">1 giờ trước</p>
+        </div>
+
+      </div>
+
+      {/* Footer */}
+      <div className="p-3 text-center border-t border-slate-200 dark:border-slate-800">
+        <button className="text-primary text-sm font-semibold hover:underline">
+          Xem tất cả thông báo
+        </button>
+      </div>
+
+    </div>
+  )}
+</div>
 
           {/* Profile */}
           <div className="flex items-center gap-3 pl-2">
