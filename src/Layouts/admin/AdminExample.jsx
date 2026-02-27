@@ -3,24 +3,21 @@ import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
 export default function AdminExample() {
-  const [currentPage, setCurrentPage] = useState(1);
-const pageSize = 3; // mỗi trang 3 dòng
+// =======================
+// STATE
+// =======================
 
-// Data mẫu
-const exams = [
-  { id: 1, name: "HSK 4 Standard Mock A", category: "HSK 4", duration: "105 min", questions: 100, status: "Active" },
-  { id: 2, name: "Business Chinese Level 1", category: "BCT A", duration: "45 min", questions: 40, status: "Draft" },
-  { id: 3, name: "HSK 6 Advanced Proficiency", category: "HSK 6", duration: "140 min", questions: 101, status: "Active" },
-  { id: 4, name: "HSK 1 Beginner Basics", category: "HSK 1", duration: "35 min", questions: 40, status: "Active" },
-  { id: 5, name: "HSK 3 Intermediate Prep", category: "HSK 3", duration: "90 min", questions: 80, status: "Draft" }
-];
-
-const totalPages = Math.ceil(exams.length / pageSize);
-
-const startIndex = (currentPage - 1) * pageSize;
-const paginatedData = exams.slice(startIndex, startIndex + pageSize);
- const [showNoti, setShowNoti] = useState(false);
+const [currentPage, setCurrentPage] = useState(1);
+const pageSize = 3;
+const [filterStatus, setFilterStatus] = useState("All");
+const [showNoti, setShowNoti] = useState(false);
 const notiRef = useRef(null);
+
+
+// =======================
+// CLICK OUTSIDE NOTI
+// =======================
+
 useEffect(() => {
   function handleClickOutside(event) {
     if (notiRef.current && !notiRef.current.contains(event.target)) {
@@ -33,6 +30,88 @@ useEffect(() => {
     document.removeEventListener("mousedown", handleClickOutside);
   };
 }, []);
+
+
+// =======================
+// DATA
+// =======================
+
+const exams = [
+  { id: 1, name: "HSK 4 Standard Mock A", category: "HSK 4", duration: "105 min", questions: 100, status: "Active" },
+  { id: 2, name: "Business Chinese Level 1", category: "BCT A", duration: "45 min", questions: 40, status: "Draft" },
+  { id: 3, name: "HSK 6 Advanced Proficiency", category: "HSK 6", duration: "140 min", questions: 101, status: "Active" },
+  { id: 4, name: "HSK 1 Beginner Basics", category: "HSK 1", duration: "35 min", questions: 40, status: "Active" },
+  { id: 5, name: "HSK 3 Intermediate Prep", category: "HSK 3", duration: "90 min", questions: 80, status: "Draft" }
+];
+
+
+// =======================
+// FILTER
+// =======================
+
+const filteredExams =
+  filterStatus === "All"
+    ? exams
+    : exams.filter((exam) => exam.status === filterStatus);
+
+
+// =======================
+// PAGINATION
+// =======================
+
+const totalPages = Math.ceil(filteredExams.length / pageSize);
+
+const startIndex = (currentPage - 1) * pageSize;
+
+const paginatedData = filteredExams.slice(
+  startIndex,
+  startIndex + pageSize
+);
+
+
+// =======================
+// RESET PAGE WHEN FILTER CHANGES
+// =======================
+
+useEffect(() => {
+  setCurrentPage(1);
+}, [filterStatus]);
+
+
+// =======================
+// EXPORT CSV
+// =======================
+
+const handleExport = () => {
+  const headers = ["Name", "Category", "Duration", "Questions", "Status"];
+
+  const rows = filteredExams.map(exam =>
+    [exam.name, exam.category, exam.duration, exam.questions, exam.status].join(",")
+  );
+
+  const csvContent =
+    "data:text/csv;charset=utf-8," +
+    [headers.join(","), ...rows].join("\n");
+
+  const link = document.createElement("a");
+  link.setAttribute("href", encodeURI(csvContent));
+  link.setAttribute("download", "exam-list.csv");
+  document.body.appendChild(link);
+  link.click();
+};
+// EDIT
+const handleEdit = (exam) => {
+  console.log("Editing:", exam);
+  alert(`Editing ${exam.name}`);
+};
+
+// DELETE
+const handleDelete = (id) => {
+  const confirmDelete = window.confirm("Are you sure you want to delete this exam?");
+  if (confirmDelete) {
+    setExams(prev => prev.filter(exam => exam.id !== id));
+  }
+};
     return (
         <>
    <div class="flex h-screen overflow-hidden">
@@ -230,20 +309,41 @@ useEffect(() => {
       Exam List
     </h3>
 
-    <div className="flex items-center gap-2">
-      <button className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg border border-slate-700 transition-colors">
-        <span className="material-symbols-outlined text-base text-primary">
-          filter_list
-        </span>
-        Filter
-      </button>
+  <div className="relative flex items-center gap-2">
+       <span className="material-symbols-outlined text-base text-primary">
+    filter_list
+  </span>
 
-      <button className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg border border-slate-700 transition-colors">
-        <span className="material-symbols-outlined text-base text-primary">
-          download
-        </span>
-        Export
-      </button>
+  <select
+    value={filterStatus}
+    onChange={(e) => {
+      setFilterStatus(e.target.value);
+      setCurrentPage(1);
+    }}
+    className="appearance-none px-3 py-1.5 pr-8 bg-slate-800 hover:bg-slate-700 
+               text-slate-300 text-xs font-bold rounded-lg 
+               border border-slate-700 transition-colors 
+               focus:outline-none cursor-pointer"
+  >
+    <option value="All">All</option>
+    <option value="Active">Active</option>
+    <option value="Draft">Draft</option>
+  </select>
+
+  {/* Icon dropdown */}
+  <span className="material-symbols-outlined absolute right-2 text-xs text-slate-400 pointer-events-none">
+    expand_more
+  </span>
+
+     <button
+  onClick={handleExport}
+  className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg border border-slate-700 transition-colors"
+>
+  <span className="material-symbols-outlined text-base text-primary">
+    download
+  </span>
+  Export
+</button>
     </div>
   </div>
 
@@ -296,16 +396,27 @@ useEffect(() => {
         </span>
       </td>
 
-      <td className="px-6 py-4 text-right">
-        <div className="flex items-center justify-end gap-2">
-          <button className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors">
-            <span className="material-symbols-outlined text-lg">edit</span>
-          </button>
-          <button className="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
-            <span className="material-symbols-outlined text-lg">delete</span>
-          </button>
-        </div>
-      </td>
+  <td className="px-6 py-4 text-right">
+  <div className="flex items-center justify-end gap-2">
+
+    {/* EDIT */}
+    <Link
+      to={`/admin/exams/edit/${exam.id}`}
+      className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+    >
+      <span className="material-symbols-outlined text-lg">edit</span>
+    </Link>
+
+    {/* DELETE */}
+    <button
+      onClick={() => handleDelete(exam.id)}
+      className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+    >
+      <span className="material-symbols-outlined text-lg">delete</span>
+    </button>
+
+  </div>
+</td>
     </tr>
   ))}
 </tbody>

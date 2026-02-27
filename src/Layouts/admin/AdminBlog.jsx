@@ -252,25 +252,7 @@ export default function AdminBlog() {
   ---
 </td>
 
-<td className="px-6 py-4">
-  <div className="flex items-center gap-2">
-    <button className="p-1.5 rounded-lg hover:bg-primary/10 text-slate-500 hover:text-primary transition-colors">
-      <span className="material-symbols-outlined text-lg">
-        visibility
-      </span>
-    </button>
-    <button className="p-1.5 rounded-lg hover:bg-primary/10 text-slate-500 hover:text-primary transition-colors">
-      <span className="material-symbols-outlined text-lg">
-        edit
-      </span>
-    </button>
-   <button className="p-1.5 rounded-lg hover:bg-primary/10 text-slate-500 hover:text-primary transition-colors">
-  <span className="material-symbols-outlined text-lg">
-    delete
-  </span>
-</button>
-  </div>
-</td>
+
 </tr>
 
 <tr className="hover:bg-slate-50 transition-colors">

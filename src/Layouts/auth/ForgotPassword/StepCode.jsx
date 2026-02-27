@@ -1,12 +1,16 @@
 import react, { useState, useEffect, useRef } from 'react';
 import toxiLogo from "../../../assets/image/LOGO (1).png"
 import { Link, useNavigate } from "react-router-dom";
+import { verifyOtpApi, resendOtpApi } from "../api/authApi";
+
 export default function StepCode({ code, setCode }) {
     const navigate = useNavigate();
     const [otpValues, setOtpValues] = useState(['', '', '', '', '', '']);
     const [timer, setTimer] = useState(59);
     const [canResend, setCanResend] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [email, setEmail] = useState(localStorage.getItem('resetEmail') || '');
     const inputRefs = useRef([]);
 
     useEffect(() => {
@@ -36,21 +40,70 @@ export default function StepCode({ code, setCode }) {
       }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
       e.preventDefault();
       setLoading(true);
-      const fullOtp = otpValues.join('');
-      console.log("Submit OTP:", fullOtp);
-      // TODO: xử lý xác thực OTP ở đây
-      setLoading(false);
+      setError('');
+      
+      try {
+        const fullOtp = otpValues.join('');
+        
+        if (!email) {
+          setError('Email không tìm thấy. Vui lòng quay lại và nhập email.');
+          setLoading(false);
+          return;
+        }
+
+        const response = await verifyOtpApi(email, fullOtp);
+        
+        if (response.data?.success) {
+          // Lưu token/session để sử dụng ở bước reset password
+          localStorage.setItem('otpToken', response.data?.token || 'verified');
+          localStorage.setItem('verifiedEmail', email);
+          
+          // Chuyển sang trang reset password
+          navigate('/reset-password');
+        } else {
+          setError(response.data?.message || 'Mã xác thực không hợp lệ');
+          setOtpValues(['', '', '', '', '', '']);
+        }
+      } catch (err) {
+        const errorMsg = err.response?.data?.message || 'Xác thực OTP thất bại. Vui lòng thử lại.';
+        setError(errorMsg);
+        setOtpValues(['', '', '', '', '', '']);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const handleResend = () => {
-      setTimer(59);
-      setCanResend(false);
-      setOtpValues(['', '', '', '', '', '']);
-      inputRefs.current[0]?.focus();
-      // TODO: gửi lại OTP
+    const handleResend = async () => {
+      setLoading(true);
+      setError('');
+      
+      try {
+        if (!email) {
+          setError('Email không tìm thấy. Vui lòng quay lại và nhập email.');
+          setLoading(false);
+          return;
+        }
+
+        const response = await resendOtpApi(email);
+        
+        if (response.data?.success) {
+          setTimer(59);
+          setCanResend(false);
+          setOtpValues(['', '', '', '', '', '']);
+          inputRefs.current[0]?.focus();
+          alert('Mã xác thực mới đã được gửi đến email của bạn');
+        } else {
+          setError(response.data?.message || 'Gửi lại OTP thất bại');
+        }
+      } catch (err) {
+        const errorMsg = err.response?.data?.message || 'Gỡi lại OTP không thành công. Vui lòng thử lại.';
+        setError(errorMsg);
+      } finally {
+        setLoading(false);
+      }
     };
     return (
         <>
@@ -92,6 +145,14 @@ export default function StepCode({ code, setCode }) {
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
         
+        {/* Error Message */}
+        {error && (
+          <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-3">
+            <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-xl">error</span>
+            <p className="text-red-700 dark:text-red-300 text-sm font-medium">{error}</p>
+          </div>
+        )}
+
         {/* OTP Inputs */}
         <div className="flex justify-center gap-3 sm:gap-4">
           {[...Array(6)].map((_, index) => (
@@ -144,9 +205,10 @@ export default function StepCode({ code, setCode }) {
               <button
                 type="button"
                 onClick={handleResend}
-                className="text-sm text-primary dark:text-amber-400 font-bold hover:underline transition-colors"
+                disabled={loading}
+                className="text-sm text-primary dark:text-amber-400 font-bold hover:underline transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Gửi lại mã xác thực
+                {loading ? 'Đang gửi...' : 'Gửi lại mã xác thực'}
               </button>
             ) : (
               <p className="text-sm text-gray-500 dark:text-gray-400">
