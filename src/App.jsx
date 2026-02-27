@@ -45,6 +45,8 @@ import AdminAddNewStudent from './Layouts/admin/AdminAddNewStudent.jsx';
 import AdminAddNewExample from './Layouts/admin/AdminAddNewExample.jsx';
 import AdminAddNewTeacher from './Layouts/admin/AdmnAddNewTeacher.jsx';
 import AdminEditCourses from './Layouts/admin/AdminEditCourses.jsx';
+import AdminEditProduct from './Layouts/admin/AdminEditProduct.jsx';
+import AdminEditStudent from './Layouts/admin/AdminEditStudent.jsx';
 
 function App() {
   return (
@@ -94,11 +96,11 @@ function App() {
       />
       <Route
         path="/admin/products/edit/:id"
-        element={<AdminAddNewProduct />}
+        element={<AdminEditProduct />}
       />
     <Route
   path="/adminEditStudent/:id"
-  element={<AdminAddNewStudent />}
+  element={<AdminEditStudent />}
 />
 
 <Route

@@ -1,7 +1,51 @@
-import react from 'react';
+import react, { useState } from 'react';
 import toxiLogo from "../../../assets/image/LOGO (1).png"
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { sendOtpApi } from "../api/authApi";
+
 export default function StepEmail({ email, setEmail }) {
+  const navigate = useNavigate();
+  const [inputEmail, setInputEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleEmailChange = (e) => {
+    setInputEmail(e.target.value);
+    setError('');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(inputEmail)) {
+      setError('Vui lòng nhập email hợp lệ');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await sendOtpApi(inputEmail);
+
+      if (response.data?.success) {
+        // Lưu email để điểm các bước tiếp theo
+        localStorage.setItem('resetEmail', inputEmail);
+        
+        // Chuyển sang trang nhập mã OTP
+        navigate('/MissingPasswordStepCode');
+      } else {
+        setError(response.data?.message || 'Email không được tìm thấy trong hệ thống');
+      }
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Gửi email thất bại. Vui lòng thử lại.';
+      setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <>
       <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
@@ -72,7 +116,7 @@ export default function StepEmail({ email, setEmail }) {
                 </p>
               </div>
 
-              <form className="flex flex-col gap-6">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                 <div className="flex flex-col gap-2">
                   <label className="text-secondary dark:text-white text-sm font-semibold">
                     Email khôi phục
@@ -85,6 +129,8 @@ export default function StepEmail({ email, setEmail }) {
 
                     <input
                       type="email"
+                      value={inputEmail}
+                      onChange={handleEmailChange}
                       required
                       placeholder="example@email.com"
                       className="w-full h-12 pl-12 pr-4 bg-background-light dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-text-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all placeholder:text-gray-400 font-medium"
@@ -92,19 +138,41 @@ export default function StepEmail({ email, setEmail }) {
                   </div>
                 </div>
 
-                <Link
-                  to="/MissingPasswordStepCode"
-                  className="mt-2 w-full h-12 bg-primary hover:bg-primary-hover text-secondary font-bold text-base rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 transform active:scale-[0.98] flex items-center justify-center gap-2 group"
+                {/* Error Message */}
+                {error && (
+                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-2">
+                    <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-lg">error</span>
+                    <p className="text-red-700 dark:text-red-300 text-sm font-medium">{error}</p>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || !inputEmail}
+                  className="mt-2 w-full h-12 bg-primary hover:bg-primary-hover disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold text-base rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 transform active:scale-[0.98] flex items-center justify-center gap-2 group disabled:shadow-none"
                 >
-                  <span>Gửi liên kết khôi phục</span>
-                  <span className="material-symbols-outlined text-lg transition-transform group-hover:translate-x-1">
-                    arrow_forward
-                  </span>
-                </Link>
+                  {loading ? (
+                    <>
+                      <span className="animate-spin">
+                        <span className="material-symbols-outlined text-lg">
+                          loading
+                        </span>
+                      </span>
+                      <span>Đang gửi...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Gửi liên kết khôi phục</span>
+                      <span className="material-symbols-outlined text-lg transition-transform group-hover:translate-x-1">
+                        arrow_forward
+                      </span>
+                    </>
+                  )}
+                </button>
 
                 <div className="mt-6 text-center">
                   <a
-                    href="/Login"
+                    href="/login"
                     className="inline-flex items-center gap-2 text-sm font-bold text-secondary dark:text-primary hover:underline decoration-2 underline-offset-4"
                   >
                     <span className="material-symbols-outlined text-base">arrow_back</span>

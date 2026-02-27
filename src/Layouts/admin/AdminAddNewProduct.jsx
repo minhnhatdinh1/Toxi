@@ -1,16 +1,15 @@
 
 import AdminSidebar from "./AdminSidebar";
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-export default function AdminAddNewProduct() {
-   const handleCancel = () => {
-    console.log("Cancel clicked");
-  };
+import { Link, useNavigate } from "react-router-dom";
+import { createProduct } from "./api/apiProduct";
 
-  const handleSave = () => {
-    console.log("Save Product clicked");
-  };
-   const [formData, setFormData] = useState({
+export default function AdminAddNewProduct() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const [formData, setFormData] = useState({
     bookId: "",
     title: "",
     category: "",
@@ -18,14 +17,69 @@ export default function AdminAddNewProduct() {
     discountPrice: "",
     stock: "",
   });
- const handleChange = (e) => {
+  const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setError('');
   };
 
-const [thumbnail, setThumbnail] = useState("");
+  const [thumbnail, setThumbnail] = useState("");
+
+  const validateForm = () => {
+    if (!formData.bookId.trim()) return "Mã sách không được bỏ trống";
+    if (!formData.title.trim()) return "Tiêu đề sách không được bỏ trống";
+    if (!formData.category) return "Danh mục không được bỏ trống";
+    if (!formData.originalPrice || formData.originalPrice <= 0) return "Giá gốc phải lớn hơn 0";
+    if (!formData.discountPrice || formData.discountPrice <= 0) return "Giá khuyến mãi phải lớn hơn 0";
+    if (parseFloat(formData.discountPrice) >= parseFloat(formData.originalPrice)) return "Giá khuyến mãi phải nhỏ hơn giá gốc";
+    if (!formData.stock || formData.stock < 0) return "Số lượng tồn kho không hợp lệ";
+    if (!thumbnail) return "Ảnh sản phẩm không được bỏ trống";
+    return '';
+  };
+
+  const handleCancel = () => {
+    const confirm = window.confirm("Bạn chắc chắn muốn hủy? Dữ liệu sẽ không được lưu.");
+    if (confirm) {
+      navigate('/adminStore');
+    }
+  };
+
+  const handleSave = async () => {
+    setError('');
+    const validationError = validateForm();
+    
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const productData = {
+        ...formData,
+        originalPrice: parseFloat(formData.originalPrice),
+        discountPrice: parseFloat(formData.discountPrice),
+        stock: parseInt(formData.stock),
+        image: thumbnail
+      };
+
+      // Khi API backend ready, bỏ comment dòng này
+      // const response = await createProduct(productData);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      alert('Thêm sản phẩm thành công!');
+      navigate('/adminStore');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Lỗi khi thêm sản phẩm');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleUrlChange = (e) => {
     setThumbnail(e.target.value);
@@ -74,28 +128,44 @@ const [thumbnail, setThumbnail] = useState("");
           </div>
 
           <div className="flex gap-3">
-            
             <button
               type="button"
               onClick={handleCancel}
-              className="px-6 py-2.5 rounded-xl border border-primary/20 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-primary/10 transition-colors"
+              disabled={loading}
+              className="px-6 py-2.5 rounded-xl border border-primary/20 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-primary/10 transition-colors disabled:opacity-50"
             >
-              Cancel
+              Hủy bỏ
             </button>
 
             <button
               type="button"
               onClick={handleSave}
-              className="px-6 py-2.5 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/20 hover:brightness-110 transition-all"
+              disabled={loading}
+              className="px-6 py-2.5 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/20 hover:brightness-110 transition-all disabled:opacity-50 flex items-center gap-2"
             >
-              Save Product
+              {loading ? (
+                <>
+                  <span className="animate-spin material-symbols-outlined text-sm">loading</span>
+                  <span>Đang lưu...</span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-sm">check_circle</span>
+                  <span>Lưu sản phẩm</span>
+                </>
+              )}
             </button>
-
           </div>
         </div>
 
       </div>
       <div className="px-6 pb-12 lg:px-10">
+      {error && (
+        <div className="p-4 mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-3">
+          <span className="material-symbols-outlined text-red-600 dark:text-red-400">error</span>
+          <p className="text-red-700 dark:text-red-300 font-medium">{error}</p>
+        </div>
+      )}
       <div className="bg-white dark:bg-[#1a0c0e] rounded-2xl border border-primary/10 shadow-sm overflow-hidden">
         
         {/* Header */}

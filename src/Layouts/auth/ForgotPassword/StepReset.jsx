@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import toxiLogo from "../../../assets/image/LOGO (1).png"
 import { Link, useNavigate } from "react-router-dom";
+import { resetPasswordApi } from "../api/authApi";
 
 export default function StepReset(){
   const navigate = useNavigate();
@@ -9,6 +10,23 @@ export default function StepReset(){
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [verifiedEmail, setVerifiedEmail] = useState('');
+  const [otpToken, setOtpToken] = useState('');
+
+  useEffect(() => {
+    // Lấy email đã verified từ localStorage
+    const email = localStorage.getItem('verifiedEmail');
+    const token = localStorage.getItem('otpToken');
+    
+    if (!email || !token) {
+      setError('Phiên làm việc hết hạn. Vui lòng quay lại và xác thực OTP lại.');
+      setTimeout(() => navigate('/MissingPassword'), 2000);
+      return;
+    }
+    
+    setVerifiedEmail(email);
+    setOtpToken(token);
+  }, [navigate]);
 
   const getPasswordStrength = (pwd) => {
     if (pwd.length < 8) return 0;
@@ -26,9 +44,11 @@ export default function StepReset(){
     setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     
+    // Validation
     if (passwords.new.length < 8) {
       setError('Mật khẩu phải có ít nhất 8 ký tự');
       return;
@@ -39,10 +59,35 @@ export default function StepReset(){
       return;
     }
 
+    if (!verifiedEmail) {
+      setError('Email không tìm thấy. Vui lòng quay lại và xác thực lại.');
+      return;
+    }
+
     setLoading(true);
-    console.log("Update password");
-    // TODO: xử lý cập nhật mật khẩu
-    setTimeout(() => setLoading(false), 1500);
+
+    try {
+      // Gọi API reset password
+      // Lưu ý: Backend sẽ cần endpoint này để xử lý
+      const response = await resetPasswordApi(verifiedEmail, otpToken, passwords.new);
+      
+      if (response.data?.success) {
+        // Xoá tokens từ localStorage
+        localStorage.removeItem('verifiedEmail');
+        localStorage.removeItem('otpToken');
+        localStorage.removeItem('resetEmail');
+
+        alert('Mật khẩu đã được cập nhật thành công!');
+        navigate('/login');
+      } else {
+        setError(response.data?.message || 'Cập nhật mật khẩu thất bại');
+      }
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Cập nhật mật khẩu không thành công. Vui lòng thử lại.';
+      setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
   };
     return(
         <>

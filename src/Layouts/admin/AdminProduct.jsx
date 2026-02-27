@@ -1,9 +1,10 @@
 
 
-import React, { useState } from "react";
-
+import React, { useState, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
 import { Link } from "react-router-dom";
+import { getAllProducts, deleteProduct } from "./api/apiProduct";
+
 export default function AdminProduct() {
   const initialProducts = [
   {
@@ -11,63 +12,109 @@ export default function AdminProduct() {
     name: "Standard HSK 4 Textbook",
     price: "¥128.00",
     stock: 450,
-    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f"
+    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f",
+    category: "Books"
   },
   {
     id: 2,
     name: "Elementary 500 Flashcards",
     price: "¥89.00",
     stock: 8,
-    image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f"
+    image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
+    category: "Flashcards"
   },
   {
     id: 3,
     name: "Calligraphy Master Set",
     price: "¥255.00",
     stock: 124,
-    image: "https://images.unsplash.com/photo-1512820790803-83ca734da794"
+    image: "https://images.unsplash.com/photo-1512820790803-83ca734da794",
+    category: "Tools"
   },
   {
     id: 4,
     name: "Grammar Guide Level 1-3",
     price: "¥65.00",
     stock: 89,
-    image: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d"
+    image: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d",
+    category: "Books"
   },
   {
     id: 5,
     name: "HSK 5 Mock Test Book",
     price: "¥150.00",
     stock: 32,
-    image: "https://images.unsplash.com/photo-1519681393784-d120267933ba"
+    image: "https://images.unsplash.com/photo-1519681393784-d120267933ba",
+    category: "Books"
   },
   {
     id: 6,
     name: "Chinese Idioms Handbook",
     price: "¥98.00",
     stock: 77,
-    image: "https://images.unsplash.com/photo-1524578271613-d550eacf6090"
+    image: "https://images.unsplash.com/photo-1524578271613-d550eacf6090",
+    category: "Flashcards"
   }
 ];
+
 const [products, setProducts] = useState(initialProducts);
+const [filteredProducts, setFilteredProducts] = useState(initialProducts);
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState('');
+const [searchQuery, setSearchQuery] = useState('');
+const [selectedCategory, setSelectedCategory] = useState('All');
 const itemsPerPage = 4;
 const [currentPage, setCurrentPage] = useState(1);
 
-const totalPages = Math.ceil(products.length / itemsPerPage);
+useEffect(() => {
+  loadProducts();
+}, []);
 
+const loadProducts = async () => {
+  setLoading(true);
+  try {
+    setProducts(initialProducts);
+    setFilteredProducts(initialProducts);
+  } catch (err) {
+    setError('Lỗi khi tải danh sách sản phẩm');
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  let result = products;
+  if (selectedCategory !== 'All') {
+    result = result.filter(p => p.category === selectedCategory);
+  }
+  if (searchQuery.trim()) {
+    result = result.filter(p =>
+      p.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
+  setFilteredProducts(result);
+  setCurrentPage(1);
+}, [searchQuery, selectedCategory, products]);
+
+const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 const startIndex = (currentPage - 1) * itemsPerPage;
-const currentProducts = products.slice(
-  startIndex,
-  startIndex + itemsPerPage
-);
-const handleDelete = (id) => {
+const currentProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+
+const handleDelete = async (id) => {
+  const product = products.find(p => p.id === id);
   const confirmDelete = window.confirm(
-    "Bạn có chắc muốn xoá sản phẩm này?"
+    `Bạn có chắc muốn xoá sản phẩm "${product.name}"?`
   );
-
   if (!confirmDelete) return;
-
-  setProducts((prev) => prev.filter((item) => item.id !== id));
+  try {
+    setLoading(true);
+    setProducts((prev) => prev.filter((item) => item.id !== id));
+    alert('Xoá sản phẩm thành công!');
+  } catch (err) {
+    setError('Xoá sản phẩm thất bại');
+  } finally {
+    setLoading(false);
+  }
 };
     return(
         <>
@@ -189,15 +236,21 @@ const handleDelete = (id) => {
         </span>
         <input
           type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search product name, SKU..."
-          className="w-full pl-10 pr-4 py-2 rounded-lg border-[#e7ebf3] focus:border-primary focus:ring-primary text-sm"
+          className="w-full pl-10 pr-4 py-2 rounded-lg border border-[#e7ebf3] focus:border-primary focus:ring-primary text-sm"
         />
       </div>
 
       {/* Category Filter */}
       <div className="flex items-center gap-2">
-        <select className="rounded-lg border-[#e7ebf3] text-sm focus:border-primary focus:ring-primary py-2 px-3">
-          <option>All Categories</option>
+        <select 
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="rounded-lg border border-[#e7ebf3] text-sm focus:border-primary focus:ring-primary py-2 px-3"
+        >
+          <option>All</option>
           <option>Books</option>
           <option>Flashcards</option>
           <option>Tools</option>
