@@ -1,74 +1,89 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import logo from '../../assets/image/LOGO (1).png'
-
-const courseData = {
-  1:{
-    title: "Tiếng Trung Giao Tiếp Cơ Bản",
-    price: "1.200.000đ",
-    description: "Khóa học dành cho người mới bắt đầu...",
-    breadcrumb: "Tiếng Trung Giao Tiếp cơ bản dành riêng cho người mới bắt đầu",
-     shortDesc:
-      "Học để ứng dụng (学以致用) - Tự tin giao tiếp chỉ sau 3 tháng.",
-    intro: [
-      "Khóa học được thiết kế cho người mới bắt đầu hoặc mất gốc.",
-      "Tập trung giao tiếp thực tế, từ vựng thông dụng.",
-      "Giáo trình chuẩn, cập nhật mới nhất.",
-    ],
-    outcomes: [
-      "Nắm vững phát âm chuẩn (Pinyin, Thanh điệu).",
-      "500+ từ vựng cốt lõi.",
-      "Tự tin giao tiếp đời sống hằng ngày.",
-      "Gõ tiếng Trung trên máy tính và điện thoại.",
-    ],
-  },
-  2: {
-    title: "HSK 3 - HSK 4 (Tiếng Trung Phổ Thông)",
-    price: "3.800.000đ",
-    description: "Mở rộng vốn từ vựng lên 1200 từ...",
-     breadcrumb: "HSK Trung Cấp",
-    shortDesc:
-      "Mở rộng vốn từ vựng lên 1200 từ, giao tiếp trôi chảy.",
-    intro: [
-      "Khóa học dành cho người đã có nền tảng cơ bản.",
-      "Tập trung luyện nghe – nói – đọc – viết.",
-    ],
-    outcomes: [
-      "1200 từ vựng chuẩn HSK 4.",
-      "Viết đoạn văn ngắn bằng tiếng Trung.",
-      "Giao tiếp học tập và công việc.",
-    ],
-  },
-  3: {
-    title: "HSK 5 - HSK 6",
-    price: "5.200.000đ",
-    description: "Đạt trình độ cao cấp...",
-     breadcrumb: "HSK Cao Cấp",
-    shortDesc:
-      "Đạt trình độ cao cấp, sử dụng tiếng Trung chuyên nghiệp.",
-    intro: [
-      "Dành cho người muốn làm việc bằng tiếng Trung.",
-      "Đọc báo, xem tin tức, viết luận.",
-    ],
-    outcomes: [
-      "Từ vựng học thuật nâng cao.",
-      "Viết luận và báo cáo.",
-      "Giao tiếp chuyên nghiệp.",
-    ],
-  },
-};
+import axios from "axios";
+import React, { useState, useEffect } from 'react';
 export default function CourseDetail() {
-  const LearningOutcomes = [
-    "Nắm vững phát âm chuẩn (Pinyin, Thanh điệu) ngay từ đầu.",
-    "Hơn 500 từ vựng cốt lõi và 50 cấu trúc ngữ pháp thông dụng.",
-    "Tự tin giới thiệu bản thân, mua sắm, hỏi đường, gọi món.",
-    "Kỹ năng gõ tiếng Trung trên điện thoại và máy tính.",
-    "Phương pháp nhớ chữ Hán qua bộ thủ và câu chuyện.",
-    "Đạt trình độ tương đương HSK 2 sau khi hoàn thành.",
-  ];
-  const { id } = useParams(); // 👈 ID từ URL
-  const course = courseData[id];
+  const { id } = useParams();
   const navigate = useNavigate();
 
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
+const [timeLeft, setTimeLeft] = useState("");
+  useEffect(() => {
+    fetchCourse();
+  }, [id]);
+useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      // Thiết lập mốc 00:00:00 của ngày mai (tức là cuối ngày hôm nay)
+      const tomorrow = new Date();
+      tomorrow.setHours(24, 0, 0, 0); 
+
+      const diff = tomorrow - now;
+      const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const m = Math.floor((diff / (1000 * 60)) % 60);
+      const s = Math.floor((diff / 1000) % 60);
+
+      setTimeLeft(
+        `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+      );
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+  const fetchCourse = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:8080/api/courses/${id}`
+      );
+      setCourse(res.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Lỗi khi lấy khóa học:", error);
+      setLoading(false);
+    }
+  };
+
+  const handleAddToCart = async () => {
+  try {
+    const res = await fetch("http://localhost:8080/api/cart/add", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({
+        courseId: course.courseId,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Thêm giỏ hàng thất bại");
+    }
+
+    alert("Đã thêm vào giỏ hàng!");
+  } catch (err) {
+    console.error(err);
+    alert("Có lỗi xảy ra!");
+  }
+};
+  if (loading) return <div className="p-10">Đang tải...</div>;
+  if (!course) return <div className="p-10">Không tìm thấy khóa học</div>;
+const hasDiscount =
+  course.discountPrice &&
+  course.discountPrice < course.price;
+
+const finalPrice = hasDiscount
+  ? course.discountPrice
+  : course.price;
+
+const discountPercent = hasDiscount
+  ? Math.round(
+      100 - (course.discountPrice / course.price) * 100
+    )
+  : 0;
+
+  
   return (
     <>
       <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
@@ -110,7 +125,7 @@ export default function CourseDetail() {
               <span className="material-symbols-outlined text-[28px] text-white hover:text-secondary transition-colors">
                 shopping_cart
               </span>
-              <span className="absolute -top-1 -right-1 bg-accent-red text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+<span className="absolute -top-1 -right-1 bg-accent-red text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                 2
               </span>
             </div>
@@ -168,11 +183,11 @@ export default function CourseDetail() {
     <div className="lg:col-span-8 flex flex-col gap-8">
       <div className="flex flex-col gap-4">
         <h1 className="text-[#0d141b] dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.02em]">
-         {course?.title}
+         {course.title}
         </h1>
 
         <p className="text-slate-600 dark:text-slate-300 text-lg font-normal leading-relaxed">
-          {course?.shortDesc}
+          {course.description}
         </p>
 
         <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -192,9 +207,8 @@ export default function CourseDetail() {
             </span>
             <span>3,400 học viên</span>
           </div>
-
-          <div className="flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[18px]">
+<div className="flex items-center gap-1.5">
+<span className="material-symbols-outlined text-[18px]">
               update
             </span>
             <span>Cập nhật: 06/2023</span>
@@ -214,7 +228,7 @@ export default function CourseDetail() {
     className="absolute inset-0 bg-cover bg-center opacity-80 group-hover:opacity-60 transition-opacity duration-300"
     style={{
       backgroundImage:
-        'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCLTF0QxG3IlFetbR6V5O0ZDc0-Di0pvuxkE3SJodstivVx85jqDou3nat_t7Qtrp0tbMwW1V5t30DafACpeOVgKLfbbOVomANBajmKPN9ctV7IbaFPPkEjm5r3KuRGgx1nr5XaGN29Wi_IU8RNGfNBX7W3O6ZsJ2C2nY5RH2lemVzRU65Kq9kEE5W51Kevj6T0EFpTIyxfQlr4t3fvzBuAvgDZkgonzonrnWrGscEpyqRmSLRuEKIp6TeGWj0tDeEIL3y3TD0GS5s")',
+        'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCLTF0Qx…vzBuAvgDZkgonzonrnWrGscEpyqRmSLRuEKIp6TeGWj0tDeEIL3y3TD0GS5s")',
     }}
   />
 
@@ -238,6 +252,7 @@ export default function CourseDetail() {
 </div>
 
 {/* Course introduction */}
+{/* Course introduction */}
 <div className="bg-white dark:bg-slate-800 rounded-xl p-6 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
   <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-primary">
     <span className="material-symbols-outlined">info</span>
@@ -245,14 +260,11 @@ export default function CourseDetail() {
   </h3>
 
   <div className="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300">
-    <p className="mb-4">
-     {course?.intro.map((text, i) => (
-    <p key={i}>{text}</p>
-  ))}
-    </p>
+    <p className="mb-2">Khóa học dành cho người đã có nền tảng cơ bản.</p>
+    <p className="mb-2">Tập trung luyện nghe – nói – đọc – viết.</p>
   </div>
 </div>
-
+{/* What you will learn */}
 {/* What you will learn */}
 <div className="bg-white dark:bg-slate-800 rounded-xl p-6 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
   <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-primary">
@@ -261,14 +273,23 @@ export default function CourseDetail() {
   </h3>
 
   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-    {course?.outcomes.map((item, i) => (
-    <div key={i} className="flex gap-3">
-      <span className="material-symbols-outlined text-green-500">
-        check
-      </span>
-      <span>{item}</span>
+    {/* Mục 1 */}
+    <div className="flex gap-3">
+      <span className="material-symbols-outlined text-green-500">check</span>
+      <span>1200 từ vựng chuẩn HSK 4.</span>
     </div>
-  ))}
+
+    {/* Mục 2 */}
+    <div className="flex gap-3">
+      <span className="material-symbols-outlined text-green-500">check</span>
+      <span>Viết đoạn văn ngắn bằng tiếng Trung.</span>
+    </div>
+
+    {/* Mục 3 */}
+    <div className="flex gap-3">
+      <span className="material-symbols-outlined text-green-500">check</span>
+      <span>Giao tiếp học tập và công việc.</span>
+    </div>
   </div>
 </div>
 
@@ -285,64 +306,88 @@ export default function CourseDetail() {
   </div>
 
   <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-    <details className="group" open>
+  {course.chapters?.map((chapter, chapterIndex) => (
+    <details
+      key={chapter.chapterId}
+      className="group"
+      open={chapterIndex === 0}
+    >
       <summary className="flex justify-between items-center bg-slate-50 dark:bg-slate-900 p-4 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors list-none">
         <div className="flex items-center gap-3">
           <span className="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">
             expand_more
           </span>
           <span className="font-bold text-[#0d141b] dark:text-white">
-            Chương 1: Nhập môn & Phát âm
+            {chapter.title}
           </span>
         </div>
         <span className="text-xs text-slate-500">
-          4 bài giảng • 45m
+          {chapter.contents?.length || 0} nội dung
         </span>
       </summary>
 
       <div className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-700">
-        {[
-          {
-            title: "Bài 1: Giới thiệu Pinyin và Thanh điệu",
-            preview: true,
-          },
-          {
-            title: "Bài 2: Vận mẫu đơn và Thanh mẫu cơ bản",
-            preview: true,
-          },
-          {
-            title: "Bài 3: Quy tắc biến điệu",
-            preview: false,
-          },
-        ].map((lesson, i) => (
-          <div
-            key={i}
-            onClick={() => {
-              if (lesson.preview) navigate(`/video?course=${id}&lesson=${i}`);
-            }}
-            className={`p-4 flex justify-between items-center ${lesson.preview ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50' : ''}`}
-          >
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-primary text-[20px]">
-                {lesson.preview ? "play_circle" : "lock"}
-              </span>
-              <span className="text-sm text-slate-700 dark:text-slate-300">
-                {lesson.title}
-              </span>
-            </div>
+        {chapter.contents?.map((content) => {
+          const isLesson = content.contentType === "LESSON";
 
-            {lesson.preview ? (
-              <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded">
-                Học thử
-              </span>
-            ) : (
-              <span className="text-xs text-slate-500">12:30</span>
-            )}
-          </div>
-        ))}
+          const title = isLesson
+            ? content.lesson?.title
+            : content.quiz?.title;
+
+          const isPreview = content.isPreview;
+
+          return (
+            <div
+              key={content.courseContentId}
+              onClick={() => {
+                if (isPreview && isLesson) {
+                  navigate(
+                    `/video/${content.lesson?.lessonId}`
+                  );
+                }
+              }}
+              className={`p-4 flex justify-between items-center ${
+                isPreview && isLesson
+                  ? "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                  : ""
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-primary text-[20px]">
+                  {isLesson
+                    ? isPreview
+                      ? "play_circle"
+                      : "lock"
+                    : "quiz"}
+                </span>
+
+                <span className="text-sm text-slate-700 dark:text-slate-300">
+                  {title}
+                </span>
+              </div>
+
+              {isLesson ? (
+                isPreview ? (
+<span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                    Học thử
+                  </span>
+                ) : (
+                  <span className="text-xs text-slate-500">
+                    Khóa
+                  </span>
+                )
+              ) : (
+                <span className="text-xs text-purple-500 font-medium">
+                  Quiz
+                </span>
+              )}
+            </div>
+          );
+        })}
       </div>
     </details>
-  </div>
+  ))}
+</div>
 </div>
 <div className="bg-white dark:bg-slate-800 rounded-xl p-6 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
   <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-primary">
@@ -404,7 +449,7 @@ export default function CourseDetail() {
 
         <button
           type="submit"
-          className="w-full sm:w-auto px-8 py-3 bg-secondary hover:bg-[#e6b400] text-primary font-bold rounded-lg transition-all shadow-md active:scale-95"
+className="w-full sm:w-auto px-8 py-3 bg-secondary hover:bg-[#e6b400] text-primary font-bold rounded-lg transition-all shadow-md active:scale-95"
         >
           Gửi đánh giá
         </button>
@@ -416,10 +461,9 @@ export default function CourseDetail() {
   <div className="flex flex-wrap gap-x-12 gap-y-8">
     <div className="flex flex-col gap-2 min-w-[150px]">
       <p className="text-[#0d141b] dark:text-white text-5xl font-black leading-tight tracking-[-0.033em]">
-        4.8
+        4.8+
       </p>
-
-      <div className="flex gap-1 text-secondary">
+<div className="flex gap-1 text-secondary">
         {[1, 2, 3, 4].map((_, i) => (
           <span key={i} className="material-symbols-outlined filled">
             star
@@ -487,7 +531,7 @@ export default function CourseDetail() {
             đầu đã thấy tự tin hơn hẳn khi phát âm.
           </p>
         </div>
-      </div>
+</div>
 
       {/* Review 2 */}
       <div className="flex gap-4">
@@ -500,7 +544,7 @@ export default function CourseDetail() {
             <div>
               <p className="font-bold text-sm dark:text-white">Lan Anh</p>
               <div className="flex text-secondary text-[14px] mt-0.5">
-                {[...Array(4)].map((_, i) => (
+{[...Array(4)].map((_, i) => (
                   <span
                     key={i}
                     className="material-symbols-outlined filled"
@@ -535,34 +579,43 @@ export default function CourseDetail() {
       
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-blue-400" />
 
-      <div className="flex items-end gap-2 mb-2">
-        <span className="text-3xl font-black text-[#0d141b] dark:text-white">
-           {course?.price}
-        </span>
-        <span className="text-lg text-slate-400 line-through decoration-1 mb-1">
-          1.200.000đ
-        </span>
-        <span className="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/30 px-2 py-0.5 rounded mb-2">
-          -50%
-        </span>
-      </div>
 
-      <p className="text-red-500 text-sm font-medium mb-6 flex items-center gap-1">
+<div className="flex items-end gap-2 mb-2">
+  <span className="text-2xl font-black text-[#0d141b] dark:text-white">
+    {Number(finalPrice).toLocaleString()}đ
+  </span>
+
+  {hasDiscount && (
+    <span className="text-lg text-slate-400 line-through mb-1">
+      {Number(course.price).toLocaleString()}đ
+    </span>
+  )}
+  
+{hasDiscount && (
+  <div className="text-red-500 text-sm font-semibold">
+    -{discountPercent}%
+  </div>
+)}
+      
+</div>
+  
+     
+
+ <p className="text-red-500 text-sm font-medium mb-6 flex items-center gap-1">
         <span className="material-symbols-outlined text-[16px]">timer</span>
-        Ưu đãi kết thúc sau 12:30:00
+        Ưu đãi kết thúc sau {timeLeft}
       </p>
 
       <button className="w-full h-12 flex items-center justify-center rounded-lg bg-secondary hover:bg-[#e6b400] text-primary font-bold text-base tracking-wide transition-all shadow-md shadow-yellow-100 dark:shadow-none mb-3">
-        Đăng ký ngay
+        Mua ngay 
       </button>
 
-      <button className="w-full h-12 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+      <button  onClick={handleAddToCart} className="w-full h-12 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
         Thêm vào giỏ hàng
       </button>
 
       <div className="my-6 border-t border-slate-100 dark:border-slate-700" />
-
-      <div className="flex flex-col gap-4">
+<div className="flex flex-col gap-4">
         <p className="font-bold text-sm text-[#0d141b] dark:text-white">
           Khóa học này bao gồm:
         </p>
@@ -574,8 +627,7 @@ export default function CourseDetail() {
             </span>
             <span>35 bài giảng video</span>
           </li>
-
-          <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+<li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
             <span className="material-symbols-outlined text-slate-400 text-[20px]">
               description
             </span>

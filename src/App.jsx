@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import MainLayout from './Layouts/common/MainLayout'
 import { HomePage } from './Layouts/home/HomePage'
 import { BlogPage } from './Layouts/blog/BlogPage'
-
+import { Navigate } from "react-router-dom";
 
 
 import Register from './Layouts/auth/Register.jsx'
@@ -51,7 +51,8 @@ function App() {
 
     <Routes>
       <Route path="/" element={<MainLayout />}>
-        <Route path="home" element={<HomePage />} />
+       <Route index element={<Navigate to="/home" replace />} />
+  <Route path="home" element={<HomePage />} />
         <Route path="blog" element={<BlogPage />} />
         <Route path="Practice" element={<PracticePage />} />
         <Route path="/course" element={<Course />} />

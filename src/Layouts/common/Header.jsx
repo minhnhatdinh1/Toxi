@@ -161,8 +161,16 @@ const Header = ({ children }) => {
                 />
               </div>
             </div>
+<div className="relative group cursor-pointer flex items-center">
 
-            <div className="flex items-center gap-4">
+  <span className= "material-symbols-outlined text-[28px] text-white hover:text-secondary transition-colors">
+shopping_cart
+  </span>
+  <span className="abcolute-top-1-right-1 bg-accent-red text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+    2
+  </span>
+</div>
+      <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center bg-slate-100 rounded-full p-1 text-xs font-bold text-slate-600">
                 <button className="px-3 py-1 bg-white shadow-sm rounded-full text-primary">
                   VN

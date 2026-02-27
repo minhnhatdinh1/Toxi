@@ -1,4 +1,4 @@
-
+  
 import AdminSidebar from "./AdminSidebar";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
@@ -8,7 +8,7 @@ export default function AdminAddNewProduct() {
   };
 
   const handleSave = () => {
-    console.log("Save Product clicked");
+    console.log("Save Product clicked");    
   };
    const [formData, setFormData] = useState({
     bookId: "",

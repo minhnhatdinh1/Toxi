@@ -154,12 +154,13 @@ export default function Course() {
                     <h3 className="text-lg font-bold mb-2 line-clamp-2 hover:text-primary transition">
                       {course.title}
                     </h3>
-
+                      <h4 className="text-sm text-slate-500 mb-2">{course.description}</h4>
                     <div className="text-xs text-slate-400 mb-3">
                       {course.courseType}
                     </div>
 
-                    <div className="mt-auto">
+                    <div className="mt-auto"> 
+                      
                       {/* PRICE */}
                       {course.discountPrice &&
                       course.discountPrice < course.price ? (

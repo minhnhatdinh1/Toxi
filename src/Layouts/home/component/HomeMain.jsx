@@ -16,6 +16,7 @@ export function HomePage() {
           <div className="max-w-3xl relative z-10">
             <div className="inline-flex items-center gap-2 mb-6 border border-secondary/50 bg-primary/60 backdrop-blur-md text-secondary px-5 py-2 rounded-full shadow-[0_0_15px_rgba(255,215,0,0.2)]">
               <span className="material-symbols-outlined text-[18px] animate-pulse">
+         
                 festival
               </span>
               <span className="text-xs font-bold tracking-wider uppercase">
