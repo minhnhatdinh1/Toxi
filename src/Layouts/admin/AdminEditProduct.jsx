@@ -2,7 +2,6 @@ import react from "react";
 import { useState, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
 import { useNavigate } from "react-router-dom";
-import { updateProduct } from "./api/apiProduct";
 
 export default function AdminEditProduct() {
   const navigate = useNavigate();
@@ -25,6 +24,18 @@ export default function AdminEditProduct() {
     preview:
       "https://images.unsplash.com/photo-1544640808-32ca72ac7f67?auto=format&fit=crop&q=80&w=200",
   });
+  const handleImageUpload = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const previewUrl = URL.createObjectURL(file);
+
+  setImage({
+    name: file.name,
+    size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+    preview: previewUrl,
+  });
+};
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({...prev, [field]: value}));

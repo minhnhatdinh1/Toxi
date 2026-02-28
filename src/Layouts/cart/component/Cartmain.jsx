@@ -1,11 +1,110 @@
-import react from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import logo from '../../../assets/image/LOGO (1).png';
+
+const initialCart = [
+  {
+    id: 1,
+    title: 'Giáo trình Hán ngữ Quyển 1 - Phiên bản mới',
+    author: 'Dương Ký Châu',
+    price: 150000,
+    quantity: 1,
+    image:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuBvqNaoLfIfdXwGjg4vxASs488OnhYbOaL56CRMW_LGRT7HEenfcMi1oh5ZkyBI45PLRgnHP9VDKPhKN9CTKY_-2oKqd0wjHfre54-g6WUbYhLGqvLWG9u6rWm4xSfJDOpFebYaqrWZcV9SjPpGP3fXXcK3jGNaCDMkTkjQQdXF__EeUU9E87tcmvFnNgwNCehk7tDGJ2E5ak5PGHeWGneUBf5PuxfsB6G_SqB4iQUk_QD0w9rmo-tgTF2iogjdnGUWhkep0UbGAZw',
+  },
+  {
+    id: 2,
+    title: 'Vở tập viết chữ Hán kẻ ô (Mễ Tự)',
+    author: 'Loại: 100 trang',
+    price: 25000,
+    quantity: 2,
+    image:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuAujl-AQXfmESPTpVH9Su8UY5bNH_LYDA-QNqIEre6i-GzYW2S7KduoG5cBaIJZTx_Zj-WyXa16bPpzDFJiLSRk3uAfcvdpBH8miK_1_8isJs2T2QDkX6KyAC0CttGO4nSKOTOkuD9SToTSflIbpz96CkqqA9YjOYawbCJqks4qrLlRD6gzV0ZumWzofGi1w8PhPwrmYSfBXLzcA8qlYXR8vFsWLSejb6VeGBzW66-KWF8IlL_9DG_7dAkGkhwTHd3cwKcVcRGictM',
+  },
+  {
+    id: 3,
+    title: 'Flashcard HSK 1-3 (Bộ 300 thẻ)',
+    author: 'Kèm khoen tròn',
+    price: 99000,
+    quantity: 1,
+    image:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuAuJg6l0_UNV4LxiyA6RTEJjZQrDB8TXxLFaC1RzHvCXjFZ-yVrS3utL313fs--ELgk-1mEytTt2ngxdOMwDSliMzo5ApW_ES5keH5Ly85uiovThytZH43oy0rYJqUSCglorGdV0QWAV1maRyvxnGUp9dG2CnaXz_47X6nQNjZgnmDIr8-Jgo08be84AyiO5x8ex3uMFzQH2dvjR-sOM0f642hlb436gwNFZc2koEc7rJIdJm_Axh8inK7QW_GqZavKXtUA_AEbVqg',
+  },
+];
+
+function formatVND(value) {
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + 'đ';
+}
+
 export default function CartpageMain() {
   const navigate = useNavigate();
-    return (
-        <>
+  const [items, setItems] = useState(initialCart);
+  const [coupon, setCoupon] = useState('');
+  const [couponMessage, setCouponMessage] = useState(null);
+  const [discount, setDiscount] = useState({ amount: 0, shippingFree: false });
+
+  useEffect(() => {
+    setCouponMessage(null);
+  }, [coupon]);
+
+  function updateQuantity(id, newQty) {
+    setItems((prev) =>
+      prev.map((it) => {
+        if (it.id !== id) return it;
+        const qty = Math.max(1, newQty);
+        return { ...it, quantity: qty };
+      })
+    );
+  }
+
+  function handleDelete(id) {
+    const ok = window.confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?');
+    if (!ok) return;
+    setItems((prev) => prev.filter((it) => it.id !== id));
+  }
+
+  function applyCouponCode(code) {
+    const c = (code || '').trim().toUpperCase();
+    if (!c) {
+      setCouponMessage('Vui lòng nhập mã giảm giá');
+      return;
+    }
+
+    // Example coupons
+    // TOXI10 => 10% off subtotal
+    // SHIPFREE => free shipping
+    // VND50K => flat 50,000 VND off
+    if (c === 'TOXI10') {
+      setDiscount({ amount: 0.1, shippingFree: false });
+      setCouponMessage('Áp dụng mã TOXI10: Giảm 10%');
+    } else if (c === 'SHIPFREE') {
+      setDiscount({ amount: 0, shippingFree: true });
+      setCouponMessage('Miễn phí vận chuyển');
+    } else if (c === 'VND50K') {
+      setDiscount({ amount: 50000, shippingFree: false });
+      setCouponMessage('Giảm 50.000đ');
+    } else {
+      setDiscount({ amount: 0, shippingFree: false });
+      setCouponMessage('Mã giảm giá không hợp lệ');
+    }
+  }
+
+  const subtotal = useMemo(() => items.reduce((s, it) => s + it.price * it.quantity, 0), [items]);
+  const shipping = useMemo(() => (subtotal > 0 ? 30000 : 0), [subtotal]);
+
+  const discountAmount = useMemo(() => {
+    if (!discount) return 0;
+    if (typeof discount.amount === 'number') {
+      return discount.shippingFree ? 0 : typeof discount.amount === 'number' && discount.amount > 1 ? discount.amount : (discount.amount < 1 && discount.amount > 0 ? Math.round(subtotal * discount.amount) : discount.amount);
+    }
+    return 0;
+  }, [discount, subtotal]);
+
+  const shippingAfter = discount.shippingFree ? 0 : shipping;
+  const total = Math.max(0, subtotal - discountAmount + shippingAfter);
+  return (
+    <div>
         {/* Header (separated from main for clearer spacing) */}
         <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
           {/* Background pattern */}
@@ -84,250 +183,61 @@ export default function CartpageMain() {
                 </thead>
 
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                  <tr className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-start gap-4">
-                        <div className="shrink-0 w-20 h-28 bg-slate-100 dark:bg-slate-700 rounded-md overflow-hidden border border-slate-200 dark:border-slate-600">
-                          <img
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvqNaoLfIfdXwGjg4vxASs488OnhYbOaL56CRMW_LGRT7HEenfcMi1oh5ZkyBI45PLRgnHP9VDKPhKN9CTKY_-2oKqd0wjHfre54-g6WUbYhLGqvLWG9u6rWm4xSfJDOpFebYaqrWZcV9SjPpGP3fXXcK3jGNaCDMkTkjQQdXF__EeUU9E87tcmvFnNgwNCehk7tDGJ2E5ak5PGHeWGneUBf5PuxfsB6G_SqB4iQUk_QD0w9rmo-tgTF2iogjdnGUWhkep0UbGAZw"
-                            alt="Cover of Chinese textbook Hanyu Jiaocheng"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-
-                        <div className="flex flex-col gap-1">
-                          <div className="flex gap-2 mb-1">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                              Sách
-                            </span>
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
-                              Còn hàng
-                            </span>
-                          </div>
-
-                          <a
-                            href="#"
-                            className="font-semibold text-slate-900 dark:text-white hover:text-primary transition-colors line-clamp-2"
-                          >
-                            Giáo trình Hán ngữ Quyển 1 - Phiên bản mới
-                          </a>
-
-                          <p className="text-xs text-slate-500">
-                            Tác giả: Dương Ký Châu
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4 text-center text-sm font-medium text-slate-600 dark:text-slate-300">
-                      150.000đ
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center">
-                        <div className="flex items-center border border-slate-300 dark:border-slate-600 rounded-lg h-9">
-                          <button className="px-2 h-full text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-l-lg transition-colors">
-                            <span className="material-symbols-outlined text-lg">
-                              remove
-                            </span>
-                          </button>
-
-                          <input
-                            type="text"
-                            value="1"
-                            readOnly
-                            className="w-10 h-full border-none p-0 text-center text-sm font-medium bg-transparent focus:ring-0 text-slate-900 dark:text-white"
-                          />
-
-                          <button className="px-2 h-full text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-r-lg transition-colors">
-                            <span className="material-symbols-outlined text-lg">
-                              add
-                            </span>
-                          </button>
-                        </div>
-                      </div>
-                    </td>
-                      <td className="px-6 py-4 text-right font-bold text-primary text-base">
-    150.000đ
-  </td>
-
-  <td className="px-4 py-4 text-center">
-    <button
-      title="Xóa sản phẩm"
-      className="text-slate-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 tooltip"
-    >
-      <span className="material-symbols-outlined text-xl">
-        delete
-      </span>
-    </button>
-  </td>
-</tr>
-
-<tr className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-  <td className="px-6 py-4">
-    <div className="flex items-start gap-4">
-      <div className="shrink-0 w-20 h-28 bg-slate-100 dark:bg-slate-700 rounded-md overflow-hidden border border-slate-200 dark:border-slate-600">
-        <img
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAujl-AQXfmESPTpVH9Su8UY5bNH_LYDA-QNqIEre6i-GzYW2S7KduoG5cBaIJZTx_Zj-WyXa16bPpzDFJiLSRk3uAfcvdpBH8miK_1_8isJs2T2QDkX6KyAC0CttGO4nSKOTOkuD9SToTSflIbpz96CkqqA9YjOYawbCJqks4qrLlRD6gzV0ZumWzofGi1w8PhPwrmYSfBXLzcA8qlYXR8vFsWLSejb6VeGBzW66-KWF8IlL_9DG_7dAkGkhwTHd3cwKcVcRGictM"
-          alt="Grid paper notebook for Chinese characters"
-          className="w-full h-full object-cover"
-        />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <div className="flex gap-2 mb-1">
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
-            Vở viết
-          </span>
-        </div>
-
-        <a
-          href="#"
-          className="font-semibold text-slate-900 dark:text-white hover:text-primary transition-colors line-clamp-2"
-        >
-          Vở tập viết chữ Hán kẻ ô (Mễ Tự)
-        </a>
-
-        <p className="text-xs text-slate-500">
-          Loại: 100 trang
-        </p>
-      </div>
-    </div>
-  </td>
-  <td className="px-6 py-4 text-center text-sm font-medium text-slate-600 dark:text-slate-300">
-                                        25.000đ
-                                    </td>
+                  {items.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-6 text-center text-slate-500">
+                        Giỏ hàng trống
+                      </td>
+                    </tr>
+                  ) : (
+                    items.map((item) => (
+                      <tr key={item.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                         <td className="px-6 py-4">
-  <div className="flex items-center justify-center">
-    <div className="flex items-center border border-slate-300 dark:border-slate-600 rounded-lg h-9">
-      <button
-        type="button"
-        className="px-2 h-full text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-l-lg transition-colors"
-      >
-        <span className="material-symbols-outlined text-lg">
-          remove
-        </span>
-      </button>
+                          <div className="flex items-start gap-4">
+                            <div className="shrink-0 w-20 h-28 bg-slate-100 dark:bg-slate-700 rounded-md overflow-hidden border border-slate-200 dark:border-slate-600">
+                              <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                            </div>
 
-      <input
-        type="text"
-        value={2}
-        readOnly
-        className="w-10 h-full border-none p-0 text-center text-sm font-medium bg-transparent focus:ring-0 text-slate-900 dark:text-white"
-      />
+                            <div className="flex flex-col gap-1">
+                              <div className="flex gap-2 mb-1">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Sách</span>
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">Còn hàng</span>
+                              </div>
 
-      <button
-        type="button"
-        className="px-2 h-full text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-r-lg transition-colors"
-      >
-        <span className="material-symbols-outlined text-lg">
-          add
-        </span>
-      </button>
-    </div>
-  </div>
-</td>
+                              <a href="#" className="font-semibold text-slate-900 dark:text-white hover:text-primary transition-colors line-clamp-2">{item.title}</a>
+                              <p className="text-xs text-slate-500">{item.author}</p>
+                            </div>
+                          </div>
+                        </td>
 
-<td className="px-6 py-4 text-right font-bold text-primary text-base">
-  50.000đ
-</td>
-            <td className="px-4 py-4 text-center">
-  <button
-    type="button"
-    title="Xóa sản phẩm"
-    className="text-slate-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20"
-  >
-    <span className="material-symbols-outlined text-xl">
-      delete
-    </span>
-  </button>
-</td>
-</tr>
+                        <td className="px-6 py-4 text-center text-sm font-medium text-slate-600 dark:text-slate-300">{formatVND(item.price)}</td>
 
-<tr className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-  <td className="px-6 py-4">
-    <div className="flex items-start gap-4">
-      <div className="shrink-0 w-20 h-28 bg-slate-100 dark:bg-slate-700 rounded-md overflow-hidden border border-slate-200 dark:border-slate-600">
-        <img
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuJg6l0_UNV4LxiyA6RTEJjZQrDB8TXxLFaC1RzHvCXjFZ-yVrS3utL313fs--ELgk-1mEytTt2ngxdOMwDSliMzo5ApW_ES5keH5Ly85uiovThytZH43oy0rYJqUSCglorGdV0QWAV1maRyvxnGUp9dG2CnaXz_47X6nQNjZgnmDIr8-Jgo08be84AyiO5x8ex3uMFzQH2dvjR-sOM0f642hlb436gwNFZc2koEc7rJIdJm_Axh8inK7QW_GqZavKXtUA_AEbVqg"
-          alt="Flashcards box set"
-          className="w-full h-full object-cover"
-        />
-      </div>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-center">
+                            <div className="flex items-center border border-slate-300 dark:border-slate-600 rounded-lg h-9">
+                              <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)} className="px-2 h-full text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-l-lg transition-colors">
+                                <span className="material-symbols-outlined text-lg">remove</span>
+                              </button>
 
-      <div className="flex flex-col gap-1">
-        <div className="flex gap-2 mb-1">
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-            Công cụ
-          </span>
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-secondary/20 text-yellow-700 dark:bg-secondary/30 dark:text-secondary border border-secondary/20">
-            Hot
-          </span>
-        </div>
+                              <input type="text" value={item.quantity} readOnly className="w-10 h-full border-none p-0 text-center text-sm font-medium bg-transparent focus:ring-0 text-slate-900 dark:text-white" />
 
-        <a
-          href="#"
-          className="font-semibold text-slate-900 dark:text-white hover:text-primary transition-colors line-clamp-2"
-        >
-          Flashcard HSK 1-3 (Bộ 300 thẻ)
-        </a>
+                              <button type="button" onClick={() => updateQuantity(item.id, item.quantity + 1)} className="px-2 h-full text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-r-lg transition-colors">
+                                <span className="material-symbols-outlined text-lg">add</span>
+                              </button>
+                            </div>
+                          </div>
+                        </td>
 
-        <p className="text-xs text-slate-500">
-          Kèm khoen tròn
-        </p>
-      </div>
-    </div>
-  </td>
+                        <td className="px-6 py-4 text-right font-bold text-primary text-base">{formatVND(item.price * item.quantity)}</td>
 
-  <td className="px-6 py-4 text-center text-sm font-medium text-slate-600 dark:text-slate-300">
-    99.000đ
-  </td>
-  <td className="px-6 py-4">
-  <div className="flex items-center justify-center">
-    <div className="flex items-center border border-slate-300 dark:border-slate-600 rounded-lg h-9">
-      <button
-        type="button"
-        className="px-2 h-full text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-l-lg transition-colors"
-      >
-        <span className="material-symbols-outlined text-lg">
-          remove
-        </span>
-      </button>
-
-      <input
-        type="text"
-        value="1"
-        readOnly
-        className="w-10 h-full border-none p-0 text-center text-sm font-medium bg-transparent focus:ring-0 text-slate-900 dark:text-white"
-      />
-
-      <button
-        type="button"
-        className="px-2 h-full text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-r-lg transition-colors"
-      >
-        <span className="material-symbols-outlined text-lg">
-          add
-        </span>
-      </button>
-    </div>
-  </div>
-</td>
-
-<td className="px-6 py-4 text-right font-bold text-primary text-base">
-  99.000đ
-</td>
-<td className="px-4 py-4 text-center">
-  <button
-    type="button"
-    title="Xóa sản phẩm"
-    className="text-slate-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20"
-  >
-    <span className="material-symbols-outlined text-xl">
-      delete
-    </span>
-  </button>
-</td>
-                  </tr>
+                        <td className="px-4 py-4 text-center">
+                          <button type="button" title="Xóa sản phẩm" onClick={() => handleDelete(item.id)} className="text-slate-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20">
+                            <span className="material-symbols-outlined text-xl">delete</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -410,47 +320,44 @@ export default function CartpageMain() {
           <input
             type="text"
             placeholder="Mã giảm giá"
+            value={coupon}
+            onChange={(e) => setCoupon(e.target.value)}
             className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary focus:border-primary transition-all dark:text-white"
           />
 
-          <button className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium text-sm rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+          <button onClick={() => applyCouponCode(coupon)} className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium text-sm rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
             Áp dụng
           </button>
         </div>
 
+        {couponMessage && (
+          <div className="text-sm text-center text-slate-600 dark:text-slate-300 mt-2">{couponMessage}</div>
+        )}
+
         <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-700">
           <div className="flex justify-between items-center text-sm text-slate-500 dark:text-slate-400">
-            <span>Tạm tính (3 sản phẩm)</span>
-            <span className="font-medium text-slate-900 dark:text-white">
-              299.000đ
-            </span>
+            <span>Tạm tính ({items.reduce((s, i) => s + i.quantity, 0)} sản phẩm)</span>
+            <span className="font-medium text-slate-900 dark:text-white">{formatVND(subtotal)}</span>
           </div>
 
           <div className="flex justify-between items-center text-sm text-slate-500 dark:text-slate-400">
             <span>Phí vận chuyển (Dự kiến)</span>
-            <span className="font-medium text-slate-900 dark:text-white">
-              30.000đ
-            </span>
+            <span className="font-medium text-slate-900 dark:text-white">{formatVND(shippingAfter)}</span>
           </div>
 
           <div className="flex justify-between items-center text-sm text-green-600 dark:text-green-400">
             <span>Giảm giá</span>
-            <span className="font-medium">-0đ</span>
+            <span className="font-medium">-{formatVND(discountAmount)}</span>
           </div>
         </div>
-         <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-        <div className="flex justify-between items-end mb-1">
-          <span className="text-base font-bold text-slate-900 dark:text-white">
-            Tổng cộng
-          </span>
-          <span className="text-2xl font-bold text-primary">
-            329.000đ
-          </span>
+
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex justify-between items-end mb-1">
+            <span className="text-base font-bold text-slate-900 dark:text-white">Tổng cộng</span>
+            <span className="text-2xl font-bold text-primary">{formatVND(total)}</span>
+          </div>
+          <p className="text-xs text-right text-slate-400">(Đã bao gồm VAT nếu có)</p>
         </div>
-        <p className="text-xs text-right text-slate-400">
-          (Đã bao gồm VAT nếu có)
-        </p>
-      </div>
 
       <button
   onClick={() => navigate("/checkout")}
@@ -485,7 +392,7 @@ export default function CartpageMain() {
     </div>
       </div>
     </main>
-    <footer className="mt-auto py-8 bg-white dark:bg-slate-850 border-t border-slate-200 dark:border-slate-700">
+    <div className="mt-auto py-8 bg-white dark:bg-slate-850 border-t border-slate-200 dark:border-slate-700">
 <div className="max-w-[1440px] mx-auto px-10 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
 <p>© 2024 TOXI Store. All rights reserved.</p>
 <div className="flex gap-4">
@@ -494,7 +401,7 @@ export default function CartpageMain() {
 <a className="hover:text-primary" href="#">Hỗ trợ</a>
 </div>
 </div>
-</footer>
-        </>
-    )
-};
+</div>
+</div>
+  );
+}

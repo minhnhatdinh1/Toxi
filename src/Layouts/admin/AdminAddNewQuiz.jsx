@@ -1,7 +1,7 @@
 import react from "react";
 import { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
-export default function AdminAddNewExample() {
+export default function AdminAddNewQuiz() {
     return (
         <>
             <div className="flex h-screen overflow-hidden ">
