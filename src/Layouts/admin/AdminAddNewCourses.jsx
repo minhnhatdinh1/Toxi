@@ -2,9 +2,11 @@ import React from "react";
 import { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
 import { Link , useNavigate } from "react-router-dom";
+import { useApi } from "../service/useApi";
 export default function AdminAddNewCourses() {
   
     const navigate = useNavigate();
+  const { call, loading: apiLoading } = useApi();
  
   const [formData, setFormData] = useState({
     courseId: "",
@@ -47,43 +49,48 @@ const handleChange = (e) => {
   // Submit to backend
   const handleSubmit = async (status) => {
     try {
-      const data = new FormData();
+      const result = await call(async () => {
+        const data = new FormData();
 
-      const courseData = {
-        ...formData,
-        status: status,
-      };
+        const courseData = {
+          ...formData,
+          status: status,
+        };
 
-       data.append(
-        "course",
-        new Blob([JSON.stringify(courseData)], {
-          type: "application/json",
-        })
-      ); 
-      if (ThumbnailFile) {
-        data.append("thumbnail", ThumbnailFile);
-      }
-
-      const response = await fetch(
-        "http://localhost:8080/api/admin/courses",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: data,
+        data.append(
+          "course",
+          new Blob([JSON.stringify(courseData)], {
+            type: "application/json",
+          })
+        );
+        if (ThumbnailFile) {
+          data.append("thumbnail", ThumbnailFile);
         }
-      );
 
-      if (!response.ok) {
-        throw new Error("Tạo khóa học thất bại");
-      }
+        const response = await fetch(
+          "http://localhost:8080/api/admin/courses",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: data,
+          }
+        );
 
+        if (!response.ok) {
+          throw new Error("Tạo khóa học thất bại");
+        }
+
+        return response.json();
+      });
+
+      // if we reach here, call succeeded
       alert("Khóa học đã được tạo thành công!quay lại trang quản lý khóa học.");
       navigate("/adminCourse");
     } catch (error) {
       console.error(error);
-      alert("Error creating course");
+      // toast already shown by useApi
     }
   };
 
@@ -130,9 +137,10 @@ const handleChange = (e) => {
 
             <button
               onClick={handleSave}
-              className="px-6 py-2.5 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/20 hover:brightness-110 transition-all"
+              disabled={apiLoading}
+              className="px-6 py-2.5 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/20 hover:brightness-110 transition-all disabled:opacity-50"
             >
-              Save Course
+              {apiLoading ? 'Đang xử lý...' : 'Save Course'}
             </button>
           </div>
         </div>

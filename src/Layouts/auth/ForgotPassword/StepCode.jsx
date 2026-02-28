@@ -2,9 +2,11 @@ import react, { useState, useEffect, useRef } from 'react';
 import toxiLogo from "../../../assets/image/LOGO (1).png"
 import { Link, useNavigate } from "react-router-dom";
 import { verifyOtpApi, resendOtpApi } from "../api/authApi";
+import { useToast } from '../../common/ToastContext';
 
 export default function StepCode({ code, setCode }) {
     const navigate = useNavigate();
+    const toast = useToast();
     const [otpValues, setOtpValues] = useState(['', '', '', '', '', '']);
     const [timer, setTimer] = useState(59);
     const [canResend, setCanResend] = useState(false);
@@ -64,7 +66,9 @@ export default function StepCode({ code, setCode }) {
           // Chuyển sang trang reset password
           navigate('/reset-password');
         } else {
-          setError(response.data?.message || 'Mã xác thực không hợp lệ');
+          const msg = response.data?.message || 'Mã xác thực không hợp lệ';
+          setError(msg);
+          toast.addToast(msg, 'error');
           setOtpValues(['', '', '', '', '', '']);
         }
       } catch (err) {
@@ -94,9 +98,11 @@ export default function StepCode({ code, setCode }) {
           setCanResend(false);
           setOtpValues(['', '', '', '', '', '']);
           inputRefs.current[0]?.focus();
-          alert('Mã xác thực mới đã được gửi đến email của bạn');
+          toast.addToast('OTP mới đã được gửi', 'success');
         } else {
-          setError(response.data?.message || 'Gửi lại OTP thất bại');
+          const msg = response.data?.message || 'Gửi lại OTP thất bại';
+          setError(msg);
+          toast.addToast(msg, 'error');
         }
       } catch (err) {
         const errorMsg = err.response?.data?.message || 'Gỡi lại OTP không thành công. Vui lòng thử lại.';

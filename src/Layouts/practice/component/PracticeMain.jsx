@@ -1,45 +1,102 @@
-import react from 'react';
+import react, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function FlashcardMain() {
     const navigate = useNavigate();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedLevel, setSelectedLevel] = useState('');
+    const [sortBy, setSortBy] = useState('newest');
     
-    // Dữ liệu các bài thi
+    // Dữ liệu các bài thi mở rộng
     const examData = [
         {
             id: 1,
             title: 'Đề thi HSK 1 - Mã đề 101',
-            level: 'HSK 1 • Sơ cấp',
+            level: 'HSK 1',
             description: 'Khởi đầu hành trình với 150 từ vựng căn bản và các cấu trúc giao tiếp hằng ngày.',
             image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCcZYi4iWQj7LDhIxYWvRnqIbWknLgO_-cjF6r3iw8JS2LxhmUGpvgLi4cDWWPLM7szb8vgG4kqqrATxkcqsYG80baGK32RWXAvdqoTm-XkCKi-FnYzsAxfhLw3deZ17P6JOHGylnO09eeXWxMld19_5A0KJ72jKG-pS6qygetOBpIKl1P1ZqP2hA5VARNGl-IsOzTTFAA1JI3AdO_ULMq5yVSQ08y8X4iTyyMVNQLIFkiMhDBZbFKrLvLb2h7ExlodpKFfC9g_HzM',
             duration: '35 Phút',
             questions: '40 Câu',
             attempts: '1.2k Lượt',
-            badge: 'primary'
+            badge: 'primary',
+            rating: 4.8
+        },
+        {
+            id: 2,
+            title: 'Đề HSK 2 - Nâng cao',
+            level: 'HSK 2',
+            description: 'Mở rộng 300 từ mới và các cấu trúc ngữ pháp cơ bản cho giao tiếp.',
+            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBtAf0-iJ5W4K2jKxzTI8vM3c5F4w8nAB9Yz0Zm',
+            duration: '45 Phút',
+            questions: '50 Câu',
+            attempts: '950 Lượt',
+            badge: 'primary',
+            rating: 4.6
+        },
+        {
+            id: 3,
+            title: 'Đề HSK 3 - Trung cấp',
+            level: 'HSK 3',
+            description: 'Luyện tập 600 từ vựng và các tình huống giao tiếp thường ngày.',
+            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuByiVb5L5QK6-j9pR8X',
+            duration: '60 Phút',
+            questions: '60 Câu',
+            attempts: '1.5k Lượt',
+            badge: 'primary',
+            rating: 4.7
         },
         {
             id: 4,
             title: 'Đề HSK 4 - Chuyên sâu',
-            level: 'HSK 4 • Trung cấp',
+            level: 'HSK 4',
             description: 'Mở rộng vốn từ lên 1200 từ và làm quen với các chủ đề thảo luận xã hội phức tạp.',
             image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuChVVwENFyaMtxcqMdQ50jnZhlR-oR3OQ-anvGnZzYY05g8GgY9CvGz5gQLqAm11WS1K8ySwDFPrwjlS-Fm2cesUXHT9B801LhS736VAhWHYvIO7DxFUhIthDZ6FzPrNg-uG3JhBY7vYd7sLjSjTCAMjOpYHlRU5Qja45htNVMEsWG0dz1OO6_L653ZqYB3MRXyPSYc6yKK5EXsC6isgcvCE1AsaMv3KrJ0Cg8ZS5XRfCkbxelgstJm6iKhDHoEzlcBUs96zE7HWUg',
             duration: '105 Phút',
             questions: '100 Câu',
             attempts: '3.5k Lượt',
-            badge: 'primary'
+            badge: 'primary',
+            rating: 4.9
+        },
+        {
+            id: 5,
+            title: 'Đề HSK 5 - Cao cấp',
+            level: 'HSK 5',
+            description: 'Chinh phục 2500 từ vựng và các văn bản học thuật phức tạp.',
+            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBxL9m4Nr3P',
+            duration: '120 Phút',
+            questions: '105 Câu',
+            attempts: '2.2k Lượt',
+            badge: 'primary',
+            rating: 4.9
         },
         {
             id: 6,
             title: 'Mock-test HSK 6 Toàn diện',
-            level: 'HSK 6 • Cao cấp',
+            level: 'HSK 6',
             description: 'Thử thách đỉnh cao với 5000 từ vựng và các văn bản học thuật, thời sự chuyên sâu.',
             image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCo3rfHu6dYIHk2CLOl2wy0nSXRkS9iejaVXU3EF91disyV3juO0NxV7WzXvXJACqBlyE8E25vHySxbXdYyaf4KC3FX4LnJ4WB4cZ_vehOfkLUvho-oweTMOewnbim5pYUWr8iS2Rz33QEBz6rPe_BMghSOt5BBb_nzT1ZIzjBBmXLzA4PPj9jXUdCFqpHjRwdwiQbkTjj1JMQqXaQ8DA4wVmjXXzOQGK_caXcB0ikFpscjnDSyqh6RBhYzInbwciYsYUgjzoWqFFI',
             duration: '140 Phút',
             questions: '101 Câu',
             attempts: '850 Lượt',
-            badge: 'accent-red'
+            badge: 'accent-red',
+            rating: 5.0
         }
     ];
+
+    // Filter and sort exams
+    const filteredExams = examData
+        .filter((exam) => {
+            const matchSearch = exam.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                              exam.description.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchLevel = !selectedLevel || exam.level === selectedLevel;
+            return matchSearch && matchLevel;
+        })
+        .sort((a, b) => {
+            if (sortBy === 'newest') return b.id - a.id;
+            if (sortBy === 'popular') return b.attempts.localeCompare(a.attempts);
+            if (sortBy === 'rating') return b.rating - a.rating;
+            return 0;
+        });
 
     // Hàm xử lý click card
     const handleCardClick = (exam) => {
@@ -89,112 +146,137 @@ export default function FlashcardMain() {
       {/* Filter */}
       <div className="bg-white/60 backdrop-blur-md p-8 rounded-[2rem] border border-white shadow-xl -mt-10 mb-16 flex flex-col lg:flex-row gap-10 items-center">
 
-        {/* HSK Level */}
+        {/* Search Bar */}
+        <div className="flex-1 w-full lg:w-auto">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Tìm kiếm đề thi..."
+            className="w-full px-4 py-3 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary focus:border-primary outline-none font-medium"
+          />
+        </div>
+
+        {/* HSK Level Filter */}
         <div className="flex-1 max-w-5xl">
           <label className="text-[10px] font-black text-primary/40 uppercase tracking-widest mb-3 block text-center lg:text-left">
             Cấp độ HSK
           </label>
 
           <div className="flex flex-wrap justify-center lg:justify-start gap-2">
-            <div className="flex p-1 bg-slate-100/50 rounded-2xl">
-              <button className="px-6 py-2.5 rounded-xl bg-primary text-secondary font-bold text-xs shadow-lg">
-                HSK 1-3
+            <div className="flex p-1 bg-slate-100/50 rounded-2xl flex-wrap lg:flex-nowrap">
+              <button 
+                onClick={() => setSelectedLevel('')}
+                className={`px-4 py-2 rounded-xl font-bold text-xs transition-all ${
+                  !selectedLevel ? 'bg-primary text-secondary' : 'text-slate-500 hover:text-primary'
+                }`}
+              >
+                Tất cả
               </button>
-              <button className="px-6 py-2.5 rounded-xl text-slate-500 hover:text-primary font-bold text-xs transition-all">
-                HSK 4
-              </button>
-              <button className="px-6 py-2.5 rounded-xl text-slate-500 hover:text-primary font-bold text-xs transition-all">
-                HSK 5
-              </button>
-              <button className="px-6 py-2.5 rounded-xl text-slate-500 hover:text-primary font-bold text-xs transition-all">
-                HSK 6
-              </button>
+              {['HSK 1', 'HSK 2', 'HSK 3', 'HSK 4', 'HSK 5', 'HSK 6'].map((level) => (
+                <button
+                  key={level}
+                  onClick={() => setSelectedLevel(level)}
+                  className={`px-4 py-2 rounded-xl font-bold text-xs transition-all ${
+                    selectedLevel === level ? 'bg-primary text-secondary' : 'text-slate-500 hover:text-primary'
+                  }`}
+                >
+                  {level}
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Select box */}
-        <div className="max-w-5xl lg:w-auto flex gap-4">
-          <div className="flex-1 lg:w-56">
-            <select className="w-full bg-slate-100/50 border-none rounded-2xl text-xs font-bold text-primary focus:ring-secondary py-3">
-              <option>Tất cả loại đề</option>
-              <option>Đề chính thức</option>
-              <option>Đề thi thử TOXI</option>
-            </select>
-          </div>
-
-          <div className="flex-1 lg:w-56">
-            <select className="w-full bg-slate-100/50 border-none rounded-2xl text-xs font-bold text-primary focus:ring-secondary py-3">
-              <option>Sắp xếp: Mới nhất</option>
-              <option>Lượt làm cao nhất</option>
-            </select>
-          </div>
+        {/* Sort Dropdown */}
+        <div className="max-w-5xl lg:w-auto">
+          <select 
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="w-full bg-slate-100/50 border border-slate-200 rounded-2xl text-xs font-bold text-primary focus:ring-secondary focus:ring-2 py-3 px-4 outline-none"
+          >
+            <option value="newest">Mới nhất</option>
+            <option value="popular">Lượt làm cao nhất</option>
+            <option value="rating">Đánh giá cao nhất</option>
+          </select>
         </div>
       </div>
 
       {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-        {examData.map((exam) => (
-          <div 
-            key={exam.id}
-            onClick={() => handleCardClick(exam)}
-            className="chinese-border-card bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl group flex flex-col cursor-pointer transition-all duration-300"
-          >
-            <div className="h-44 overflow-hidden relative">
-              <img
-                src={exam.image}
-                alt={exam.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-              />
+        {filteredExams.length > 0 ? (
+          filteredExams.map((exam) => (
+            <div 
+              key={exam.id}
+              onClick={() => handleCardClick(exam)}
+              className="chinese-border-card bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl group flex flex-col cursor-pointer transition-all duration-300"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img
+                  src={exam.image}
+                  alt={exam.title}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
 
-              <div className={`absolute top-4 left-4 ${exam.badge === 'accent-red' ? 'bg-accent-red/90 text-white' : 'bg-primary/90 text-secondary'} backdrop-blur-md text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest border ${exam.badge === 'accent-red' ? 'border-white/20' : 'border-secondary/20'}`}>
-                {exam.level}
-              </div>
-            </div>
-
-            <div className="p-8 pt-2 flex-1 flex flex-col">
-              <h3 className="text-xl font-bold text-primary mb-3 group-hover:text-secondary transition-colors duration-300">
-                {exam.title}
-              </h3>
-
-              <p className="text-sm text-slate-500 mb-8 font-light leading-relaxed">
-                {exam.description}
-              </p>
-
-              <div className="grid grid-cols-3 gap-4 mb-8">
-                <div className="flex flex-col items-center">
-                  <span className="material-symbols-outlined text-secondary text-2xl mb-1">
-                    schedule
-                  </span>
-                  <p className="text-[10px] font-bold text-primary">{exam.duration}</p>
+                <div className={`absolute top-4 left-4 ${exam.badge === 'accent-red' ? 'bg-accent-red/90 text-white' : 'bg-primary/90 text-secondary'} backdrop-blur-md text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest border ${exam.badge === 'accent-red' ? 'border-white/20' : 'border-secondary/20'}`}>
+                  {exam.level}
                 </div>
 
-                <div className="flex flex-col items-center border-x border-slate-100">
-                  <span className="material-symbols-outlined text-secondary text-2xl mb-1">
-                    list_alt
-                  </span>
-                  <p className="text-[10px] font-bold text-primary">{exam.questions}</p>
-                </div>
-
-                <div className="flex flex-col items-center">
-                  <span className="material-symbols-outlined text-secondary text-2xl mb-1">
-                    person_play
-                  </span>
-                  <p className="text-[10px] font-bold text-primary">{exam.attempts}</p>
+                {/* Rating Badge */}
+                <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 backdrop-blur-md text-[9px] font-black px-3 py-1.5 rounded-full flex items-center gap-1">
+                  <span>⭐</span>
+                  {exam.rating}
                 </div>
               </div>
 
-              <button className="w-full py-4 gradient-btn text-primary font-black rounded-2xl text-sm tracking-widest flex items-center justify-center gap-3 group-hover:shadow-lg transition-shadow">
-                LÀM BÀI NGAY
-                <span className="material-symbols-outlined text-lg">
-                  arrow_right_alt
-                </span>
-              </button>
+              <div className="p-8 pt-2 flex-1 flex flex-col">
+                <h3 className="text-xl font-bold text-primary mb-3 group-hover:text-secondary transition-colors duration-300">
+                  {exam.title}
+                </h3>
+
+                <p className="text-sm text-slate-500 mb-8 font-light leading-relaxed">
+                  {exam.description}
+                </p>
+
+                <div className="grid grid-cols-3 gap-4 mb-8">
+                  <div className="flex flex-col items-center">
+                    <span className="material-symbols-outlined text-secondary text-2xl mb-1">
+                      schedule
+                    </span>
+                    <p className="text-[10px] font-bold text-primary">{exam.duration}</p>
+                  </div>
+
+                  <div className="flex flex-col items-center border-x border-slate-100">
+                    <span className="material-symbols-outlined text-secondary text-2xl mb-1">
+                      list_alt
+                    </span>
+                    <p className="text-[10px] font-bold text-primary">{exam.questions}</p>
+                  </div>
+
+                  <div className="flex flex-col items-center">
+                    <span className="material-symbols-outlined text-secondary text-2xl mb-1">
+                      person_play
+                    </span>
+                    <p className="text-[10px] font-bold text-primary">{exam.attempts}</p>
+                  </div>
+                </div>
+
+                <button className="w-full py-4 gradient-btn text-primary font-black rounded-2xl text-sm tracking-widest flex items-center justify-center gap-3 group-hover:shadow-lg transition-shadow">
+                  LÀM BÀI NGAY
+                  <span className="material-symbols-outlined text-lg">
+                    arrow_right_alt
+                  </span>
+                </button>
+              </div>
             </div>
+          ))
+        ) : (
+          <div className="col-span-full text-center py-12">
+            <p className="text-slate-600 text-lg">Không tìm thấy đề thi phù hợp</p>
           </div>
-        ))}
+        )}
       </div>
        {/* Pagination */}
       <div className="mt-24 flex items-center justify-center gap-3">

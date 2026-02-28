@@ -6,56 +6,9 @@ import { Link } from "react-router-dom";
 import { getAllProducts, deleteProduct } from "./api/apiProduct";
 
 export default function AdminProduct() {
-  const initialProducts = [
-  {
-    id: 1,
-    name: "Standard HSK 4 Textbook",
-    price: "¥128.00",
-    stock: 450,
-    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f",
-    category: "Books"
-  },
-  {
-    id: 2,
-    name: "Elementary 500 Flashcards",
-    price: "¥89.00",
-    stock: 8,
-    image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
-    category: "Flashcards"
-  },
-  {
-    id: 3,
-    name: "Calligraphy Master Set",
-    price: "¥255.00",
-    stock: 124,
-    image: "https://images.unsplash.com/photo-1512820790803-83ca734da794",
-    category: "Tools"
-  },
-  {
-    id: 4,
-    name: "Grammar Guide Level 1-3",
-    price: "¥65.00",
-    stock: 89,
-    image: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d",
-    category: "Books"
-  },
-  {
-    id: 5,
-    name: "HSK 5 Mock Test Book",
-    price: "¥150.00",
-    stock: 32,
-    image: "https://images.unsplash.com/photo-1519681393784-d120267933ba",
-    category: "Books"
-  },
-  {
-    id: 6,
-    name: "Chinese Idioms Handbook",
-    price: "¥98.00",
-    stock: 77,
-    image: "https://images.unsplash.com/photo-1524578271613-d550eacf6090",
-    category: "Flashcards"
-  }
-];
+  // fallback data in case the API is unreachable, will be overwritten by real
+  // products after a successful load. Can be removed when backend is stable.
+  const initialProducts = [];
 
 const [products, setProducts] = useState(initialProducts);
 const [filteredProducts, setFilteredProducts] = useState(initialProducts);
@@ -73,10 +26,17 @@ useEffect(() => {
 const loadProducts = async () => {
   setLoading(true);
   try {
+    const data = await getAllProducts();
+    // ensure we always have an array
+    const list = Array.isArray(data) ? data : [];
+    setProducts(list);
+    setFilteredProducts(list);
+  } catch (err) {
+    console.error(err);
+    setError('Lỗi khi tải danh sách sản phẩm');
+    // keep fallback data if available
     setProducts(initialProducts);
     setFilteredProducts(initialProducts);
-  } catch (err) {
-    setError('Lỗi khi tải danh sách sản phẩm');
   } finally {
     setLoading(false);
   }
@@ -101,24 +61,37 @@ const startIndex = (currentPage - 1) * itemsPerPage;
 const currentProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
 
 const handleDelete = async (id) => {
-  const product = products.find(p => p.id === id);
+  const product = products.find((p) => p.id === id);
+  if (!product) return;
   const confirmDelete = window.confirm(
     `Bạn có chắc muốn xoá sản phẩm "${product.name}"?`
   );
   if (!confirmDelete) return;
+
   try {
     setLoading(true);
+    await deleteProduct(id);
     setProducts((prev) => prev.filter((item) => item.id !== id));
+    setFilteredProducts((prev) => prev.filter((item) => item.id !== id));
     alert('Xoá sản phẩm thành công!');
   } catch (err) {
+    console.error(err);
     setError('Xoá sản phẩm thất bại');
   } finally {
     setLoading(false);
   }
 };
-    return(
+    if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <span className="text-lg">Loading products...</span>
+      </div>
+    );
+  }
+
+  return(
         <>
-       <div class="flex h-screen overflow-hidden">
+       <div className="flex h-screen overflow-hidden">
              <AdminSidebar />
         {/* Main Content */}
 <main className="flex-1 overflow-y-auto bg-background-light">
@@ -151,6 +124,12 @@ const handleDelete = async (id) => {
   </header>
 
   <div className="p-8 space-y-6">
+    {error && (
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <strong className="font-bold">Error: </strong>
+        <span className="block sm:inline">{error}</span>
+      </div>
+    )}
     {/* Stats Overview */}
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       
@@ -167,13 +146,8 @@ const handleDelete = async (id) => {
           </div>
         </div>
         <div className="flex items-baseline gap-2">
-          <h3 className="text-3xl font-bold">1,248</h3>
-          <span className="text-green-600 text-sm font-bold flex items-center gap-0.5">
-            <span className="material-symbols-outlined text-xs">
-              arrow_upward
-            </span>
-            5.2%
-          </span>
+          <h3 className="text-3xl font-bold">{products.length}</h3>
+          {/* you could compute percentage change here if you have historical data */}
         </div>
       </div>
 
@@ -190,7 +164,9 @@ const handleDelete = async (id) => {
           </div>
         </div>
         <div className="flex items-baseline gap-2">
-          <h3 className="text-3xl font-bold">12</h3>
+          <h3 className="text-3xl font-bold">
+            {products.filter((p) => p.stock < 10).length}
+          </h3>
           <span className="text-orange-600 text-sm font-medium italic">
             Requires attention
           </span>
@@ -245,15 +221,18 @@ const handleDelete = async (id) => {
 
       {/* Category Filter */}
       <div className="flex items-center gap-2">
-        <select 
+        <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
           className="rounded-lg border border-[#e7ebf3] text-sm focus:border-primary focus:ring-primary py-2 px-3"
         >
+          {/* build options dynamically from products */}
           <option>All</option>
-          <option>Books</option>
-          <option>Flashcards</option>
-          <option>Tools</option>
+          {Array.from(new Set(products.map((p) => p.category))).map(
+            (cat) => (
+              <option key={cat}>{cat}</option>
+            )
+          )}
         </select>
       </div>
     </div>
@@ -300,6 +279,13 @@ const handleDelete = async (id) => {
       </thead>
 
      <tbody className="divide-y divide-[#e7ebf3]">
+  {currentProducts.length === 0 && (
+    <tr>
+      <td colSpan={6} className="px-6 py-4 text-center text-sm text-[#4c669a]">
+        Không có sản phẩm phù hợp.
+      </td>
+    </tr>
+  )}
   {currentProducts.map((product) => (
     <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
       
@@ -321,10 +307,10 @@ const handleDelete = async (id) => {
         </span>
       </td>
 
-      {/* CATEGORY (Fake demo) */}
+      {/* CATEGORY */}
       <td className="px-6 py-4">
         <span className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-full">
-          Books
+          {product.category || 'Uncategorized'}
         </span>
       </td>
 

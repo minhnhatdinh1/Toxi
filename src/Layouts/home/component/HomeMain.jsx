@@ -1,6 +1,31 @@
 import { Link } from 'react-router-dom';
-
+import { useState } from 'react';
 export function HomePage() {
+   const [blogs] = useState([
+    {
+      id: 5,
+      title: "Ý nghĩa của màu đỏ trong văn hóa Trung Hoa ngày Tết",
+      category: "Văn hóa",
+      date: "Ngày 10/11/2023",
+      author: "Admin",
+      desc: "Tại sao người Trung Quốc lại thích màu đỏ? Tìm hiểu nguồn gốc và ý nghĩa tâm linh...",
+      image:
+        "https://lh3.googleusercontent.com/aida-public/AB6AXuAwsBsZIsyCmtSVufrnW8IQ3OcNeGQO6uv5_S2x_YweK8CwOgxS_j8F_1UlAP1CKu-MJ4a6fHrmJFtzUUcb_X4KSq8qWpLna00jvHLg7DEjci3_9aaWB-JPpLO0hbOLKlLYbtXWV_1gq2dYp2AdtNDqJHNF-j2XA-3y-JFm721_M16loDAuswddRMrVB91_VS9Tc0bFgo4Ft74lY4nteoQG2dIzPct6KXEEJ9A_vnNS8l55l5dzg3f46GB6CxSZ1N3nNlKt4Oc23S0",
+      color: "secondary",
+    },
+    {
+      id: 6,
+      title: "5 sai lầm phổ biến khi mới bắt đầu học Hán ngữ",
+      category: "Kinh nghiệm học",
+      date: "Ngày 08/11/2023",
+      author: "Admin",
+      desc: "Phát âm thanh mẫu, vận mẫu và cách nhớ chữ Hán hiệu quả cho người mới...",
+      image:
+        "https://lh3.googleusercontent.com/aida-public/AB6AXuAhvprHGL6K93pHFVHLPVSFyKTZaBgwoiNwoZ6rufaP3po7sqtplcZ0ZwYV2GwP_0zun0jre0uIAbdySGtu4jG-uSCgC3yAEj_a49Fjunnm7lnluUwzOxT5LJN2DlK-mV7HEw8F0s7lXu7lzThvMEwBhVv1qGxDMQ0k589zZgj_A5-D1zb3exuWfXZ6VvlypTc_EcokCIn_ffDJPT0UKVdGasZVPsKRp-8BZ6p0Ng55-0HMo1e1E5gT-rBRAduNNVBO0Z1AhRqdGH8",
+      color: "primary",
+    },
+  ]);
+
   return (
     <>
       {/* HERO SECTION */}
@@ -38,16 +63,27 @@ export function HomePage() {
               Hệ thống đào tạo tiếng Trung chuẩn HSK, tập trung vào trải nghiệm học viên và văn hóa Á Đông. Học để ứng dụng –{" "}
               <span className="font-serif">学以致用</span>.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button className="px-8 py-4 bg-secondary text-primary font-bold rounded-lg shadow-[0_4px_0_#b8860b] active:shadow-none active:translate-y-1 hover:bg-yellow-300 transition-all flex items-center justify-center gap-2 text-lg">
-                <span>Kiểm tra trình độ</span>
-                <span className="material-symbols-outlined">quiz</span>
-              </button>
-              <button className="px-8 py-4 bg-transparent border-2 border-white/30 text-white font-bold rounded-lg hover:bg-white/10 transition-all flex items-center justify-center gap-2 text-lg">
-                <span className="material-symbols-outlined">play_circle</span>
-                <span>Video giới thiệu</span>
-              </button>
-            </div>
+           <div className="flex flex-col sm:flex-row gap-4">
+
+  {/* Kiểm tra trình độ */}
+  <Link
+    to="/practice"
+    className="px-8 py-4 bg-secondary text-primary font-bold rounded-lg shadow-[0_4px_0_#b8860b] active:shadow-none active:translate-y-1 hover:bg-yellow-300 transition-all flex items-center justify-center gap-2 text-lg"
+  >
+    <span>Kiểm tra trình độ</span>
+    <span className="material-symbols-outlined">quiz</span>
+  </Link>
+
+  {/* Video giới thiệu */}
+  <Link
+    to="/Introduction"
+    className="px-8 py-4 bg-transparent border-2 border-white/30 text-white font-bold rounded-lg hover:bg-white/10 transition-all flex items-center justify-center gap-2 text-lg"
+  >
+    <span className="material-symbols-outlined">play_circle</span>
+    <span>Video giới thiệu</span>
+  </Link>
+
+</div>
           </div>
         </div>
         <div className="absolute top-0 right-[15%] w-1 h-32 bg-accent-red/80 shadow-sm hidden lg:block"></div>
@@ -251,7 +287,7 @@ export function HomePage() {
                 Tập trung tối đa vào kỹ năng Nghe - Nói. Phản xạ nhanh, phát âm chuẩn Bắc Kinh.
               </p>
             </div>
-            <a href="#" className="text-primary font-bold hover:text-secondary transition-colors flex items-center gap-1 mt-4 md:mt-0">
+            <a href="/course" className="text-primary font-bold hover:text-secondary transition-colors flex items-center gap-1 mt-4 md:mt-0">
               Xem chi tiết
               <span className="material-symbols-outlined text-sm">
                 arrow_forward_ios
@@ -274,7 +310,7 @@ export function HomePage() {
               <p className="text-sm text-slate-500 mb-4">
                 Dành cho người mới bắt đầu. Học phát âm chuẩn và các mẫu câu thông dụng hàng ngày.
               </p>
-              <a href="#" className="text-sm font-bold text-primary flex items-center gap-1">
+              <a href="/course" className="text-sm font-bold text-primary flex items-center gap-1">
                 Khám phá
                 <span className="material-symbols-outlined text-xs">
                   arrow_forward
@@ -293,7 +329,7 @@ export function HomePage() {
               <p className="text-sm text-slate-500 mb-4">
                 Thảo luận các chủ đề xã hội, văn hóa sâu sắc. Tăng cường khả năng biện luận.
               </p>
-              <a href="#" className="text-sm font-bold text-primary flex items-center gap-1">
+              <a href="/course" className="text-sm font-bold text-primary flex items-center gap-1">
                 Khám phá
                 <span className="material-symbols-outlined text-xs">
                   arrow_forward
@@ -314,7 +350,7 @@ export function HomePage() {
               <p className="text-sm text-slate-500 mb-4">
                 Các tình huống thực tế khi đi du lịch: đặt phòng, hỏi đường, mua sắm, ăn uống.
               </p>
-              <a href="#" className="text-sm font-bold text-primary flex items-center gap-1">
+              <a href="/course" className="text-sm font-bold text-primary flex items-center gap-1">
                 Khám phá
                 <span className="material-symbols-outlined text-xs">
                   arrow_forward
@@ -591,49 +627,50 @@ export function HomePage() {
                 Xem thêm →
               </a>
             </div>
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Blog 1 */}
-              <article className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-lg transition-all">
-                <div className="h-40 bg-slate-200 relative overflow-hidden">
-                  <div className="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-700" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAwsBsZIsyCmtSVufrnW8IQ3OcNeGQO6uv5_S2x_YweK8CwOgxS_j8F_1UlAP1CKu-MJ4a6fHrmJFtzUUcb_X4KSq8qWpLna00jvHLg7DEjci3_9aaWB-JPpLO0hbOLKlLYbtXWV_1gq2dYp2AdtNDqJHNF-j2XA-3y-JFm721_M16loDAuswddRMrVB91_VS9Tc0bFgo4Ft74lY4nteoQG2dIzPct6KXEEJ9A_vnNS8l55l5dzg3f46GB6CxSZ1N3nNlKt4Oc23S0')", }} />
-                  <div className="absolute top-3 left-3 bg-secondary text-primary text-[10px] font-bold px-2 py-1 rounded">
-                    Văn hóa
-                  </div>
-                </div>
-                <div className="p-5">
-                  <h3 className="font-bold text-slate-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                    Ý nghĩa của màu đỏ trong văn hóa Trung Hoa ngày Tết
-                  </h3>
-                  <p className="text-xs text-slate-500 mb-3">
-                    Ngày 10/11/2023 • Bởi Admin
-                  </p>
-                  <p className="text-sm text-slate-600 line-clamp-2">
-                    Tại sao người Trung Quốc lại thích màu đỏ? Tìm hiểu nguồn gốc và ý nghĩa tâm linh...
-                  </p>
-                </div>
-              </article>
+         <div className="grid md:grid-cols-2 gap-6">
+  {blogs.map((blog) => (
+    <Link
+      key={blog.id}
+      to={`/blog/${blog.id}`}
+      state={blog}
+    >
+      <article className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-lg transition-all cursor-pointer">
 
-              {/* Blog 2 */}
-              <article className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-lg transition-all">
-                <div className="h-40 bg-slate-200 relative overflow-hidden">
-                  <div className="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-700" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAhvprHGL6K93pHFVHLPVSFyKTZaBgwoiNwoZ6rufaP3po7sqtplcZ0ZwYV2GwP_0zun0jre0uIAbdySGtu4jG-uSCgC3yAEj_a49Fjunnm7lnluUwzOxT5LJN2DlK-mV7HEw8F0s7lXu7lzThvMEwBhVv1qGxDMQ0k589zZgj_A5-D1zb3exuWfXZ6VvlypTc_EcokCIn_ffDJPT0UKVdGasZVPsKRp-8BZ6p0Ng55-0HMo1e1E5gT-rBRAduNNVBO0Z1AhRqdGH8')", }} />
-                  <div className="absolute top-3 left-3 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded">
-                    Kinh nghiệm học
-                  </div>
-                </div>
-                <div className="p-5">
-                  <h3 className="font-bold text-slate-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                    5 sai lầm phổ biến khi mới bắt đầu học Hán ngữ
-                  </h3>
-                  <p className="text-xs text-slate-500 mb-3">
-                    Ngày 08/11/2023 • Bởi Admin
-                  </p>
-                  <p className="text-sm text-slate-600 line-clamp-2">
-                    Phát âm thanh mẫu, vận mẫu và cách nhớ chữ Hán hiệu quả cho người mới...
-                  </p>
-                </div>
-              </article>
-            </div>
+        <div className="h-40 bg-slate-200 relative overflow-hidden">
+          <div
+            className="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-700"
+            style={{ backgroundImage: `url(${blog.image})` }}
+          />
+
+          <div
+            className={`absolute top-3 left-3 text-[10px] font-bold px-2 py-1 rounded ${
+              blog.color === "secondary"
+                ? "bg-secondary text-primary"
+                : "bg-primary text-white"
+            }`}
+          >
+            {blog.category}
+          </div>
+        </div>
+
+        <div className="p-5">
+          <h3 className="font-bold text-slate-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+            {blog.title}
+          </h3>
+
+          <p className="text-xs text-slate-500 mb-3">
+            {blog.date} • Bởi {blog.author}
+          </p>
+
+          <p className="text-sm text-slate-600 line-clamp-2">
+            {blog.desc}
+          </p>
+        </div>
+
+      </article>
+    </Link>
+  ))}
+</div>
           </div>
         </div>
       </div>

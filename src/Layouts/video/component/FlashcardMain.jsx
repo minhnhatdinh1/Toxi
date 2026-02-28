@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Link } from "react-router-dom";
 import logo from '../../../assets/image/LOGO (1).png'
+
 export default function FlashcardMain() {
     const [openLeft, setOpenLeft] = useState(false);
     const [openRight, setOpenRight] = useState(false);
@@ -9,25 +10,124 @@ export default function FlashcardMain() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // simple mapping to change flashcard content per lesson
-    const lessons = [
-      { title: 'Chào hỏi', hanzi: '你好', pinyin: 'Nǐ hǎo', meaning: 'Chào bạn' },
-      { title: 'Vận mẫu & Thanh mẫu', hanzi: '妈', pinyin: 'mā', meaning: 'Mẹ' },
-      { title: 'Biến điệu', hanzi: '好', pinyin: 'hǎo', meaning: 'Tốt' },
+    // Flashcard state management
+    const initialLessons = [
+      { id: 1, title: 'Chào hỏi', hanzi: '你好', pinyin: 'Nǐ hǎo', meaning: 'Chào bạn' },
+      { id: 2, title: 'Vận mẫu & Thanh mẫu', hanzi: '妈', pinyin: 'mā', meaning: 'Mẹ' },
+      { id: 3, title: 'Biến điệu', hanzi: '好', pinyin: 'hǎo', meaning: 'Tốt' },
     ];
 
     const [selectedLessonIdx, setSelectedLessonIdx] = useState(0);
+    const [flashcards, setFlashcards] = useState(initialLessons);
+    const [isFlipped, setIsFlipped] = useState(false);
+    const [currentCardIdx, setCurrentCardIdx] = useState(0);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [formData, setFormData] = useState({ hanzi: '', pinyin: '', meaning: '', title: '' });
+    const [comments, setComments] = useState([
+      { id: 1, author: 'Trần Hạnh', avatar: 'TH', time: '10 phút trước', content: 'Flashcard này rất hữu ích ạ!', likes: 0 },
+      { id: 2, author: 'Lý Minh', avatar: 'LM', time: '2 giờ trước', content: 'Làm sao để nhớ lâu hơn?', likes: 1 }
+    ]);
+    const [newComment, setNewComment] = useState('');
 
     useEffect(() => {
       const params = new URLSearchParams(location.search);
       const lessonParam = params.get('lesson');
       if (lessonParam !== null) {
         const idx = parseInt(lessonParam, 10);
-        if (!isNaN(idx) && idx >= 0 && idx < lessons.length) {
+        if (!isNaN(idx) && idx >= 0 && idx < flashcards.length) {
           setSelectedLessonIdx(idx);
         }
       }
     }, [location.search]);
+
+    // Form handlers
+    const handleResetForm = () => {
+      setFormData({ hanzi: '', pinyin: '', meaning: '', title: '' });
+      setEditingId(null);
+    };
+
+    const handleAddCard = () => {
+      if (formData.hanzi && formData.pinyin && formData.meaning) {
+        const newCard = {
+          id: Math.max(...flashcards.map(c => c.id), 0) + 1,
+          title: formData.title || `Card ${flashcards.length + 1}`,
+          hanzi: formData.hanzi,
+          pinyin: formData.pinyin,
+          meaning: formData.meaning
+        };
+        setFlashcards([...flashcards, newCard]);
+        handleResetForm();
+        setShowAddModal(false);
+      }
+    };
+
+    const handleEditCard = () => {
+      if (formData.hanzi && formData.pinyin && formData.meaning) {
+        setFlashcards(flashcards.map(c => 
+          c.id === editingId 
+            ? { 
+                ...c, 
+                hanzi: formData.hanzi, 
+                pinyin: formData.pinyin, 
+                meaning: formData.meaning,
+                title: formData.title || c.title
+              }
+            : c
+        ));
+        handleResetForm();
+        setShowEditModal(false);
+      }
+    };
+
+    const handleDeleteCard = (id) => {
+      setFlashcards(flashcards.filter(c => c.id !== id));
+    };
+
+    const handleOpenEditModal = (card) => {
+      setEditingId(card.id);
+      setFormData({
+        hanzi: card.hanzi,
+        pinyin: card.pinyin,
+        meaning: card.meaning,
+        title: card.title
+      });
+      setShowEditModal(true);
+    };
+
+    const handleNextCard = () => {
+      setCurrentCardIdx((prev) => (prev + 1) % flashcards.length);
+      setIsFlipped(false);
+    };
+
+    const handlePrevCard = () => {
+      setCurrentCardIdx((prev) => (prev - 1 + flashcards.length) % flashcards.length);
+      setIsFlipped(false);
+    };
+
+    const handleAddComment = () => {
+      if (newComment.trim()) {
+        const comment = {
+          id: comments.length + 1,
+          author: 'Bạn',
+          avatar: 'BA',
+          time: 'Vừa xong',
+          content: newComment,
+          likes: 0
+        };
+        setComments([...comments, comment]);
+        setNewComment('');
+      }
+    };
+
+    const handleLikeComment = (commentId) => {
+      setComments(comments.map(c => 
+        c.id === commentId ? { ...c, likes: c.likes + 1 } : c
+      ));
+    };
+
+    const currentCard = flashcards[currentCardIdx];
     return(
         <>
            {/* Header */}
@@ -268,7 +368,7 @@ export default function FlashcardMain() {
                 Học từ vựng
               </span>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                {`Flashcards: ${lessons[selectedLessonIdx]?.title}`}
+                {`Flashcards: ${flashcards[selectedLessonIdx]?.title}`}
               </h2>
             </div>
             <div className="text-right">
@@ -288,11 +388,23 @@ export default function FlashcardMain() {
 
         {/* Flashcard */}
         <div className="flex-1 flex flex-col items-center justify-center gap-12 py-8">
-          <div className="flashcard-container w-full max-w-lg aspect-[4/3] perspective-1000">
-            <div className="flashcard-inner group relative w-full h-full transition-transform duration-700 transform-style-preserve-3d hover:scale-105">
+          <div className="flashcard-container w-full max-w-lg aspect-[4/3] perspective-1000 cursor-pointer">
+            <div 
+              onClick={() => setIsFlipped(!isFlipped)}
+              className="flashcard-inner group relative w-full h-full transition-transform duration-700 transform-style-preserve-3d hover:scale-105"
+              style={{
+                transformStyle: 'preserve-3d',
+                transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+              }}
+            >
 
               {/* Front */}
-              <div className="flashcard-front absolute inset-0 w-full h-full bg-gradient-to-br from-surface-light to-slate-50 dark:from-surface-dark dark:to-slate-900 rounded-3xl border-2 border-primary/20 dark:border-primary/30 shadow-2xl overflow-hidden bg-cloud-pattern bg-repeat flex flex-col items-center justify-center backface-hidden">
+              <div 
+                className="flashcard-front absolute inset-0 w-full h-full bg-gradient-to-br from-surface-light to-slate-50 dark:from-surface-dark dark:to-slate-900 rounded-3xl border-2 border-primary/20 dark:border-primary/30 shadow-2xl overflow-hidden bg-cloud-pattern bg-repeat flex flex-col items-center justify-center"
+                style={{
+                  backfaceVisibility: 'hidden'
+                }}
+              >
                 <div className="absolute top-6 left-6 size-12 bg-primary/10 rounded-full flex items-center justify-center">
                   <span className="material-symbols-outlined text-primary/60">school</span>
                 </div>
@@ -303,7 +415,7 @@ export default function FlashcardMain() {
 
                 <div className="text-center">
                   <h3 className="text-8xl font-black text-primary dark:text-accent tracking-tighter mb-4 drop-shadow-lg">
-                    {lessons[selectedLessonIdx]?.hanzi}
+                    {currentCard?.hanzi}
                   </h3>
                   <p className="text-slate-500 dark:text-slate-400 text-base font-medium animate-pulse">
                     Nhấp để lật thẻ
@@ -317,7 +429,13 @@ export default function FlashcardMain() {
               </div>
 
               {/* Back */}
-              <div className="flashcard-back absolute inset-0 w-full h-full bg-gradient-to-br from-primary to-primary-dark rounded-3xl border-2 border-primary-dark shadow-2xl overflow-hidden p-8 text-center backface-hidden rotate-y-180 flex flex-col justify-center">
+              <div 
+                className="flashcard-back absolute inset-0 w-full h-full bg-gradient-to-br from-primary to-primary-dark rounded-3xl border-2 border-primary-dark shadow-2xl overflow-hidden p-8 text-center flex flex-col justify-center"
+                style={{
+                  backfaceVisibility: 'hidden',
+                  transform: 'rotateY(180deg)'
+                }}
+              >
                 <div className="absolute top-6 left-6 text-white/20">
                   <span className="material-symbols-outlined text-2xl">format_quote</span>
                 </div>
@@ -325,10 +443,10 @@ export default function FlashcardMain() {
                 <div className="flex flex-col items-center space-y-6">
                   <div>
                     <span className="text-3xl font-bold text-accent mb-2 block">
-                      {lessons[selectedLessonIdx]?.pinyin}
+                      {currentCard?.pinyin}
                     </span>
                     <h3 className="text-4xl font-black text-white mb-2">
-                      {lessons[selectedLessonIdx]?.meaning}
+                      {currentCard?.meaning}
                     </h3>
                     <div className="w-16 h-1 bg-accent/50 rounded-full mx-auto"></div>
                   </div>
@@ -359,7 +477,10 @@ export default function FlashcardMain() {
               <span className="text-base">Chưa thuộc</span>
             </button>
 
-            <button className="size-20 bg-gradient-to-r from-accent to-yellow-400 text-primary-dark rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl hover:scale-110 transition-all">
+            <button 
+              onClick={() => setIsFlipped(!isFlipped)}
+              className="size-20 bg-gradient-to-r from-accent to-yellow-400 text-primary-dark rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl hover:scale-110 transition-all"
+            >
               <span className="material-symbols-outlined text-[36px]">
                 sync
               </span>
@@ -374,18 +495,56 @@ export default function FlashcardMain() {
           </div>
         </div>
 
-        {/* Footer navigation */}
-        <div className="mt-auto py-6 flex items-center justify-center gap-6">
-          <button className="size-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all">
+        {/* Footer navigation & CRUD buttons */}
+        <div className="mt-auto py-6 flex items-center justify-center gap-4 flex-wrap">
+          <button 
+            onClick={handlePrevCard}
+            className="size-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all"
+          >
             <span className="material-symbols-outlined">chevron_left</span>
           </button>
 
           <span className="text-xs font-bold text-slate-400">
-            Thẻ 05 / 20
+            Thẻ {currentCardIdx + 1} / {flashcards.length}
           </span>
 
-          <button className="size-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all">
+          <button 
+            onClick={handleNextCard}
+            className="size-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all"
+          >
             <span className="material-symbols-outlined">chevron_right</span>
+          </button>
+
+          <div className="border-l border-slate-200 dark:border-slate-800 h-6 mx-2"></div>
+
+          <button 
+            onClick={() => {
+              handleResetForm();
+              setShowAddModal(true);
+            }}
+            className="flex items-center gap-1 px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-dark transition-colors"
+          >
+            <span className="material-symbols-outlined text-[16px]">add</span>
+            Thêm
+          </button>
+
+          <button 
+            onClick={() => handleOpenEditModal(currentCard)}
+            className="flex items-center gap-1 px-3 py-1.5 bg-accent text-primary-dark text-xs font-bold rounded-lg hover:bg-yellow-300 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[16px]">edit</span>
+            Sửa
+          </button>
+
+          <button 
+            onClick={() => {
+              handleDeleteCard(currentCard.id);
+              if (currentCardIdx > 0) setCurrentCardIdx(currentCardIdx - 1);
+            }}
+            className="flex items-center gap-1 px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[16px]">delete</span>
+            Xóa
           </button>
         </div>
 
@@ -424,7 +583,7 @@ export default function FlashcardMain() {
                 forum
               </span>
               <h3 className="text-sm font-bold text-slate-800 dark:text-white">
-                Thảo luận (24)
+                Thảo luận ({comments.length})
               </h3>
             </div>
 
@@ -437,115 +596,61 @@ export default function FlashcardMain() {
 
           {/* Comments */}
           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-5">
-
-            {/* Comment 1 */}
-            <div className="flex gap-3">
-              <div className="size-8 rounded-full bg-blue-100 shrink-0 flex items-center justify-center text-primary font-bold text-[10px]">
-                TH
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                    Trần Hạnh
-                  </span>
-                  <span className="text-[9px] text-slate-400">
-                    10 phút trước
-                  </span>
+            {comments.map((comment) => (
+              <div key={comment.id} className="flex gap-3">
+                <div className="size-8 rounded-full bg-primary/20 shrink-0 flex items-center justify-center text-primary font-bold text-[10px]">
+                  {comment.avatar}
                 </div>
 
-                <div className="p-2.5 rounded-2xl rounded-tl-none bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
-                  <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                    Video giảng rất dễ hiểu ạ! Thầy có thể hướng dẫn kỹ hơn về thanh điệu không ạ?
-                  </p>
-                </div>
+                <div className="flex flex-col gap-1 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                      {comment.author}
+                    </span>
+                    <span className="text-[9px] text-slate-400">
+                      {comment.time}
+                    </span>
+                  </div>
 
-                <div className="flex items-center gap-3 mt-1">
-                  <button className="text-xs font-bold text-slate-400 hover:text-primary">
-                    Thích
-                  </button>
-                  <button className="text-xs font-bold text-slate-400 hover:text-primary">
-                    Trả lời
-                  </button>
-                </div>
-              </div>
-            </div>
+                  <div className="p-2.5 rounded-2xl rounded-tl-none bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                    <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                      {comment.content}
+                    </p>
+                  </div>
 
-            {/* Comment 2 */}
-            <div className="flex gap-3">
-              <div className="size-8 rounded-full bg-accent/20 shrink-0 flex items-center justify-center text-accent font-bold text-[10px]">
-                LM
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                    Lý Minh
-                  </span>
-                  <span className="text-[9px] text-slate-400">
-                    2 giờ trước
-                  </span>
-                </div>
-
-                <div className="p-2.5 rounded-2xl rounded-tl-none bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
-                  <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                    Từ 你好 dùng cho bạn bè, còn 您好 dùng cho người lớn tuổi đúng không thầy?
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-3 mt-1">
-                  <button className="text-[9px] font-bold text-primary">
-                    1 Thích
-                  </button>
-                  <button className="text-[9px] font-bold text-slate-400 hover:text-primary">
-                    Trả lời
-                  </button>
+                  <div className="flex items-center gap-3 mt-1">
+                    <button 
+                      onClick={() => handleLikeComment(comment.id)}
+                      className="text-xs font-bold text-slate-400 hover:text-primary transition-colors flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">thumb_up</span>
+                      {comment.likes > 0 ? `${comment.likes} Thích` : 'Thích'}
+                    </button>
+                    <button className="text-xs font-bold text-slate-400 hover:text-primary transition-colors">
+                      Trả lời
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* Admin Reply */}
-            <div className="flex gap-3">
-              <div className="size-8 rounded-full bg-primary shrink-0 flex items-center justify-center text-white font-bold text-[10px]">
-                TX
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-primary">
-                    TOXI Team
-                  </span>
-                  <span className="bg-primary/10 text-primary text-[8px] px-1 rounded font-bold">
-                    ADMIN
-                  </span>
-                </div>
-
-                <div className="p-2.5 rounded-2xl rounded-tl-none bg-primary/5 border border-primary/10">
-                  <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-                    Đúng rồi bạn nhé, 您好 là cách gọi trang trọng và tôn kính hơn.
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-[9px] font-bold text-slate-400">
-                    12 phút trước
-                  </span>
-                </div>
-              </div>
-            </div>
-
+            ))}
           </div>
 
           {/* Input */}
           <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-surface-light dark:bg-surface-dark">
             <div className="relative">
               <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
                 className="w-full p-3 pr-10 text-[11px] bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-primary focus:border-primary resize-none placeholder-slate-400 custom-scrollbar"
                 placeholder="Viết bình luận của bạn..."
                 rows={2}
               />
 
-              <button className="absolute right-2 bottom-2 size-8 bg-primary text-white rounded-lg flex items-center justify-center hover:bg-primary-dark transition-colors">
+              <button 
+                onClick={handleAddComment}
+                className="absolute right-2 bottom-2 size-8 bg-primary text-white rounded-lg flex items-center justify-center hover:bg-primary-dark transition-colors disabled:opacity-50"
+                disabled={!newComment.trim()}
+              >
                 <span className="material-symbols-outlined text-[18px]">
                   send
                 </span>
@@ -567,7 +672,171 @@ export default function FlashcardMain() {
           </div>
 
         </aside>
+
+        {/* Add Flashcard Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-2xl max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Thêm Flashcard Mới</h3>
+                <button 
+                  onClick={() => {
+                    setShowAddModal(false);
+                    handleResetForm();
+                  }}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Chữ Hán</label>
+                  <input 
+                    type="text"
+                    value={formData.hanzi}
+                    onChange={(e) => setFormData({...formData, hanzi: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-primary focus:border-primary"
+                    placeholder="例如: 你"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Pinyin</label>
+                  <input 
+                    type="text"
+                    value={formData.pinyin}
+                    onChange={(e) => setFormData({...formData, pinyin: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-primary focus:border-primary"
+                    placeholder="例如: Nǐ"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Nghĩa</label>
+                  <input 
+                    type="text"
+                    value={formData.meaning}
+                    onChange={(e) => setFormData({...formData, meaning: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-primary focus:border-primary"
+                    placeholder="例如: Bạn"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Tiêu đề (tùy chọn)</label>
+                  <input 
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-primary focus:border-primary"
+                    placeholder="Tiêu đề thẻ"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button 
+                  onClick={() => {
+                    setShowAddModal(false);
+                    handleResetForm();
+                  }}
+                  className="flex-1 py-2 px-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                  Hủy
+                </button>
+                <button 
+                  onClick={handleAddCard}
+                  className="flex-1 py-2 px-4 bg-primary text-white rounded-lg font-bold hover:bg-primary-dark transition-colors"
+                >
+                  Thêm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Flashcard Modal */}
+        {showEditModal && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-2xl max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Chỉnh Sửa Flashcard</h3>
+                <button 
+                  onClick={() => {
+                    setShowEditModal(false);
+                    handleResetForm();
+                  }}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Chữ Hán</label>
+                  <input 
+                    type="text"
+                    value={formData.hanzi}
+                    onChange={(e) => setFormData({...formData, hanzi: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-primary focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Pinyin</label>
+                  <input 
+                    type="text"
+                    value={formData.pinyin}
+                    onChange={(e) => setFormData({...formData, pinyin: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-primary focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Nghĩa</label>
+                  <input 
+                    type="text"
+                    value={formData.meaning}
+                    onChange={(e) => setFormData({...formData, meaning: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-primary focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Tiêu đề</label>
+                  <input 
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-primary focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button 
+                  onClick={() => {
+                    setShowEditModal(false);
+                    handleResetForm();
+                  }}
+                  className="flex-1 py-2 px-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                  Hủy
+                </button>
+                <button 
+                  onClick={handleEditCard}
+                  className="flex-1 py-2 px-4 bg-accent text-primary-dark rounded-lg font-bold hover:bg-yellow-300 transition-colors"
+                >
+                  Lưu
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-        </>
+    </>
     )
 };

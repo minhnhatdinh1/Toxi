@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
-export default function AdminExample() {
+export default function AdminQuiz() {
 // =======================
 // STATE
 // =======================
@@ -144,7 +144,7 @@ const handleDelete = (id) => {
 
         <div className="flex items-center gap-3">
           {/* Add Exam Button */}
-          <Link to="/adminNewExample">
+          <Link to="/listenQuiz">
             <button className="size-8 flex items-center justify-center rounded-lg bg-accent-yellow text-primary text-xs font-bold shadow-lg shadow-yellow-500/20">
               <span className="material-symbols-outlined text-xl">add</span>
             </button>
@@ -401,7 +401,7 @@ const handleDelete = (id) => {
 
     {/* EDIT */}
     <Link
-      to={`/admin/exams/edit/${exam.id}`}
+  to={`/editQuiz/${exam.id}`}
       className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
     >
       <span className="material-symbols-outlined text-lg">edit</span>

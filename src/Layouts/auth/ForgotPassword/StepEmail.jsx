@@ -2,9 +2,11 @@ import react, { useState } from 'react';
 import toxiLogo from "../../../assets/image/LOGO (1).png"
 import { Link, useNavigate } from "react-router-dom";
 import { sendOtpApi } from "../api/authApi";
+import { useToast } from '../../common/ToastContext';
 
 export default function StepEmail({ email, setEmail }) {
   const navigate = useNavigate();
+  const toast = useToast();
   const [inputEmail, setInputEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -22,6 +24,7 @@ export default function StepEmail({ email, setEmail }) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(inputEmail)) {
       setError('Vui lòng nhập email hợp lệ');
+      toast.addToast('Email không hợp lệ', 'error');
       return;
     }
 
@@ -35,13 +38,17 @@ export default function StepEmail({ email, setEmail }) {
         localStorage.setItem('resetEmail', inputEmail);
         
         // Chuyển sang trang nhập mã OTP
+        toast.addToast('OTP đã được gửi đến email', 'success');
         navigate('/MissingPasswordStepCode');
       } else {
-        setError(response.data?.message || 'Email không được tìm thấy trong hệ thống');
+        const msg = response.data?.message || 'Email không được tìm thấy trong hệ thống';
+        setError(msg);
+        toast.addToast(msg, 'error');
       }
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Gửi email thất bại. Vui lòng thử lại.';
       setError(errorMsg);
+      toast.addToast(errorMsg, 'error');
     } finally {
       setLoading(false);
     }

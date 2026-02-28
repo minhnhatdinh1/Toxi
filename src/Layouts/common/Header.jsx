@@ -1,26 +1,49 @@
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import ThemeToggle from "./ThemeToggle";
 import toxiLogo from "../../assets/image/LOGO (1).png";
 const Header = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [language, setLanguage] = useState(() => {
+    try {
+      return typeof window !== "undefined" ? localStorage.getItem("language") || "VN" : "VN";
+    } catch (e) {
+      return "VN";
+    }
+  });
 
-  
+  useEffect(() => {
+    try {
+      localStorage.setItem("language", language);
+    } catch (e) {}
+  }, [language]);
+
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const q = (searchQuery || "").trim();
+    if (!q) return;
+    navigate(`/search?q=${encodeURIComponent(q)}`);
+  };
 
   return (
     <div className="bg-surface text-slate-900 antialiased overflow-x-hidden">
       <div className="flex flex-col lg:flex-row ">
         {/* SIDEBAR */}
-      <aside
+     <aside
   className={`
     fixed top-0 bottom-0 left-0
-   lg:w-64 w-64
-    bg-primary text-white
+    lg:w-64 w-64
+    bg-primary dark:bg-slate-950 
+    text-white
     flex flex-col
     z-50 shadow-xl
     overflow-y-auto
-    lg:border-r border-secondary/20
+    lg:border-r border-secondary/20 dark:border-slate-800/50
     bg-chinese-pattern
-    transition-transform duration-300
+    transition-all duration-300
     ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
   `}
 >
@@ -59,13 +82,14 @@ const Header = ({ children }) => {
   {[
     { icon: "self_improvement", label: "Khóa học", to: "/course" },
     { icon: "school", label: "Sản phẩm", to: "/store" },
-    { icon: "storefront", label: "Tiếng Trung cơ bản", to: "/basic" },
-    { icon: "auto_stories", label: "Tiếng Trung Nâng cao", to: "/advanced" },
+     { icon: "article", label: "Tiếng Trung Cơ Bản", to: "#" },
+    { icon: "chat", label: "Tiếng Trung Nâng Cao", to: "#" },
+   
   ].map((item) => (
     <Link
       key={item.label}
       to={item.to}
-      className="group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all border border-transparent hover:border-secondary/30 text-left bg-transparent"
+      className="group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-300 dark:text-slate-400 hover:bg-white/10 dark:hover:bg-slate-800/50 hover:text-white dark:hover:text-white transition-all border border-transparent hover:border-secondary/30 dark:hover:border-slate-700 text-left bg-transparent"
     >
       <span className="material-symbols-outlined text-secondary/70 group-hover:text-secondary group-hover:scale-110 transition-transform">
         {item.icon}
@@ -85,6 +109,7 @@ const Header = ({ children }) => {
     { icon: "article", label: "Blog", to: "/blog" },
     { icon: "quiz", label: "Luyện thi HSK", to: "/Practice" },
     { icon: "chat", label: "Giao tiếp", to: "/giaotiep" },
+    
   ].map((item) => (
     <Link
       key={item.label}
@@ -140,8 +165,8 @@ const Header = ({ children }) => {
         )}
 
         {/* MAIN */}
-        <main className="flex-1 lg:ml-72 bg-slate-50 relative">
-          <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm px-6 py-3 flex justify-between items-center">
+        <main className="flex-1 lg:ml-60 bg-slate-50 dark:bg-slate-900 transition-colors duration-300 relative">
+       <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm px-6 py-3 flex justify-between items-center transition-all">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -150,36 +175,51 @@ const Header = ({ children }) => {
                 <span className="material-symbols-outlined">menu</span>
               </button>
 
-              <div className="hidden md:flex relative max-w-md w-80">
+              <form
+                onSubmit={handleSearch}
+                className="hidden md:flex relative max-w-md w-80"
+                role="search"
+                aria-label="Tìm kiếm"
+              >
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">
                   search
                 </span>
                 <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   type="text"
                   placeholder="Tìm kiếm khóa học, tài liệu..."
-                  className="w-full pl-10 pr-4 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-primary text-slate-700 placeholder-slate-400"
+                  aria-label="Tìm kiếm khóa học, tài liệu"
+                 className="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-full text-sm focus:ring-2 focus:ring-primary text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500"
                 />
-              </div>
+                <button type="submit" className="sr-only">Tìm</button>
+              </form>
             </div>
-<div className="relative group cursor-pointer flex items-center">
 
-  <span className= "material-symbols-outlined text-[28px] text-white hover:text-secondary transition-colors">
-shopping_cart
-  </span>
-  <span className="abcolute-top-1-right-1 bg-accent-red text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-    2
-  </span>
-</div>
       <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center bg-slate-100 rounded-full p-1 text-xs font-bold text-slate-600">
-                <button className="px-3 py-1 bg-white shadow-sm rounded-full text-primary">
+              <div
+                className="hidden sm:flex items-center bg-slate-100 rounded-full p-1 text-xs font-bold text-slate-600"
+                role="tablist"
+                aria-label="Language switcher"
+              >
+                <button
+                  onClick={() => setLanguage("VN")}
+                  title="Tiếng Việt"
+                  aria-pressed={language === "VN"}
+                  className={`px-3 py-1 rounded-full ${language === "VN" ? "bg-white shadow-sm text-primary" : "hover:text-primary"}`}
+                >
                   VN
                 </button>
-                <button className="px-3 py-1 hover:text-primary">
+                <button
+                  onClick={() => setLanguage("CN")}
+                  title="中文"
+                  aria-pressed={language === "CN"}
+                  className={`px-3 py-1 rounded-full ${language === "CN" ? "bg-white shadow-sm text-primary" : "hover:text-primary"}`}
+                >
                   CN
                 </button>
               </div>
-
+              <ThemeToggle />
               <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
 
               <Link to="/login">

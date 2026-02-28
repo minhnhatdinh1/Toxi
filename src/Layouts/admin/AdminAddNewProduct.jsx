@@ -4,19 +4,14 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createProduct } from "./api/apiProduct";
 
-<<<<<<< HEAD
-  const handleSave = () => {
-    console.log("Save Product clicked");    
-  };
-   const [formData, setFormData] = useState({
-=======
+
 export default function AdminAddNewProduct() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
->>>>>>> 87de828ff90e9fc291986f18ab24d3396ea8eb87
+
     bookId: "",
     title: "",
     category: "",
