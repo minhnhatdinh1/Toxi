@@ -3,6 +3,17 @@ import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../../assets/image/LOGO (1).png';
 export default function ExamResultMain({ selectedExamResult }) {
     const navigate = useNavigate();
+
+    const handleRetryExam = () => {
+        // Clear kết quả cũ và quay lại trang exam
+        sessionStorage.removeItem('examResult');
+        navigate('/Exam');
+    };
+
+    const handleDownloadPDF = () => {
+        alert('Đang tải xuống PDF...');
+        // Implement PDF download logic here
+    };
     return(
         <>
           {/* Header */}
@@ -128,14 +139,20 @@ export default function ExamResultMain({ selectedExamResult }) {
 
             {/* Actions */}
             <div className="flex gap-3">
-              <button className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all">
+              <button 
+                onClick={handleDownloadPDF}
+                className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all"
+              >
                 <span className="material-symbols-outlined text-[20px]">
                   download
                 </span>
                 Tải PDF
               </button>
 
-              <button className="bg-accent hover:bg-yellow-400 text-primary-dark px-6 py-2 rounded-lg font-bold text-sm shadow-lg shadow-accent/20 flex items-center gap-2 transition-all">
+              <button 
+                onClick={handleRetryExam}
+                className="bg-accent hover:bg-yellow-400 text-primary-dark px-6 py-2 rounded-lg font-bold text-sm shadow-lg shadow-accent/20 flex items-center gap-2 transition-all"
+              >
                 <span className="material-symbols-outlined text-[20px]">
                   replay
                 </span>

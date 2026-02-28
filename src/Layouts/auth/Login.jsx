@@ -2,28 +2,49 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toxiLogo from "../../assets/image/LOGO (1).png";
+import { useToast } from '../common/ToastContext';
 //import { loginApi } from "./api/authApi";
 export default function Login() {
   const [userName, setUserName] = useState("");
   const [passWord, setPassWord] = useState("");
+  const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const navigate = useNavigate();
+  const toast = useToast();
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
+    setError('');
+    const errors = {};
+    if (!userName.trim()) errors.userName = 'Vui lòng nhập tài khoản';
+    if (!passWord) errors.passWord = 'Vui lòng nhập mật khẩu';
+    if (passWord && passWord.length < 8) errors.passWord = 'Mật khẩu phải có ít nhất 8 ký tự';
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      const first = Object.values(errors)[0];
+      setError(first);
+      toast.addToast(first, 'error');
+      return;
+    }
+
     try {
+      // replace with real API call
       const res = await loginApi({
         userName,
         passWord,
       });
 
       console.log("Login success:", res.data);
-      alert("Đăng nhập thành công");
+      toast.addToast('Đăng nhập thành công', 'success');
 
       navigate("/");
     } catch (err) {
       const message = err.response?.data?.message || "Đăng nhập thất bại";
-      alert(message);
+      setError(message);
+      toast.addToast(message, 'error');
     }
   };
 
@@ -33,11 +54,11 @@ export default function Login() {
         {/* BACKGROUND */}
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-secondary/80 mix-blend-multiply"></div>
-          <img
-            alt="Abstract ink wash painting style background representing Chinese culture"
-            className="w-full h-full object-cover opacity-30 grayscale"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEE4ACS…FC7yGvyPw3cA0AvzCsWy8oAxGEieZDASvONePzr-b4mYGyM3lIyLbe7F4dMg"
-          />
+        <img
+  src="https://images.unsplash.com/photo-1583394838336-acd977736f90"
+  alt="Chinese ink wash background"
+  className="w-full h-full object-cover opacity-30 grayscale"
+/>
         </div>
 
         {/* CARD */}
@@ -131,6 +152,9 @@ export default function Login() {
                     onChange={(e) => setUserName(e.target.value)}
                     className="w-full h-12 pl-12 pr-4 bg-background-light dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-text-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all placeholder:text-gray-400 font-medium"
                   />
+                  {fieldErrors.userName && (
+                    <p className="text-sm text-red-600 mt-1">{fieldErrors.userName}</p>
+                  )}
                 </div>
               </div>
 
@@ -159,6 +183,9 @@ export default function Login() {
                     onChange={(e) => setPassWord(e.target.value)}
                     className="w-full h-12 pl-12 pr-12 bg-background-light dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-text-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all placeholder:text-gray-400 font-medium"
                   />
+                  {fieldErrors.passWord && (
+                    <p className="text-sm text-red-600 mt-1">{fieldErrors.passWord}</p>
+                  )}
                   <button
                     type="button"
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-secondary dark:hover:text-primary transition-colors flex items-center"
@@ -174,14 +201,17 @@ export default function Login() {
               {/* SUBMIT */}
               <button
                 type="submit"
-                onClick={handleLogin}
-                className="mt-2 w-full h-12 bg-primary hover:bg-primary-hover text-secondary font-bold text-base rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 transform active:scale-[0.98] flex items-center justify-center gap-2 group"
+                  disabled={!userName.trim() || !passWord}
+                className="mt-2 w-full h-12 bg-primary hover:bg-primary-hover disabled:bg-gray-400 disabled:cursor-not-allowed text-secondary font-bold text-base rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 transform active:scale-[0.98] flex items-center justify-center gap-2 group"
               >
                 <span>Đăng nhập</span>
                 <span className="material-symbols-outlined text-lg transition-transform group-hover:translate-x-1">
                   arrow_forward
                 </span>
               </button>
+              {error && (
+                <p className="text-red-600 text-sm mt-2">{error}</p>
+              )}
         {/* PASSWORD */}
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-center">
@@ -212,11 +242,12 @@ export default function Login() {
                   type="button"
                   className="flex items-center justify-center gap-2 h-11 border border-gray-200 dark:border-white/10 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group"
                 >
-                  <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBriWEOO…st6oPZt2v2oLFBUCWCDhzJcAcn_NC2W0Ddj1ANwpf-dRIV8oSgEbpY8h6sOU"
-                    alt="Google"
-                    className="w-5 h-5 opacity-80 group-hover:opacity-100 transition-opacity"
-                  />
+                 <svg className="w-5 h-5" viewBox="0 0 48 48">
+  <path fill="#EA4335" d="M24 9.5c3.4 0 6.5 1.2 8.9 3.2l6.6-6.6C35.6 2.2 30.1 0 24 0 14.6 0 6.6 5.6 2.7 13.7l7.7 6C12.3 13.4 17.7 9.5 24 9.5z"/>
+  <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.5 2.7-2 5-4.3 6.6l6.6 5.1C43.8 36.4 46.5 30.9 46.5 24.5z"/>
+  <path fill="#FBBC05" d="M10.4 28.3c-.5-1.4-.8-2.9-.8-4.3s.3-2.9.8-4.3l-7.7-6C1 17.1 0 20.4 0 24s1 6.9 2.7 10.3l7.7-6z"/>
+  <path fill="#34A853" d="M24 48c6.5 0 12-2.1 16-5.7l-6.6-5.1c-2 1.4-4.6 2.3-9.4 2.3-6.3 0-11.7-3.9-13.6-9.2l-7.7 6C6.6 42.4 14.6 48 24 48z"/>
+</svg>
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                     Google
                   </span>
@@ -226,11 +257,9 @@ export default function Login() {
                   type="button"
                   className="flex items-center justify-center gap-2 h-11 border border-gray-200 dark:border-white/10 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group"
                 >
-                  <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDc4JXfe…1F7MrtfcbjDzwIcDhs5Wv6hpfcviUCAVsb0AWI1L6dsdw5xma0jvqEkF7COo"
-                    alt="Facebook"
-                    className="w-5 h-5 opacity-80 group-hover:opacity-100 transition-opacity"
-                  />
+                 <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+  <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.093 10.125 24v-8.437H7.078v-3.49h3.047V9.845c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953h-1.513c-1.49 0-1.953.926-1.953 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.093 24 18.1 24 12.073z"/>
+</svg>
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                     Facebook
                   </span>

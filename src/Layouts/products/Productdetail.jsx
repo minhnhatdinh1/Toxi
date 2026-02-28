@@ -46,13 +46,14 @@ export default function Productdetail() {
       const navigate = useNavigate();
       const [activeImage, setActiveImage] = useState(product?.image || images[0]);
       const [quantity, setQuantity] = useState(1);
+      const [activeTab, setActiveTab] = useState("description");
     return (
        <>
-        <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
+        <header className="sticky top-0 z-50 bg-primary text-white shadow-md">
       {/* Background pattern */}
       <div className="absolute inset-0 bg-chinese-pattern opacity-10 pointer-events-none"></div>
 
-      <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-8 relative z-10">
+     <div className="max-w-[1920px] mx-auto px-6 py-3 flex items-center justify-between">
         {/* LOGO */}
        <Link to="/Home" className="flex items-center gap-3 shrink-0">
                  <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />
@@ -84,18 +85,14 @@ export default function Productdetail() {
         <div className="flex items-center gap-6 shrink-0">
           {/* CART */}
           <div className="relative group cursor-pointer">
-          <button className="flex-[1.5] px-8 py-5 bg-primary text-secondary font-bold rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 group">
-      
-      <span
-        className="material-symbols-outlined group-hover:scale-110 transition-transform cursor-pointer"
-        onClick={(e) => {
-          e.stopPropagation(); // không trigger click của button
-          navigate("/cart");
-        }}
-      >
-        shopping_cart
-      </span>
-      </button>
+      <button
+  onClick={() => navigate("/cart")}
+  className="relative p-2 hover:bg-white/10 rounded-full transition"
+>
+  <span className="material-symbols-outlined text-white">
+    shopping_cart
+  </span>
+</button>
           </div>
 
           {/* AUTH BUTTONS */}
@@ -144,28 +141,32 @@ export default function Productdetail() {
       </div>
 
       {/* CONTENT */}
-      <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
+      <div  className="mx-auto px-4 md:px-8 py-10">
+        <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 mb-16">
           {/* IMAGE */}
-          <div className="lg:col-span-5 space-y-6">
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center group overflow-hidden">
+        <div className="lg:col-span-5 space-y-6">
+           <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-6 group overflow-hidden">
               <div className="chinese-border w-full">
                 <img
                   src={activeImage}
                   alt="Product Main"
-                  className="w-full h-auto aspect-square object-cover rounded-lg group-hover:scale-105 transition-transform duration-500"
+                className="w-full max-w- aspect-square object-cover rounded-xl mx-auto transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
             </div>
 
             {/* THUMBNAILS */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-4 gap-3 max-w-[500px]">
         {images.map((img, i) => (
           <button
             key={i}
             type="button"
             onClick={() => setActiveImage(img)}
-            className="border border-slate-200 rounded-xl p-1 aspect-square overflow-hidden hover:border-secondary transition-colors"
+           className={`rounded-lg p-1 aspect-square overflow-hidden transition-all border-2
+${activeImage === img
+  ? "border-primary ring-2 ring-primary/30 scale-105"
+  : "border-slate-200 hover:border-secondary"}
+`}
           >
             <img
               src={img}
@@ -215,7 +216,7 @@ export default function Productdetail() {
             </div>
 
             {/* PRICE */}
-            <div className="bg-white p-8 rounded-2xl mb-8 border border-slate-100 shadow-sm relative overflow-hidden">
+            <div className="p-8 rounded-3xl mb-8 border border-slate-100 shadow-lg bg-gradient-to-r from-primary/5 via-white to-secondary/5 relative overflow-hidden">
               <div className="flex items-baseline gap-4 mb-2">
                 <span className="text-5xl font-black text-primary">
                   {product?.price}
@@ -279,15 +280,12 @@ export default function Productdetail() {
 </div>
 </div>
 </div>
-<div className="flex flex-col sm:flex-row gap-5">
-  <button className="flex-[1.5] px-8 py-5 bg-primary text-secondary font-bold rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 group">
-    <span className="material-symbols-outlined group-hover:scale-110 transition-transform">
-      shopping_cart
-    </span>
-    <span className="text-lg">Thêm vào giỏ hàng</span>
+<div className="flex flex-col sm:flex-row gap-4">
+  <button className="flex-1 py-4 bg-white border-2 border-primary text-primary font-bold rounded-2xl hover:bg-primary hover:text-white transition-all text-lg">
+    Thêm vào giỏ hàng
   </button>
 
-  <button className="flex-1 px-8 py-5 bg-secondary text-primary font-bold rounded-2xl shadow-xl shadow-secondary/20 hover:bg-secondary-dark transition-all flex items-center justify-center text-lg">
+  <button className="flex-1 py-4 bg-orange-600 text-white font-bold rounded-2xl shadow-lg hover:bg-orange-700 transition-all text-lg">
     Mua ngay
   </button>
 </div>
@@ -332,30 +330,47 @@ export default function Productdetail() {
   {/* Tabs */}
   <div className="bg-white rounded-t-2xl px-6 py-4 border-b border-slate-200 mb-10">
     <div className="flex items-center gap-2">
-      <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold uppercase tracking-widest whitespace-nowrap transition-colors">
-        <span className="material-symbols-outlined text-[16px]">
-          description
-        </span>
-        Mô tả sản phẩm
+      <button
+        onClick={() => setActiveTab("description")}
+        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm uppercase tracking-widest whitespace-nowrap transition-colors ${
+          activeTab === "description"
+            ? "bg-primary text-white font-bold"
+            : "bg-slate-100 text-slate-500 hover:text-primary"
+        }`}
+      >
+        Mô tả
       </button>
-      <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 text-slate-500 hover:text-primary text-sm font-medium uppercase tracking-widest whitespace-nowrap transition-colors">
-        <span className="material-symbols-outlined text-[16px]">
-          settings
-        </span>
-        Thông số kỹ thuật
+
+      <button
+        onClick={() => setActiveTab("specs")}
+        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm uppercase tracking-widest whitespace-nowrap transition-colors ${
+          activeTab === "specs"
+            ? "bg-primary text-white font-bold"
+            : "bg-slate-100 text-slate-500 hover:text-primary"
+        }`}
+      >
+        Thông số
       </button>
-      <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 text-slate-500 hover:text-primary text-sm font-medium uppercase tracking-widest whitespace-nowrap transition-colors">
-        <span className="material-symbols-outlined text-[16px]">
-          star
-        </span>
-        Đánh giá học viên (124)
+
+      <button
+        onClick={() => setActiveTab("reviews")}
+        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm uppercase tracking-widest whitespace-nowrap transition-colors ${
+          activeTab === "reviews"
+            ? "bg-primary text-white font-bold"
+            : "bg-slate-100 text-slate-500 hover:text-primary"
+        }`}
+      >
+        Đánh giá
       </button>
     </div>
   </div>
 
-  <div className="grid lg:grid-cols-3 gap-16">
+  {activeTab === "description" && (
+    <div className="grid lg:grid-cols-3 gap-16">
+  
     {/* LEFT CONTENT */}
-    <div className="lg:col-span-2 space-y-8 text-slate-600 leading-relaxed">
+  <div className="lg:col-span-2 space-y-8 text-slate-600 leading-relaxed">
+
       <h4 className="text-2xl font-bold text-primary">
         Khám phá tinh hoa văn hóa qua từng nét chữ
       </h4>
@@ -414,7 +429,7 @@ export default function Productdetail() {
       <img
         src="https://lh3.googleusercontent.com/aida-public/AB6AXuAb82Zl7_ZBUA4rQzh4vB3sSP9JJO06Rt2JATxjYWCrL_foyOJa5aXMMOrx-GJXj5tdiUqwz1VxxTuobg5iGAmC6f7YJU7T9voeVQuDTubrjH5mnlEtGifQVUhSqm4_dSMchhJBGoL8JT6a4Bpj10H-oQhPjIuELIUoI_-rjgxfvqIVzE5w5a9zmOAirMRZ1YU0msADojGz8NUnBZCb3JjgKZB9GzH77twiaE8DLzS8O_clnlLHmJgm2EXRXMQWPoA22Mvsj6tLVOw"
         alt="Lifestyle"
-        className="w-full rounded-3xl shadow-lg"
+        className="w-full max-w-[650px] rounded-3xl shadow-lg"
       />
     </div>
 
@@ -457,7 +472,22 @@ export default function Productdetail() {
       </div>
     </div>
   </div>
-</div>
+  )}
+
+  {activeTab === "specs" && (
+    <div className="p-6 bg-white rounded-2xl shadow">
+      <h3 className="text-xl font-bold mb-4">Thông số kỹ thuật</h3>
+      <p className="text-sm text-slate-600">Các thông số sẽ được cập nhật trong tương lai.</p>
+    </div>
+  )}
+
+  {activeTab === "reviews" && (
+    <div className="p-6 bg-white rounded-2xl shadow">
+      <h3 className="text-xl font-bold mb-4">Đánh giá khách hàng</h3>
+      <p className="text-sm text-slate-600">Không có đánh giá nào. Hãy là người đầu tiên!</p>
+    </div>
+  )}
+
   <section className="bg-white py-20 border-t border-slate-100">
       <div className="max-w-[1920px] mx-auto px-4 md:px-8">
         {/* Header */}
@@ -484,7 +514,7 @@ export default function Productdetail() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
           {products.map((product) => (
             <Link key={product.id} to={`/products/${product.id}`} className="group cursor-pointer">
-              <div className="aspect-[3/4] rounded-2xl bg-slate-100 overflow-hidden mb-5 relative shadow-sm border border-slate-200">
+             <div className="aspect-square rounded-2xl bg-slate-100 overflow-hidden mb-5 relative shadow-sm border border-slate-200">
                 {product.badge && (
                   <div className="absolute top-3 left-3 bg-accent-red text-white text-[11px] font-bold px-3 py-1 rounded-full z-10 shadow-lg">
                     {product.badge}
@@ -516,7 +546,8 @@ export default function Productdetail() {
         </div>
       </div>
     </section>
-      </div>
+   </div> {/* end outer container mx-auto */}
+   </div>
     </main>
 
        </>

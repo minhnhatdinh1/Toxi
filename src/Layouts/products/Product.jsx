@@ -1,7 +1,12 @@
 import react, { useState, useEffect, useRef } from 'react';
 import logo from '../../assets/image/LOGO (1).png';
 import toxiLogo from "../../assets/image/LOGO (1).png";
+import Pagination from '../common/Pagination';
 import { Link, useNavigate } from "react-router-dom";
+
+// shared components
+import StarRating from '../../components/StarRating';
+import FilterSidebar from '../../components/FilterSidebar';
 
 // Product data
 const PRODUCTS_DATA = [
@@ -14,6 +19,7 @@ const PRODUCTS_DATA = [
     originalPrice: 150000,
     discount: "-20%",
     badge: "discount",
+    rating: 5,
     description: "Cuốn sách nhập môn hoàn hảo cho người mới bắt đầu, kèm Audio nghe.",
     topics: ["Luyện thi HSK", "Giao tiếp công sở"]
   },
@@ -25,6 +31,7 @@ const PRODUCTS_DATA = [
     price: 250000,
     originalPrice: null,
     badge: "new",
+    rating: 4,
     description: "Bộ thẻ học từ vựng nhỏ gọn, tiện lợi, in màu sắc nét.",
     topics: ["Tiếng Trung du lịch"]
   },
@@ -35,6 +42,7 @@ const PRODUCTS_DATA = [
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDxXQEh3uENc7Ow34GwuF8gN9R4erGSWyIOYcbkVeGCidIOkafnILrWOMGcleN8OfOirRkwE3EM0donlNS6ZFLtO91nT4KPK9lWIcB9yNVI3F7uoZ6CerSMzLYNsF0YKKaDCQJViQLUNv0H_zQBAqSXETBqNcMovlooiCJXAhi8Z6a7G1t0yH-Yjvlms4Fh0j-skFw9ZFt3ExpPZvcZAB-00AfBcvSceBSx_mICZrpVTueKsEZzSDgOCeg55DTwyD2YYgkH-H5cPCc",
     price: 350000,
     originalPrice: null,
+    rating: 3,
     description: "Đầy đủ bút lông, mực, giấy và hướng dẫn chi tiết.",
     topics: ["Giao tiếp công sở"]
   },
@@ -45,6 +53,7 @@ const PRODUCTS_DATA = [
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDgm9W3saf-1OfkDghA5ZDjH3H5ZQQ1Ss5827ks_KmawljKB-hcHwJW4g5CgJgiwaLp7hLgklekw0H_KWqn1CTvHIbszvKRnnjfOY5oiWWKfPKYGsMC6R5Pe5DIWuhVxc1kxrwmmTW5USIN9DwKp4wf8Od3lV61tV9Pplv0nprUBi6cdb0kLoN3N7eOlXRLRp-XcD3O1g8NSGdAzkx55NL9I2-kNFJilnVGGp2hPOoULsu6IAl6-les6NGuXDIQgstfC85NZhIBTyw",
     price: 180000,
     originalPrice: null,
+    rating: 4,
     description: "Tra cứu nhanh chóng 50.000 từ vựng thông dụng.",
     topics: ["Luyện thi HSK"]
   },
@@ -55,6 +64,7 @@ const PRODUCTS_DATA = [
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDm1Ik0zNR8jb04orcmpz2UB0wFPXtMwXyxcgsMlBUZZh7tZTltsglVPHcUjxDxnQ3IjJh8Pv5kz_SFHBvzGw4kIUVrKRLDUcNZKN9bNiBUv9AYzl1ZyR5SuwCBqNaNHrmsDtZlDr7qOmQMB63oCvEqTG9cX8Ax_Q3D8CmyLa8IOUnnjB5TxlL7YttblHSiQIB1ucQ5qqvInbs8soA38Pe5y8B3gSGAOWvXjfcdW6J8A2QdRxKzf1N1oebCV1gwYaW9bS9uTf2ZCdc",
     price: 15000,
     originalPrice: null,
+    rating: 2,
     description: "Giấy chất lượng cao, không lem mực, chuẩn ô chữ điền.",
     topics: []
   },
@@ -66,6 +76,7 @@ const PRODUCTS_DATA = [
     price: 95000,
     originalPrice: null,
     badge: "bestseller",
+    rating: 5,
     description: "Sách học giao tiếp cấp tốc hiệu quả nhất.",
     topics: ["Giao tiếp công sở"]
   }
@@ -108,7 +119,7 @@ function ProductCard({ product }) {
     if (product.badge === "bestseller") return "bg-teal-800";
     return "";
   };
-
+  
   return (
     <div className="group relative flex flex-col bg-white rounded-2xl border border-[#e7f3f0] overflow-hidden hover:shadow-xl hover:border-primary/30 transition-all duration-300 hover:-translate-y-1">
       <div className="relative w-full pt-[100%] bg-[#f8fcfb] overflow-hidden">
@@ -144,6 +155,11 @@ function ProductCard({ product }) {
             </span>
           )}
         </div>
+        {/* rating display */}
+        <div className="flex items-center gap-1 mt-1">
+          <StarRating value={product.rating} size="text-sm" />
+          <span className="text-xs text-text-muted">{product.rating}</span>
+        </div>
         <p className="text-sm text-text-muted line-clamp-2 mt-1">
           {product.description}
         </p>
@@ -164,8 +180,10 @@ export default function Product() {
   const MIN_PRICE = 1000; // minimum price filter (always applied)
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [selectedTopics, setSelectedTopics] = useState([]);
+  const [selectedRatings, setSelectedRatings] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
+ const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -200,6 +218,13 @@ export default function Product() {
     if (minVal !== null && p.price < minVal) return false;
     if (maxVal !== null && p.price > maxVal) return false;
 
+    // rating filter
+    if (selectedRatings.length > 0) {
+      if (!selectedRatings.includes(p.rating)) {
+        return false;
+      }
+    }
+
     // topic filtering (product must have at least one selected topic)
     if (selectedTopics.length > 0) {
       if (!p.topics || !p.topics.some((t) => selectedTopics.includes(t))) {
@@ -217,7 +242,33 @@ export default function Product() {
 
     return true;
   });
+const [currentPage, setCurrentPage] = useState(1);
+const productsPerPage = 8;
 
+// tổng số trang
+const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+// đảm bảo currentPage không vượt quá totalPages
+useEffect(() => {
+  if (currentPage > totalPages) {
+    setCurrentPage(1);
+  }
+}, [filteredProducts]);
+
+// index bắt đầu
+const startIndex = (currentPage - 1) * productsPerPage;
+
+// sản phẩm của trang hiện tại
+const currentProducts = filteredProducts.slice(
+  startIndex,
+  startIndex + productsPerPage
+);
+
+// đổi trang
+const handlePageChange = (page) => {
+  if (page < 1 || page > totalPages) return;
+  setCurrentPage(page);
+};
   return (
         <>
         <div className="relative flex h-auto min-h-screen w-full flex-col bg-chinese-pattern overflow-x-hidden">
@@ -343,184 +394,14 @@ export default function Product() {
           <span className="text-text-main font-medium">Cửa hàng</span>
         </div>
 
-        <h2 className="text-text-main text-3xl font-bold">
-          Danh mục sản phẩm / 产品目录
-        </h2>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-8">
-        
-        {/* Sidebar Filter */}
-        <aside className="w-full lg:w-72 shrink-0 flex flex-col gap-6">
-
-          {/* Mobile Filter Toggle */}
-          <button className="lg:hidden flex items-center justify-between w-full p-4 bg-white rounded-xl border border-[#e7f3f0] shadow-sm">
-            <span className="font-bold flex items-center gap-2">
-              <span className="material-symbols-outlined">filter_list</span>
-              Bộ lọc tìm kiếm
-            </span>
-            <span className="material-symbols-outlined">expand_more</span>
-          </button>
-
-          {/* Filter Content */}
-          <div className="hidden lg:flex flex-col gap-6 bg-white p-6 rounded-2xl border border-[#e7f3f0] shadow-sm sticky top-24">
-
-            {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-[#e7f3f0]">
-              <h3 className="font-bold text-lg flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">
-                  filter_alt
-                </span>
-                Bộ lọc / 筛选
-              </h3>
-              <button className="text-xs text-text-muted hover:text-primary underline">
-                Xóa tất cả
-              </button>
-            </div>
-
-            {/* Category Filter */}
-            <div className="flex flex-col gap-3">
-              <h4 className="font-semibold text-sm uppercase tracking-wider text-text-muted">
-                Danh mục
-              </h4>
-
-              {FILTER_CATEGORIES.map((category, index) => (
-                <label
-                  key={index}
-                  className="flex items-center gap-3 cursor-pointer group"
-                >
-                  <input
-                    type="checkbox"
-                    checked={checkedCategories.includes(category)}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
-                      if (checked) {
-                        if (category === 'Tất cả sản phẩm') {
-                          // select all, clear others
-                          setCheckedCategories(['Tất cả sản phẩm']);
-                        } else {
-                          // add category and remove "all" if present
-                          setCheckedCategories(prev => [
-                            ...prev.filter(c => c !== 'Tất cả sản phẩm'),
-                            category,
-                          ]);
-                        }
-                      } else {
-                        // uncheck
-                        setCheckedCategories(prev => prev.filter(c => c !== category));
-                      }
-                    }}
-                    defaultChecked={category === "Tất cả sản phẩm"}
-                    className="form-checkbox rounded text-primary border-gray-300 focus:ring-primary/50 size-5"
-                  />
-                  <span className="text-text-main group-hover:text-primary transition-colors">
-                    {category}
-                  </span>
-                </label>
-              ))}
-            </div>
-
-            {/* Price Range */}
-            <div className="flex flex-col gap-3 pt-4 border-t border-[#e7f3f0]">
-              <h4 className="font-semibold text-sm uppercase tracking-wider text-text-muted">
-                Khoảng giá (VND)
-              </h4>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  placeholder="Từ"
-                  value={priceRange.min}
-                  onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                />
-                <span className="text-gray-400">-</span>
-                <input
-                  type="number"
-                  placeholder="Đến"
-                  value={priceRange.max}
-                  onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                />
-              </div>
-
-              <button
-                onClick={() => {
-                  /* state already updated; filtering runs automatically */
-                }}
-                className="w-full mt-2 bg-primary/10 hover:bg-primary text-primary hover:text-white font-bold py-2 rounded-lg transition-colors text-sm"
-              >
-                Áp dụng
-              </button>
-            </div>
-
-            {/* Topics */}
-            <div className="flex flex-col gap-3 pt-4 border-t border-[#e7f3f0]">
-              <h4 className="font-semibold text-sm uppercase tracking-wider text-text-muted">
-                Chủ đề
-              </h4>
-
-              {[
-                "Luyện thi HSK",
-                "Giao tiếp công sở",
-                "Tiếng Trung du lịch",
-              ].map((topic, index) => (
-                <label
-                  key={index}
-                  className="flex items-center gap-3 cursor-pointer group"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedTopics.includes(topic)}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
-                      setSelectedTopics(prev => {
-                        if (checked) return [...prev, topic];
-                        return prev.filter(t => t !== topic);
-                      });
-                    }}
-                    className="form-checkbox rounded text-primary border-gray-300 focus:ring-primary/50 size-5"
-                  />
-                  <span className="text-text-main group-hover:text-primary transition-colors">
-                    {topic}
-                  </span>
-                </label>
-              ))}
-            </div>
-
-          </div>
-        </aside>
-         {/* Product Grid Area */}
-      <div className="flex flex-col flex-1 min-w-0">
-        {/* Quick Filters & Sort */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-12">
-          {/* Chips */}
-          <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar mask-gradient">
-            {QUICK_FILTERS.map((filter) => (
-              <button
-                key={filter.id}
-                onClick={() => setSelectedQuickFilter(filter.id)}
-                className={`whitespace-nowrap flex h-9 items-center justify-center px-4 rounded-full font-bold text-sm shadow-sm transition-transform ${
-                  selectedQuickFilter === filter.id
-                    ? 'bg-primary text-background-dark hover:scale-105'
-                    : 'bg-white border border-[#e7f3f0] text-text-main hover:border-primary hover:text-primary font-medium'
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Sort Dropdown moved to top-right of the product grid (see wrapper below) */}
-        </div>
-      </div>
-
-      {/* Grid (wrapper with absolute sort control at top-right) */}
-      <div className="relative">
-        {/* Absolute sort dropdown placed over the grid, right aligned */}
-        <div className="absolute right-0 -top-10 md:-top-8 lg:-top-6 z-30">
-          <div ref={sortRef} className="flex items-center gap-2 shrink-0 min-w-max">
-            <span className="text-sm text-text-muted hidden md:inline shrink-0 whitespace-nowrap mr-2">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <h2 className="text-text-main text-3xl font-bold">
+            Danh mục sản phẩm / 产品目录
+          </h2>
+          
+          {/* Sort Dropdown - inline at top */}
+          <div ref={sortRef} className="flex items-center gap-2 shrink-0">
+            <span className="text-sm text-text-muted hidden md:inline shrink-0 whitespace-nowrap">
               Sắp xếp theo:
             </span>
             <div className="relative">
@@ -555,49 +436,113 @@ export default function Product() {
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+      <div className="flex flex-col lg:flex-row gap-8">
+        
+        {/* Sidebar Filter */}
+        <aside className="w-full lg:w-72 shrink-0 flex flex-col gap-6">
+
+          {/* Mobile Filter Toggle */}
+          <button
+            onClick={() => setMobileFilterOpen(prev => !prev)}
+            className="lg:hidden flex items-center justify-between w-full p-4 bg-white rounded-xl border border-[#e7f3f0] shadow-sm"
+          >
+            <span className="font-bold flex items-center gap-2">
+              <span className="material-symbols-outlined">filter_list</span>
+              Bộ lọc tìm kiếm
+            </span>
+            <span className="material-symbols-outlined">expand_more</span>
+          </button>
+
+          {/* Filter Content wrapper keeps mobile toggle and sticky styling */}
+          <div
+            className={`
+              ${mobileFilterOpen ? 'flex' : 'hidden'}
+              lg:flex
+              flex-col gap-6 bg-white p-6 rounded-2xl
+              border border-[#e7f3f0] shadow-sm sticky top-24
+            `}
+          >
+            <FilterSidebar
+              categories={FILTER_CATEGORIES}
+              selectedCategories={checkedCategories}
+              onCategoryChange={(cat, checked) => {
+                if (checked) {
+                  if (cat === 'Tất cả sản phẩm') {
+                    setCheckedCategories(['Tất cả sản phẩm']);
+                  } else {
+                    setCheckedCategories(prev => [
+                      ...prev.filter(c => c !== 'Tất cả sản phẩm'),
+                      cat,
+                    ]);
+                  }
+                } else {
+                  setCheckedCategories(prev => prev.filter(c => c !== cat));
+                }
+              }}
+              priceRange={priceRange}
+              onPriceChange={(field, value) =>
+                setPriceRange((p) => ({ ...p, [field]: value }))
+              }
+              topics={[...new Set(PRODUCTS_DATA.flatMap(p => p.topics))]}
+              selectedTopics={selectedTopics}
+              onTopicChange={(topic, checked) => {
+                setSelectedTopics((prev) => {
+                  if (checked) return [...prev, topic];
+                  return prev.filter((t) => t !== topic);
+                });
+              }}
+              ratingOptions={[5, 4, 3, 2, 1]}
+              selectedRatings={selectedRatings}
+              onRatingChange={(rating, checked) => {
+                setSelectedRatings((prev) => {
+                  if (checked) return [...prev, rating];
+                  return prev.filter((r) => r !== rating);
+                });
+              }}
+            />
+          </div>
+        </aside>
+      <div className="flex flex-col flex-1 min-w-0">
+        {/* Product Grid Area */}
+        {/* Quick Filters & Sort */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-12">
+          {/* Chips */}
+          <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar mask-gradient">
+            {QUICK_FILTERS.map((filter) => (
+              <button
+                key={filter.id}
+                onClick={() => setSelectedQuickFilter(filter.id)}
+                className={`whitespace-nowrap flex h-9 items-center justify-center px-4 rounded-full font-bold text-sm shadow-sm transition-transform ${
+                  selectedQuickFilter === filter.id
+                    ? 'bg-primary text-background-dark hover:scale-105'
+                    : 'bg-white border border-[#e7f3f0] text-text-main hover:border-primary hover:text-primary font-medium'
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Grid wrapper */}
+      <div>
+        <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+        {currentProducts.map((product) => (
+  <ProductCard key={product.id} product={product} />
+))}
         </div>
       </div>
       </div>
 {/* Pagination */}
-<div className="flex items-center justify-center gap-2 mt-10">
-  <button className="flex items-center justify-center size-10 rounded-lg border border-[#e7f3f0] bg-white text-text-main hover:border-primary hover:text-primary transition-colors disabled:opacity-50">
-    <span className="material-symbols-outlined text-sm">
-      arrow_back_ios_new
-    </span>
-  </button>
 
-  <button className="flex items-center justify-center size-10 rounded-lg bg-primary text-background-dark font-bold shadow-md">
-    1
-  </button>
-
-  <button className="flex items-center justify-center size-10 rounded-lg border border-[#e7f3f0] bg-white text-text-main hover:border-primary hover:text-primary transition-colors font-medium">
-    2
-  </button>
-
-  <button className="flex items-center justify-center size-10 rounded-lg border border-[#e7f3f0] bg-white text-text-main hover:border-primary hover:text-primary transition-colors font-medium">
-    3
-  </button>
-
-  <span className="flex items-center justify-center size-10 text-text-muted">
-    ...
-  </span>
-
-  <button className="flex items-center justify-center size-10 rounded-lg border border-[#e7f3f0] bg-white text-text-main hover:border-primary hover:text-primary transition-colors font-medium">
-    8
-  </button>
-
-  <button className="flex items-center justify-center size-10 rounded-lg border border-[#e7f3f0] bg-white text-text-main hover:border-primary hover:text-primary transition-colors disabled:opacity-50">
-    <span className="material-symbols-outlined text-sm">
-      arrow_forward_ios
-    </span>
-  </button>
-</div>
-
+ <Pagination
+  currentPage={currentPage}
+  totalPages={totalPages}
+  onPageChange={setCurrentPage}
+/>
 
     </main>
     </div>

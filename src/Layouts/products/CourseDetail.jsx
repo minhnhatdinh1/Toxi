@@ -2,6 +2,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import logo from '../../assets/image/LOGO (1).png'
 import axios from "axios";
 import React, { useState, useEffect } from 'react';
+import StarRating from '../../components/StarRating';
 export default function CourseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -178,9 +179,9 @@ const discountPercent = hasDiscount
   </div>
 
   {/* Main grid */}
-  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-6 md:gap-8">
     {/* Left content */}
-    <div className="lg:col-span-8 flex flex-col gap-8">
+    <div className="md:col-span-2 lg:col-span-8 flex flex-col gap-8">
       <div className="flex flex-col gap-4">
         <h1 className="text-[#0d141b] dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.02em]">
          {course.title}
@@ -192,13 +193,11 @@ const discountPercent = hasDiscount
 
         <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm text-slate-500 dark:text-slate-400 mt-1">
           <div className="flex items-center gap-1.5">
-            <span className="text-secondary material-symbols-outlined text-[18px] filled">
-              star
-            </span>
+            <StarRating value={course.rating ? Math.round(course.rating) : 0} size="text-base" />
             <span className="font-bold text-[#0d141b] dark:text-white">
-              4.8
+              {course.rating ? course.rating.toFixed(1) : '–'}
             </span>
-            <span>(1,250 đánh giá)</span>
+            <span>({course.reviewCount || '1,250'} đánh giá)</span>
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -573,7 +572,7 @@ className="w-full sm:w-auto px-8 py-3 bg-secondary hover:bg-[#e6b400] text-prima
 
     </div>
     
-    <div className="lg:col-span-4">
+    <div className="md:col-span-1 lg:col-span-4">
   <div className="sticky top-24 flex flex-col gap-6">
     <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-lg relative overflow-hidden group">
       

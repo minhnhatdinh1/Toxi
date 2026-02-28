@@ -1,7 +1,7 @@
 import react from "react";
 import { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
-export default function AdminAddNewExample() {
+export default function AdminAddNewQuiz() {
     return (
         <>
             <div className="flex h-screen overflow-hidden ">
@@ -79,7 +79,7 @@ export default function AdminAddNewExample() {
     {/* Left */}
     <div>
       <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-        Tạo đề thi mới
+        Tạo câu hỏi trắc nghiệm
         <span className="material-symbols-outlined text-primary/40 text-2xl">
           edit_note
         </span>

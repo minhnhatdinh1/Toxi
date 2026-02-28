@@ -2,6 +2,35 @@ import react from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../../assets/image/LOGO (1).png';
 export default function CheckOutMain() {
+      const navigate = useNavigate();
+  const cartItems = [
+  { id: 1, name: "Combo Giáo trình Hán ngữ", price: 450000, quantity: 1 },
+  { id: 2, name: "Khóa học Online", price: 899000, quantity: 1 }
+];
+    const subtotal = cartItems.reduce(
+  (sum, item) => sum + item.price * item.quantity,
+  0
+);
+const taxRate = 0.1; // 10%
+const tax = subtotal * taxRate;
+const shipping = subtotal > 1000000 ? 0 : 30000;
+const discount = 50000;// Ví dụ giảm giá
+const total = subtotal + tax + shipping - discount;
+const handleCheckout = () => {
+  const order = {
+    items: cartItems,
+    subtotal,
+    tax,
+    shipping,
+    discount,
+    total,
+    status: "PENDING"
+  };
+
+  console.log("Order:", order);
+
+  navigate("/order-success");
+};
     return (
      <>
        <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
@@ -338,17 +367,17 @@ export default function CheckOutMain() {
   <div className="p-6 space-y-3">
     <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
       <span>Tạm tính</span>
-      <span>1.349.000đ</span>
+      <span>{subtotal.toLocaleString()}đ</span>
     </div>
 
     <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
       <span>Phí vận chuyển</span>
-      <span>30.000đ</span>
+      <span>{shipping.toLocaleString()}đ</span>
     </div>
 
     <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
       <span>Giảm giá</span>
-      <span>-50.000đ</span>
+      <span>-{discount.toLocaleString()}đ</span>
     </div>
 
     <div className="border-t border-slate-200 dark:border-slate-700 my-4 pt-4 flex justify-between items-end">
@@ -358,18 +387,21 @@ export default function CheckOutMain() {
 
       <div className="text-right">
         <span className="block text-2xl font-bold text-primary">
-          1.329.000đ
+          {total.toLocaleString()}đ
         </span>
         <span className="text-xs text-slate-400">(Đã bao gồm VAT)</span>
       </div>
     </div>
 
-    <button className="w-full bg-secondary hover:bg-secondary/90 text-slate-900 font-bold py-4 rounded-xl shadow-lg shadow-secondary/30 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 mt-4">
-      <span>Thanh toán ngay</span>
-      <span className="material-symbols-outlined text-[20px]">
-        arrow_forward
-      </span>
-    </button>
+   <button
+  onClick={handleCheckout}
+  className="w-full bg-secondary hover:bg-secondary/90 text-slate-900 font-bold py-4 rounded-xl shadow-lg shadow-secondary/30 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 mt-4"
+>
+  <span>Thanh toán ngay</span>
+  <span className="material-symbols-outlined text-[20px]">
+    arrow_forward
+  </span>
+</button>
 
     <div className="flex items-center justify-center gap-2 pt-4 text-xs text-slate-400">
       <span className="material-symbols-outlined text-[16px]">
