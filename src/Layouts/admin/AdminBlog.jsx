@@ -1,6 +1,55 @@
 import React from "react";
+
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
 export default function AdminBlog() {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+const [activeTab, setActiveTab] = useState("ALL");
+const [currentPage, setCurrentPage] = useState(1);
+
+const postsPerPage = 5;
+
+const [posts, setPosts] = useState([
+  {
+    id: 1,
+    title: "The Art of Traditional Tea Ceremony",
+    category: "Culture",
+    author: "Li Wei",
+    status: "PUBLISHED",
+    date: "Oct 24, 2023",
+  },
+  {
+    id: 2,
+    title: "10 Must-Try Street Foods in Chengdu",
+    category: "Food",
+    author: "Chen Hao",
+    status: "PUBLISHED",
+    date: "Oct 18, 2023",
+  },
+  {
+    id: 3,
+    title: "Hidden Temples in Shanghai",
+    category: "Travel",
+    author: "Wang Jun",
+    status: "DRAFT",
+    date: "Oct 12, 2023",
+  },
+]);
+const filteredPosts = posts
+  .filter((post) => {
+    if (activeTab === "ALL") return true;
+    return post.status === activeTab;
+  })
+  .filter((post) =>
+    post.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+const indexOfLast = currentPage * postsPerPage;
+const indexOfFirst = indexOfLast - postsPerPage;
+const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
+
     return (
         <>
             <div className="flex h-screen overflow-hidden ">
@@ -30,10 +79,14 @@ export default function AdminBlog() {
           search
         </span>
         <input
-          type="text"
-          placeholder="Search posts..."
-          className="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-slate-900 w-64"
-        />
+
+  type="text"
+  placeholder="Search posts..."
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+  className="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-slate-900 w-64"
+/>
+
       </div>
 
       {/* Notification */}
@@ -143,32 +196,59 @@ export default function AdminBlog() {
 
     {/* Tabs */}
     <div className="flex gap-2">
-      <button className="px-4 py-1.5 rounded-full bg-slate-900 text-white text-xs font-bold">
-        All Posts
-      </button>
-      <button className="px-4 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold hover:bg-slate-200 transition-all">
-        Published
-      </button>
-      <button className="px-4 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold hover:bg-slate-200 transition-all">
-        Drafts
-      </button>
+
+     <button
+  onClick={() => setActiveTab("ALL")}
+  className={`px-4 py-1.5 rounded-full text-xs font-bold ${
+    activeTab === "ALL"
+      ? "bg-slate-900 text-white"
+      : "bg-slate-100 text-slate-600"
+  }`}
+>
+  All Posts
+</button>
+
+<button
+  onClick={() => setActiveTab("PUBLISHED")}
+  className={`px-4 py-1.5 rounded-full text-xs font-bold ${
+    activeTab === "PUBLISHED"
+      ? "bg-slate-900 text-white"
+      : "bg-slate-100 text-slate-600"
+  }`}
+>
+  Published
+</button>
+
+<button
+  onClick={() => setActiveTab("DRAFT")}
+  className={`px-4 py-1.5 rounded-full text-xs font-bold ${
+    activeTab === "DRAFT"
+      ? "bg-slate-900 text-white"
+      : "bg-slate-100 text-slate-600"
+  }`}
+>
+  Drafts
+</button>
+
     </div>
 
     {/* Actions */}
     <div className="flex gap-3">
-      <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-medium hover:bg-slate-50">
-        <span className="material-symbols-outlined text-lg text-slate-900">
-          filter_list
-        </span>
-        Filter
-      </button>
 
-      <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-medium hover:bg-slate-50">
-        <span className="material-symbols-outlined text-lg text-slate-900">
-          download
-        </span>
-        Export
-      </button>
+      {/* Add Post Button */}
+
+  {/* Add Post */}
+  <button
+    onClick={() => navigate("/admin/blog/add")}
+    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 active:scale-95 transition-all"
+  >
+    <span className="material-symbols-outlined text-lg">
+      add
+    </span>
+    Add Post
+  </button>
+
+
     </div>
 
   </div>
@@ -190,170 +270,144 @@ export default function AdminBlog() {
       </thead>
 
       {/* Table Body */}
-      <tbody className="divide-y divide-primary/5">
 
-        {/* Row 1 */}
-        <tr className="hover:bg-slate-50 transition-colors">
-          <td className="px-6 py-4">
-            <div className="flex items-center gap-3">
-              <div className="size-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                <span className="material-symbols-outlined text-slate-900">
-                  image
-                </span>
-              </div>
-              <span className="text-sm font-semibold truncate max-w-[200px]">
-                The Art of Traditional Tea Ceremony
-              </span>
-            </div>
-          </td>
-
-          <td className="px-6 py-4">
-            <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-600">
-              Culture
-            </span>
-          </td>
-
-          <td className="px-6 py-4">
-            <div className="flex items-center gap-2">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNgwYi20PwJFp2DKCGTjvLaIyWmp8Ec3bnh15qZq9HOOewQ95sWrM8OZoCh58KUo9tobY1lkBa01CK-DIuaI5WLg1FILrLoUS_lCXToEmOv9ddPXrIvkckWVyiI8kN8nOEbViWWRhRhe8mnTD_aoU4COvx-_nm7TKN-ZEz6xi3w4MtFBQB8ecelA8E8cG_qRItt1Na6vpGtbFMEQr4eC4hiVGzpJu89drFTgOxgzGdE_3OS6axb7-SFB_g2WP0niQEDr4vwPZbH_8"
-                alt="Author"
-                className="size-6 rounded-full object-cover"
-              />
-              <span className="text-sm">Li Wei</span>
-            </div>
-          </td>
-
-          <td className="px-6 py-4">
-            <div className="flex items-center gap-1.5 text-green-500">
-              <span className="size-2 rounded-full bg-current"></span>
-              <span className="text-xs font-bold uppercase">Published</span>
-            </div>
-          </td>
-
-          <td className="px-6 py-4 text-sm text-slate-500">
-            Oct 24, 2023
-          </td>
-
-          <td className="px-6 py-4">
-            <div className="flex items-center gap-2">
-              <button className="p-1.5 rounded-lg hover:bg-primary/10 text-slate-500 hover:text-primary transition-colors">
-                <span className="material-symbols-outlined text-lg">visibility</span>
-              </button>
-              <button className="p-1.5 rounded-lg hover:bg-primary/10 text-slate-500 hover:text-primary transition-colors">
-                <span className="material-symbols-outlined text-lg">edit</span>
-              </button>
-              <button className="p-1.5 rounded-lg hover:bg-primary/10 text-slate-500 hover:text-primary transition-colors">
-                <span className="material-symbols-outlined text-lg">delete</span>
-              </button>
-            </div>
-          </td>
-          <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
-  ---
-</td>
-
-
-</tr>
-
-<tr className="hover:bg-slate-50 transition-colors">
-  <td className="px-6 py-4">
-    <div className="flex items-center gap-3">
-      <div className="size-10 rounded-lg bg-slate-100 flex-shrink-0 flex items-center justify-center">
-        <span className="material-symbols-outlined text-slate-900">
-          restaurant
+     <tbody className="divide-y divide-primary/5">
+  {currentPosts.map((post) => (
+    <tr key={post.id} className="hover:bg-slate-50 transition-colors">
+      <td className="px-6 py-4">
+        <span className="text-sm font-semibold">
+          {post.title}
         </span>
-      </div>
-      <span className="text-sm font-semibold truncate max-w-[200px]">
-        10 Must-Try Street Foods in Chengdu
-      </span>
-    </div>
-  </td>
+      </td>
 
-  <td className="px-6 py-4">
-    <span className="text-xs font-medium px-2 py-1 rounded-full bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400">
-      Food
-    </span>
-  </td>
-
-  <td className="px-6 py-4">
-    <div className="flex items-center gap-2">
-      <img
-        alt="Author"
-        className="size-6 rounded-full"
-        src="https://lh3.googleusercontent.com/aida-public/AB6AXuALXrtoQNWoK_Pmm2sjBFKXadGI7ZQq4HS7MveWqvvWB_nkxnQu-CWS0gIJ0sLjhUXM6AbkYd6yEEidlzgjFzmfSjx0gOvNCzJp4gSh8GvpiYdLCIRtQ_GmQZy-YB_5MGtKP9TMcnjCO03HAFp7pJCxqyGrpi6IFtXLuwa8MaoFta4G84VcOoObJFeR5j2I2QOsU1d1v4awdCy437MkhNX0s5lTIFVbaKYdwlvL_YzAGWGjlLqpi7hwhV7MYYItKVzcT_jowW73ZnU"
-      />
-      <span className="text-sm">Chen Hao</span>
-    </div>
-  </td>
-
-  <td className="px-6 py-4">
-    <div className="flex items-center gap-1.5 text-green-500">
-      <span className="size-2 rounded-full bg-current"></span>
-      <span className="text-xs font-bold uppercase">
-        Published
-      </span>
-    </div>
-  </td>
-
-  <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
-    Oct 18, 2023
-  </td>
-
-  <td className="px-6 py-4">
-    <div className="flex items-center gap-2">
-      <button className="p-1.5 rounded-lg hover:bg-primary/10 text-slate-500 hover:text-primary transition-colors">
-        <span className="material-symbols-outlined text-lg">
-          visibility
+      <td className="px-6 py-4">
+        <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-600">
+          {post.category}
         </span>
-      </button>
-      <button className="p-1.5 rounded-lg hover:bg-primary/10 text-slate-500 hover:text-primary transition-colors">
-        <span className="material-symbols-outlined text-lg">
-          edit
+      </td>
+
+      <td className="px-6 py-4 text-sm">
+        {post.author}
+      </td>
+
+      <td className="px-6 py-4">
+        <span
+          className={`text-xs font-bold uppercase ${
+            post.status === "PUBLISHED"
+              ? "text-green-500"
+              : "text-yellow-500"
+          }`}
+        >
+          {post.status}
         </span>
-      </button>
-      <button className="p-1.5 rounded-lg hover:bg-primary/10 text-slate-500 hover:text-primary transition-colors">
-        <span className="material-symbols-outlined text-lg">
-          delete
-        </span>
-      </button>
-    </div>
-  </td>
-</tr>
+      </td>
+
+      <td className="px-6 py-4 text-sm text-slate-500">
+        {post.date}
+      </td>
+
+      <td className="px-6 py-4">
+        <button
+          onClick={() =>
+            setPosts(posts.filter((p) => p.id !== post.id))
+          }
+          className="text-red-500 text-sm"
+        >
+          Delete
+        </button>
+      </td>
+    </tr>
+  ))}
+
 </tbody>
 </table>
 </div>
 
 {/* Pagination */}
 <div className="p-6 border-t border-slate-100 flex items-center justify-between">
+
+
+  {/* Text hiển thị số bản ghi */}
   <p className="text-xs text-slate-500 dark:text-slate-400">
-    Showing 1 to 10 of 1,284 entries
+    Showing{" "}
+    {filteredPosts.length === 0
+      ? 0
+      : (currentPage - 1) * postsPerPage + 1}{" "}
+    to{" "}
+    {Math.min(
+      currentPage * postsPerPage,
+      filteredPosts.length
+    )}{" "}
+    of {filteredPosts.length} entries
   </p>
 
-  <div className="flex gap-1">
-    <button className="size-8 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-xs">
-      <span className="material-symbols-outlined text-sm">
-        chevron_left
-      </span>
-    </button>
+  {/* Pagination buttons */}
+  {filteredPosts.length > 0 && (
+    <div className="flex gap-1">
 
-    <button className="px-4 py-1.5 rounded-full bg-slate-900 text-white text-xs font-bold">
-      1
-    </button>
+      {/* Prev */}
+      <button
+        onClick={() =>
+          setCurrentPage((prev) => Math.max(prev - 1, 1))
+        }
+        disabled={currentPage === 1}
+        className="size-8 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-xs disabled:opacity-40"
+      >
+        <span className="material-symbols-outlined text-sm">
+          chevron_left
+        </span>
+      </button>
 
-    <button className="size-8 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-xs">
-      2
-    </button>
+      {/* Page numbers */}
+      {Array.from(
+        {
+          length: Math.ceil(
+            filteredPosts.length / postsPerPage
+          ),
+        },
+        (_, i) => i + 1
+      ).map((page) => (
+        <button
+          key={page}
+          onClick={() => setCurrentPage(page)}
+          className={`size-8 flex items-center justify-center rounded-lg text-xs ${
+            currentPage === page
+              ? "bg-slate-900 text-white"
+              : "border border-slate-200 hover:bg-slate-50"
+          }`}
+        >
+          {page}
+        </button>
+      ))}
 
-    <button className="size-8 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-xs">
-      3
-    </button>
+      {/* Next */}
+      <button
+        onClick={() =>
+          setCurrentPage((prev) =>
+            Math.min(
+              prev + 1,
+              Math.ceil(
+                filteredPosts.length / postsPerPage
+              )
+            )
+          )
+        }
+        disabled={
+          currentPage ===
+          Math.ceil(
+            filteredPosts.length / postsPerPage
+          )
+        }
+        className="size-8 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-xs disabled:opacity-40"
+      >
+        <span className="material-symbols-outlined text-sm">
+          chevron_right
+        </span>
+      </button>
 
-    <button className="size-8 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-xs">
-      <span className="material-symbols-outlined text-sm">
-        chevron_right
-      </span>
-    </button>
-  </div>
+    </div>
+  )}
+
 </div>
 
 </section>

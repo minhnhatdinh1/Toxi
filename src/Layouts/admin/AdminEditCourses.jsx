@@ -1,27 +1,92 @@
 import react from "react";
 import { useState, useRef } from "react";
 import AdminSidebar from "./AdminSidebar";
+
+import { useNavigate } from "react-router-dom";
 export default function AdminEditCourses() {
-    const [formData, setFormData] = useState({
+  const navigate = useNavigate();
+
+  const initialFormData = {
+
     courseId: "TOXI-HSK1-001",
     title: "HSK 1 Standard Course",
     type: "HSK Preparation",
     price: 49.99,
     discountPrice: 39.99,
-  });
+
+  };
+
+  const [formData, setFormData] = useState(initialFormData);
+  const [originalFormData, setOriginalFormData] = useState(initialFormData);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [hasChanges, setHasChanges] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const updatedData = { ...formData, [name]: value };
+    setFormData(updatedData);
+    const isModified = JSON.stringify(updatedData) !== JSON.stringify(originalFormData);
+    setHasChanges(isModified);
+    setError("");
   };
 
-  const handleSubmit = () => {
-    console.log("Updated Course:", formData);
-    alert("Update thành công (chưa gọi API)");
+  const validateForm = () => {
+    if (!formData.title || formData.title.trim() === "") {
+      setError("Course title is required");
+      return false;
+    }
+    if (!formData.type || formData.type.trim() === "") {
+      setError("Course type is required");
+      return false;
+    }
+    if (formData.price < 0) {
+      setError("Price cannot be negative");
+      return false;
+    }
+    if (formData.discountPrice < 0) {
+      setError("Discount price cannot be negative");
+      return false;
+    }
+    if (formData.discountPrice > formData.price) {
+      setError("Discount price must be less than or equal to price");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    setError("");
+    if (!validateForm()) return;
+
+    setSaving(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setOriginalFormData(formData);
+      setHasChanges(false);
+      setSuccessMessage("Course updated successfully!");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (err) {
+      setError(err.message || "Failed to update course");
+      console.error("Update error:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (hasChanges) {
+      const confirmCancel = window.confirm(
+        "You have unsaved changes. Are you sure you want to discard them?"
+      );
+      if (!confirmCancel) return;
+    }
+    setFormData(originalFormData);
+    setHasChanges(false);
+    setError("");
+    navigate("/adminCourse");
+
   };
   const [description, setDescription] = useState(
     "A foundational course designed for absolute beginners. This course covers the first 150 essential Chinese characters and basic grammar structures required for the HSK 1 proficiency exam. Ideal for students starting their Mandarin journey."
@@ -62,10 +127,27 @@ const handleFileChange = (e) => {
     alert("Preview Course");
   };
 
-  const handleSaveDraft = () => {
-    setStatus("Drafting");
-    setLastSaved("Just now");
-    alert("Saved as Draft (chưa gọi API)");
+
+  const handleSaveDraft = async () => {
+    setError("");
+    if (!validateForm()) return;
+
+    setSaving(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setOriginalFormData(formData);
+      setHasChanges(false);
+      setStatus("Drafting");
+      setLastSaved("Just now");
+      setSuccessMessage("Saved as draft successfully!");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (err) {
+      setError(err.message || "Failed to save draft");
+      console.error("Draft save error:", err);
+    } finally {
+      setSaving(false);
+    }
+
   };
     return(
         <>
@@ -94,16 +176,50 @@ const handleFileChange = (e) => {
           </button>
 
           <button
-            onClick={handleSubmit}
-            className="bg-primary text-white px-6 py-2 rounded-lg font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"
+
+            onClick={handleCancel}
+            disabled={saving}
+            className="px-6 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Update Course
+            Cancel
+          </button>
+
+          <button
+            onClick={handleSubmit}
+            disabled={saving || !hasChanges}
+            className="bg-primary text-white px-6 py-2 rounded-lg font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {saving && (
+              <span className="material-symbols-outlined text-sm animate-spin">
+                sync
+              </span>
+            )}
+            {saving ? "Updating..." : "Update Course"}
+
           </button>
         </div>
       </header>
 
       {/* Content */}
       <div className="p-8  mx-auto">
+
+        {error && (
+          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg flex items-start gap-2">
+            <span className="material-symbols-outlined text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5">
+              error
+            </span>
+            <span className="text-sm">{error}</span>
+          </div>
+        )}
+        {successMessage && (
+          <div className="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg flex items-start gap-2">
+            <span className="material-symbols-outlined text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5">
+              check_circle
+            </span>
+            <span className="text-sm">{successMessage}</span>
+          </div>
+        )}
+
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">
@@ -393,7 +509,10 @@ const handleFileChange = (e) => {
           <button
             type="button"
             onClick={handlePreview}
-            className="w-full border border-primary text-primary hover:bg-primary/10 py-2.5 rounded-lg font-bold text-sm transition-colors"
+
+            className="w-full border border-primary text-primary hover:bg-primary/10 py-2.5 rounded-lg font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={saving}
+
           >
             Preview Course
           </button>
@@ -401,9 +520,17 @@ const handleFileChange = (e) => {
           <button
             type="button"
             onClick={handleSaveDraft}
-            className="w-full bg-slate-900 dark:bg-black text-white py-2.5 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity"
+
+            disabled={saving || !hasChanges}
+            className="w-full bg-slate-900 dark:bg-black text-white py-2.5 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Save as Draft
+            {saving && (
+              <span className="material-symbols-outlined text-sm animate-spin">
+                sync
+              </span>
+            )}
+            {saving ? "Saving..." : "Save as Draft"}
+
           </button>
 
         </div>

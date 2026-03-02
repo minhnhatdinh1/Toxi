@@ -144,6 +144,8 @@ export default function Productdetail() {
       </div>
 
 
+
+
       {/* CONTENT */}
       <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">

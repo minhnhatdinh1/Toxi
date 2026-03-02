@@ -3,6 +3,8 @@ import AdminSidebar from "./AdminSidebar";
 import { Link } from "react-router-dom";
 export default function AdminCourse() {
 
+
+
   
  const [courses, setCourses] = useState([]);
   const token = localStorage.getItem("token");
@@ -36,6 +38,7 @@ export default function AdminCourse() {
 
     fetchCourses(); // reload lại danh sách
   };
+
 const [currentPage, setCurrentPage] = useState(1);
 const coursesPerPage = 5; // mỗi trang 5 khóa học
  const totalPages = Math.ceil(courses.length / coursesPerPage);
@@ -46,6 +49,7 @@ const paginated = courses.slice(
   indexOfFirstCourse,
   indexOfLastCourse
 );
+
 
   return (
     <>
@@ -80,6 +84,7 @@ const paginated = courses.slice(
           <div className="flex-1 overflow-auto p-8">
             {/* Tabs */}
             <div className="flex gap-8 mb-6 border-b border-gray-200 dark:border-white/10">
+
               <button className="pb-4 text-primary dark:text-accent font-bold border-b-2 border-primary dark:border-accent flex items-center gap-2">
                 All Courses
                 <span className="bg-primary/10 text-primary dark:bg-accent/10 dark:text-accent px-2 py-0.5 rounded text-xs">
@@ -93,6 +98,7 @@ const paginated = courses.slice(
 
               <button className="pb-4 text-gray-400 font-medium hover:text-primary dark:hover:text-accent transition-colors">
                 Draft
+
               </button>
             </div>
 
@@ -121,6 +127,8 @@ const paginated = courses.slice(
                 </thead>
 
            <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+
+
   {paginated.map((course) => (
     <tr
       key={course.courseId}
@@ -150,7 +158,9 @@ const paginated = courses.slice(
           <span className="material-symbols-outlined text-gray-400 text-sm">
             person
           </span>
+
         {(course.enrolled || 0).toLocaleString()}
+
         </div>
       </td>
       <td className="px-6 py-5 text-gray-900 dark:text-white font-semibold">
@@ -247,7 +257,9 @@ const paginated = courses.slice(
         )
       }
       disabled={currentPage === totalPages}
+
       className="px-3 py-1 border rounded disabled:opacity-50"
+
     >
       Next
     </button>
@@ -259,4 +271,5 @@ const paginated = courses.slice(
       </div>
     </>
   )
+
 };

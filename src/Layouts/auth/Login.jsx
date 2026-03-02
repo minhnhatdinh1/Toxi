@@ -23,6 +23,10 @@ const { mergeCartAfterLogin } = useCart();
       });
     localStorage.setItem("token", res.data.accessToken);
     localStorage.setItem("userId", res.data.userId);
+    localStorage.setItem("refreshToken", res.data.refreshToken);
+    localStorage.setItem("userName", res.data.userName);
+    localStorage.setItem("email", res.data.email); 
+       localStorage.setItem("phone", res.data.phone); 
         await mergeCartAfterLogin(res.data.accessToken);
     navigate("/Home");
   } catch (err) {

@@ -1,9 +1,13 @@
 import react from "react";
 import { useState, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
+
+import { useNavigate } from "react-router-dom";
 export default function AdminEditStudent() {
-    
-  const [formData, setFormData] = useState({
+  const navigate = useNavigate();
+
+  const initialFormData = {
+
     username: "li_wei88",
     fullName: "Li Wei",
     email: "li.wei@example.com",
@@ -11,27 +15,83 @@ export default function AdminEditStudent() {
     address: "123 Blossom Lane, District 5, Shanghai",
     password: "password123",
     confirmPassword: "password123",
-  });
 
+  };
+
+  const [formData, setFormData] = useState(initialFormData);
+  const [originalFormData, setOriginalFormData] = useState(initialFormData);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [hasChanges, setHasChanges] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const updated = { ...formData, [name]: value };
+    setFormData(updated);
+    setHasChanges(JSON.stringify(updated) !== JSON.stringify(originalFormData));
+    setError("");
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    if (!formData.username.trim()) {
+      setError("Username is required");
+      return false;
+    }
+    if (!formData.fullName.trim()) {
+      setError("Full name is required");
+      return false;
+    }
+    if (!formData.email.trim()) {
+      setError("Email is required");
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Invalid email format");
+      return false;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitted:", formData);
+    setError("");
+    if (!validateForm()) return;
+
+    setSaving(true);
+    try {
+      // TODO: call update student API;
+      await new Promise((r) => setTimeout(r, 1000));
+      setOriginalFormData(formData);
+      setHasChanges(false);
+      setSuccessMessage("Student updated successfully!");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to save student");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
-    console.log("Cancel clicked");
+    if (hasChanges) {
+      const confirmCancel = window.confirm(
+        "You have unsaved changes. Discard them?"
+      );
+      if (!confirmCancel) return;
+    }
+    setFormData(originalFormData);
+    setHasChanges(false);
+    navigate("/adminStudent");
+
   };
 
     return(
@@ -81,7 +141,10 @@ export default function AdminEditStudent() {
           <div className="h-2 bg-gradient-to-r from-primary via-toxi-gold to-primary"></div>
 
           <div className="p-8">
-            <form className="flex flex-col gap-8">
+
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -171,9 +234,26 @@ export default function AdminEditStudent() {
                 </div>
 
               </div>
-       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+
       {/* Section: Security */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {error && (
+          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg flex items-start gap-2">
+            <span className="material-symbols-outlined text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5">
+              error
+            </span>
+            <span className="text-sm">{error}</span>
+          </div>
+        )}
+        {successMessage && (
+          <div className="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg flex items-start gap-2">
+            <span className="material-symbols-outlined text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5">
+              check_circle
+            </span>
+            <span className="text-sm">{successMessage}</span>
+          </div>
+        )}
+
         <div className="col-span-2 flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
           <span className="material-symbols-outlined text-primary">
             lock
@@ -237,21 +317,33 @@ export default function AdminEditStudent() {
         <button
           type="button"
           onClick={handleCancel}
-          className="px-6 py-3 rounded-xl text-slate-600 dark:text-slate-400 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+
+          disabled={saving}
+          className="px-6 py-3 rounded-xl text-slate-600 dark:text-slate-400 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+
         >
           Cancel
         </button>
 
         <button
           type="submit"
-          className="px-10 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
+
+          disabled={saving || !hasChanges}
+          className="px-10 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
+          {saving && (
+            <span className="material-symbols-outlined text-lg animate-spin">
+              sync
+            </span>
+          )}
           <span className="material-symbols-outlined text-lg">save</span>
-          Lưu thay đổi
+          {saving ? "Đang lưu..." : "Lưu thay đổi"}
         </button>
       </div>
     </form>
-            </form>
+
+
+
           </div>
         </div>
 

@@ -34,7 +34,11 @@ import StepReset from './Layouts/auth/ForgotPassword/StepReset.jsx';
 import AdminPage from './Layouts/admin/AdminPage.jsx';
 import AdminCourse from './Layouts/admin/AdminCourse.jsx';
 import AdminProduct from './Layouts/admin/AdminProduct.jsx';
+
 import AdminExample from './Layouts/admin/AdminExample.jsx';
+
+import AdminQuiz from "./Layouts/admin/Adminquiz";
+
 import AdminStudent from './Layouts/admin/AdminStudent.jsx';
 import AdminFinance from './Layouts/admin/AdminFinance.jsx';
 import AdminAddNewCourses from './Layouts/admin/AdminAddNewCourses.jsx';
@@ -42,11 +46,20 @@ import AdminAddNewProduct from './Layouts/admin/AdminAddNewProduct.jsx';
 import AdminBlog from './Layouts/admin/AdminBlog.jsx';
 import AdminTeacher from './Layouts/admin/AdminTeacher.jsx';
 import AdminAddNewStudent from './Layouts/admin/AdminAddNewStudent.jsx';
+
 import AdminAddNewExample from './Layouts/admin/AdminAddNewExample.jsx';
+
+import AdminAddNewQuiz from './Layouts/admin/AdminAddNewQuiz.jsx';
+
 import AdminAddNewTeacher from './Layouts/admin/AdmnAddNewTeacher.jsx';
 import AdminEditCourses from './Layouts/admin/AdminEditCourses.jsx';
 import AdminEditProduct from './Layouts/admin/AdminEditProduct.jsx';
 import AdminEditStudent from './Layouts/admin/AdminEditStudent.jsx';
+
+import AdminEditQuiz from './Layouts/admin/AdminEditQuiz.jsx';
+import AdminAddNewBlog from './Layouts/admin/AdminAddNewBlog.jsx';
+import AdminEditTeacher from './Layouts/admin/AdminEditTeacher.jsx';
+
 
 function App() {
   return (
@@ -82,7 +95,11 @@ function App() {
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/adminCourse" element={<AdminCourse />} />
       <Route path="/adminStore" element={<AdminProduct />} />
+
       <Route path="/adminExample" element={<AdminExample />} />
+
+      <Route path="/adminQuiz" element={<AdminQuiz />} />
+
       <Route path="/adminStudent" element={<AdminStudent />} />
       <Route path="/adminFinance" element={<AdminFinance />} />
       <Route path="/addnewCourse" element={<AdminAddNewCourses />} />
@@ -91,10 +108,16 @@ function App() {
       <Route path="/adminTeacher" element={<AdminTeacher />} />
       <Route path="/adminAddNewStudent" element={<AdminAddNewStudent />} />
       <Route path="/adminAddNewTeacher" element={<AdminAddNewTeacher />} />
+
       <Route
         path="/admin/courses/edit/:id"
         element={<AdminEditCourses />}
       />
+
+      <Route path="/adminAddNewQuiz" element={<AdminAddNewQuiz />} />
+     <Route path="/editCourse/:id" element={<AdminEditCourses />} />
+     <Route path="//admin/blog/add" element={<AdminAddNewBlog />} />
+
       <Route
         path="/admin/products/edit/:id"
         element={<AdminEditProduct />}
@@ -108,7 +131,13 @@ function App() {
   path="/adminAddNewStudent"
   element={<AdminAddNewStudent />}
 />
+
       <Route path="/adminNewExample" element={<AdminAddNewExample />} />
+
+
+<Route path="/editQuiz/:id" element={<AdminEditQuiz />} />
+    
+<Route path="/admin/editTeacher/:id" element={<AdminEditTeacher />} />
 
     </Routes>
 

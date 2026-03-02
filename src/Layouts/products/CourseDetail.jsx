@@ -2,13 +2,17 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import logo from '../../assets/image/LOGO (1).png'
 import axios from "axios";
 import React, { useState, useEffect } from 'react';
+
 import { useCart } from "../../context/CartContext";
+
 
 export default function CourseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+
 const { addToCart, cartCount } = useCart();
+
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
 const [timeLeft, setTimeLeft] = useState("");
@@ -47,9 +51,11 @@ useEffect(() => {
     }
   };
 
+
 const handleAddToCart = () => {
   addToCart(course.courseId,"COURSE",1);
   alert("Đã thêm vào giỏ hàng!");
+
 };
   if (loading) return <div className="p-10">Đang tải...</div>;
   if (!course) return <div className="p-10">Không tìm thấy khóa học</div>;
@@ -105,6 +111,7 @@ const discountPercent = hasDiscount
           {/* ACTIONS */}
           <div className="flex items-center gap-6 shrink-0">
             {/* CART */}
+
            <div className="relative group cursor-pointer" onClick={() => navigate('/cart')}>
   <span className="material-symbols-outlined text-[28px] text-white hover:text-secondary transition-colors">
     shopping_cart
@@ -115,6 +122,7 @@ const discountPercent = hasDiscount
     </span>
   )}
 </div>
+
             {/* AUTH BUTTONS */}
             <div className="hidden sm:flex items-center gap-4">
               <Link to="/login" className="text-sm font-bold hover:text-secondary transition-colors">
