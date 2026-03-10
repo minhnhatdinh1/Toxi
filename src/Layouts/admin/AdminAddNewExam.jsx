@@ -8,6 +8,7 @@ import { useApi } from "../service/useApi";
 import { createExam } from "./api/apiExam";
 
 export default function AdminAddNewExam() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
   title: "",
   course: "",
@@ -34,7 +35,22 @@ const handleChange = (e) => {
 
   const handleSubmit = () => {
     console.log("Dữ liệu tài liệu:", formData);
+    const newExam = {
+    id: "#PBT-" + Math.floor(Math.random() * 1000),
+    title: formData.title,
+    file: formData.file ? formData.file.name : "",
+    course: formData.course,
+    deadline: "30/10/2023",
+    status: formData.active ? "Published" : "Draft"
   };
+
+  const oldData = JSON.parse(localStorage.getItem("exams")) || [];
+
+  localStorage.setItem("exams", JSON.stringify([...oldData, newExam]));
+
+  navigate("/adminExam");
+  };
+  
   
     return (
         <>

@@ -58,6 +58,7 @@ import AdminAddNewExam from './Layouts/admin/AdminAddNewExam.jsx';
 import NotFound from './Layouts/common/NotFound.jsx';
 import OderSuccess from './Layouts/common/OderSuccess.jsx';
 import IntroSection from './Layouts/introduce/InTrodusection.jsx';
+import Communicate from './Layouts/introduce/communicate.jsx';
 
 
 function App() {
@@ -74,6 +75,7 @@ function App() {
         <Route path="Practice" element={<PracticePage />} />
         <Route path="/course" element={<Course />} />
         <Route path="/Introduction" element={<IntroSection />} />
+        <Route path="/communicate/:type" element={<Communicate />} />
       </Route>
 
       <Route path="/products/:id" element={<Productdetail />} />
@@ -112,6 +114,8 @@ function App() {
       <Route path="/editCourse/:id" element={<AdminEditCourses />} />
       <Route path="//admin/blog/add" element={<AdminAddNewBlog />} />
       <Route path="/order-success" element={<OderSuccess />} />
+      <Route path="/adminEditExam/:id" element={<AdminAddNewExam />} />
+      
       <Route
         path="/admin/products/edit/:id"
         element={<AdminEditProduct />}

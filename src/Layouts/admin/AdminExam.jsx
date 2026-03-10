@@ -1,108 +1,164 @@
 import react from "react";
 import AdminSidebar from "./AdminSidebar";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useEffect } from "react";
 export default function AdminExam() {
-    const totalItems = 42;
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+// STATE
+const [editingExam, setEditingExam] = useState(null);
+const navigate = useNavigate();
+const [filterStatus, setFilterStatus] = useState("all");
+const [stats, setStats] = useState([
+  {
+    id: 1,
+    title: "Tổng số phiếu",
+    value: 1280,
+    percent: 12.5,
+    icon: "description",
+    color: "primary",
+  },
+  {
+    id: 2,
+    title: "Đang hoạt động",
+    value: 856,
+    percent: 5.2,
+    icon: "task_alt",
+    color: "accent-yellow",
+  },
+  {
+    id: 3,
+    title: "Lượt nộp bài",
+    value: 4520,
+    percent: 18.0,
+    icon: "send",
+    color: "primary",
+  },
+]);
 
-  const [currentPage, setCurrentPage] = useState(1);
+const [assignments, setAssignments] = useState([]);
+const [activities] = useState([
+  {
+    id: 1,
+    name: "Lê Nam",
+    initials: "LN",
+    task: "Bài tập Hán ngữ 1",
+    time: "2 phút trước",
+    color: "primary",
+  },
+  {
+    id: 2,
+    name: "Hoàng Thảo",
+    initials: "HT",
+    task: "Luyện viết bộ thủ",
+    time: "15 phút trước",
+    color: "accent-yellow",
+  },
+]);
 
-  const handlePrev = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
+const [currentPage, setCurrentPage] = useState(1);
 
-  const handleNext = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-  };
+// LOAD DATA
+useEffect(() => {
+  const data = JSON.parse(localStorage.getItem("exams")) || [];
 
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-      const [stats, setStats] = useState([
-    {
-      id: 1,
-      title: "Tổng số phiếu",
-      value: 1280,
-      percent: 12.5,
-      icon: "description",
-      color: "primary",
-    },
-    {
-      id: 2,
-      title: "Đang hoạt động",
-      value: 856,
-      percent: 5.2,
-      icon: "task_alt",
-      color: "accent-yellow",
-    },
-    {
-      id: 3,
-      title: "Lượt nộp bài",
-      value: 4520,
-      percent: 18.0,
-      icon: "send",
-      color: "primary",
-    },
-  ]);
+  if (data.length === 0) {
+    const defaultData = [
+      {
+        id: "#PBT-102",
+        title: "Bài tập Hán ngữ cơ bản 1",
+        file: "hangu-1-ex.pdf",
+        course: "Sơ cấp A1",
+        deadline: "20/10/2023",
+        status: "Published",
+      },
+      {
+        id: "#PBT-103",
+        title: "Luyện viết chữ Hán bộ thủ",
+        file: "bothu-writing.pdf",
+        course: "Nhập môn",
+        deadline: "22/10/2023",
+        status: "Published",
+      },
+      {
+        id: "#PBT-104",
+        title: "Ngữ pháp HSK 3 nâng cao",
+        file: "hsk3-grammar.docx",
+        course: "Trung cấp B1",
+        deadline: "25/10/2023",
+        status: "Draft",
+      },
+      {
+        id: "#PBT-105",
+        title: "Giao tiếp công sở chủ đề 1",
+        file: "office-talk-01.pdf",
+        course: "Giao tiếp",
+        deadline: "28/10/2023",
+        status: "Published",
+      },
+    ];
 
-const [assignments, setAssignments] = useState([
-    {
-      id: "#PBT-102",
-      title: "Bài tập Hán ngữ cơ bản 1",
-      file: "hangu-1-ex.pdf",
-      course: "Sơ cấp A1",
-      deadline: "20/10/2023",
-      status: "Published",
-    },
-    {
-      id: "#PBT-103",
-      title: "Luyện viết chữ Hán bộ thủ",
-      file: "bothu-writing.pdf",
-      course: "Nhập môn",
-      deadline: "22/10/2023",
-      status: "Published",
-    },
-    {
-      id: "#PBT-104",
-      title: "Ngữ pháp HSK 3 nâng cao",
-      file: "hsk3-grammar.docx",
-      course: "Trung cấp B1",
-      deadline: "25/10/2023",
-      status: "Draft",
-    },
-    {
-      id: "#PBT-105",
-      title: "Giao tiếp công sở chủ đề 1",
-      file: "office-talk-01.pdf",
-      course: "Giao tiếp",
-      deadline: "28/10/2023",
-      status: "Published",
-    },
-  ]);
-   const [activities] = useState([
-    {
-      id: 1,
-      name: "Lê Nam",
-      initials: "LN",
-      task: "Bài tập Hán ngữ 1",
-      time: "2 phút trước",
-      color: "primary",
-    },
-    {
-      id: 2,
-      name: "Hoàng Thảo",
-      initials: "HT",
-      task: "Luyện viết bộ thủ",
-      time: "15 phút trước",
-      color: "accent-yellow",
-    },
-  ]);
+    setAssignments(defaultData);
+  } else {
+    setAssignments(data);
+  }
+}, []);
+// FILTER
+const filteredAssignments =
+  filterStatus === "all"
+    ? assignments
+    : assignments.filter((item) => item.status === filterStatus);
+// PAGINATION
+const itemsPerPage = 10;
+const totalItems = filteredAssignments.length;
+const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // Xóa phiếu
-  const handleDelete = (id) => {
-    setAssignments(assignments.filter((item) => item.id !== id));
-  };
+const startIndex = (currentPage - 1) * itemsPerPage;
+
+const currentAssignments = filteredAssignments.slice(
+  startIndex,
+  startIndex + itemsPerPage
+);
+
+const startItem = startIndex + 1;
+const endItem = Math.min(startIndex + itemsPerPage, totalItems);
+
+// PAGINATION BUTTON
+const handlePrev = () => {
+  if (currentPage > 1) setCurrentPage(currentPage - 1);
+};
+
+const handleNext = () => {
+  if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+};
+// EXPORT CSV
+const handleExport = () => {
+  const csv = [
+    ["ID", "Title", "Course", "Deadline", "Status"],
+    ...assignments.map((item) => [
+      item.id,
+      item.title,
+      item.course,
+      item.deadline,
+      item.status,
+    ]),
+  ]
+    .map((row) => row.join(","))
+    .join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv" });
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "exam-list.csv";
+  link.click();
+};
+
+// DELETE
+const handleDelete = (id) => {
+  const updated = assignments.filter((item) => item.id !== id);
+  setAssignments(updated);
+  localStorage.setItem("exams", JSON.stringify(updated));
+};
 
     return (
         <>
@@ -207,19 +263,25 @@ const [assignments, setAssignments] = useState([
             <h3 className="font-bold text-lg">Danh sách phiếu đã tạo</h3>
 
             <div className="flex gap-2">
-              <button className="flex items-center gap-1 text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-1.5 rounded-lg">
-                <span className="material-symbols-outlined text-sm">
-                  filter_list
-                </span>
-                Lọc
-              </button>
+              <select
+  value={filterStatus}
+  onChange={(e) => setFilterStatus(e.target.value)}
+  className="text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-1.5 rounded-lg"
+>
+  <option value="all">Tất cả</option>
+  <option value="Published">Published</option>
+  <option value="Draft">Draft</option>
+</select>
 
-              <button className="flex items-center gap-1 text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-1.5 rounded-lg">
-                <span className="material-symbols-outlined text-sm">
-                  file_download
-                </span>
-                Xuất file
-              </button>
+             <button
+  onClick={handleExport}
+  className="flex items-center gap-1 text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-1.5 rounded-lg"
+>
+  <span className="material-symbols-outlined text-sm">
+    file_download
+  </span>
+  Xuất file
+</button>
             </div>
           </div>
 
@@ -284,11 +346,14 @@ const [assignments, setAssignments] = useState([
 
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <button className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 transition-colors">
-                          <span className="material-symbols-outlined text-lg">
-                            edit
-                          </span>
-                        </button>
+  <button
+  onClick={() => navigate(`/adminEditExam/${item.id}`)}
+  className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 transition-colors"
+>
+  <span className="material-symbols-outlined text-lg">
+    edit
+  </span>
+</button>
 
                         <button
                           onClick={() => handleDelete(item.id)}

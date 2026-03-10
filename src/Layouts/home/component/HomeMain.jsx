@@ -1,6 +1,18 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { useEffect } from "react";
 export function HomePage() {
+  const heroImages = [
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuAwsBsZIsyCmtSVufrnW8IQ3OcNeGQO6uv5_S2x_YweK8CwOgxS_j8F_1UlAP1CKu-MJ4a6fHrmJFtzUUcb_X4KSq8qWpLna00jvHLg7DEjci3_9aaWB-JPpLO0hbOLKlLYbtXWV_1gq2dYp2AdtNDqJHNF-j2XA-3y-JFm721_M16loDAuswddRMrVB91_VS9Tc0bFgo4Ft74lY4nteoQG2dIzPct6KXEEJ9A_vnNS8l55l5dzg3f46GB6CxSZ1N3nNlKt4Oc23S0",
+
+  "https://images.unsplash.com/photo-1523050854058-8df90110c9f1",
+
+  "https://images.unsplash.com/photo-1503676260728-1c00da094a0b",
+
+  "https://images.unsplash.com/photo-1513258496099-48168024aec0"
+];
+const [currentImage, setCurrentImage] = useState(0);
+const [showAll, setShowAll] = useState(false);
    const [blogs] = useState([
     {
       id: 5,
@@ -25,12 +37,50 @@ export function HomePage() {
       color: "primary",
     },
   ]);
+useEffect(() => {
+  const interval = setInterval(() => {
+    setCurrentImage((prev) =>
+      prev === heroImages.length - 1 ? 0 : prev + 1
+    );
+  }, 4000); // 4 giây đổi ảnh
 
+  return () => clearInterval(interval);
+}, []);
+const [students] = useState([
+  {
+    id: 1,
+    name: "Nguyễn Thu Hà",
+    result: "Đạt HSK 6 - 280 điểm",
+    badge: "Xuất sắc"
+  },
+  {
+    id: 2,
+    name: "Trần Minh Tuấn",
+    result: "Đạt HSK 5 - 265 điểm"
+  },
+  {
+    id: 3,
+    name: "Lê Ngọc Anh",
+    result: "Học bổng Khổng Tử 2023"
+  },
+  {
+    id: 4,
+    name: "Phạm Quỳnh Anh",
+    result: "HSK 5 - 255 điểm"
+  },
+  {
+    id: 5,
+    name: "Ngô Đức Thành",
+    result: "HSK 4 - 240 điểm"
+  }
+]);
   return (
     <>
       {/* HERO SECTION */}
       <section className="relative h-[450px] md:h-[550px] w-full bg-primary group overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center transition-transform duration-[2000ms] ease-out group-hover:scale-105" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAwsBsZIsyCmtSVufrnW8IQ3OcNeGQO6uv5_S2x_YweK8CwOgxS_j8F_1UlAP1CKu-MJ4a6fHrmJFtzUUcb_X4KSq8qWpLna00jvHLg7DEjci3_9aaWB-JPpLO0hbOLKlLYbtXWV_1gq2dYp2AdtNDqJHNF-j2XA-3y-JFm721_M16loDAuswddRMrVB91_VS9Tc0bFgo4Ft74lY4nteoQG2dIzPct6KXEEJ9A_vnNS8l55l5dzg3f46GB6CxSZ1N3nNlKt4Oc23S0')", }} >
+        <div className="absolute inset-0 bg-cover bg-center transition-transform duration-[2000ms] ease-out group-hover:scale-105" style={{
+  backgroundImage: `url(${heroImages[currentImage]})`
+}} >
           <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-primary/30"></div>
           <div className="absolute inset-0 bg-chinese-pattern opacity-10"></div>
         </div>
@@ -84,14 +134,35 @@ export function HomePage() {
   </Link>
 
 </div>
+
           </div>
+          
         </div>
+         {/* NÚT CHUYỂN ẢNH */}
+  <button
+    onClick={() =>
+      setCurrentImage(currentImage === 0 ? heroImages.length - 1 : currentImage - 1)
+    }
+    className="absolute left-5 top-1/2 -translate-y-1/2 text-white text-4xl z-20"
+  >
+    ❮
+  </button>
+
+  <button
+    onClick={() =>
+      setCurrentImage(currentImage === heroImages.length - 1 ? 0 : currentImage + 1)
+    }
+    className="absolute right-5 top-1/2 -translate-y-1/2 text-white text-4xl z-20"
+  >
+    ❯
+  </button>
         <div className="absolute top-0 right-[15%] w-1 h-32 bg-accent-red/80 shadow-sm hidden lg:block"></div>
         <div className="absolute top-32 right-[15%] -translate-x-1/2 w-24 h-28 bg-accent-red rounded-xl shadow-[0_10px_30px_rgba(200,16,46,0.5)] flex items-center justify-center border-t-8 border-b-8 border-secondary hidden lg:flex">
           <div className="text-secondary font-serif text-4xl font-bold bg-accent-red p-2 rounded border border-secondary/30">
             春
           </div>
         </div>
+
       </section>
 
       {/* CORE VALUE SECTION */}
@@ -297,26 +368,29 @@ export function HomePage() {
 
           {/* Cards */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Card 1 */}
-            <div className="bg-surface rounded-2xl p-6 border border-slate-100 shadow-sm hover:border-secondary/50 hover:shadow-lg transition-all">
-              <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
-                <span className="material-symbols-outlined">
-                  record_voice_over
-                </span>
-              </div>
-              <h3 className="font-bold text-lg mb-2 text-slate-900">
-                Giao tiếp Cơ bản\
-              </h3>
-              <p className="text-sm text-slate-500 mb-4">
-                Dành cho người mới bắt đầu. Học phát âm chuẩn và các mẫu câu thông dụng hàng ngày.
-              </p>
-              <a href="/course" className="text-sm font-bold text-primary flex items-center gap-1">
-                Khám phá
-                <span className="material-symbols-outlined text-xs">
-                  arrow_forward
-                </span>
-              </a>
-            </div>
+           {/* Card 1 */}
+<div className="bg-surface rounded-2xl p-6 border border-slate-100 shadow-sm hover:border-secondary/50 hover:shadow-lg transition-all">
+  <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
+    <span className="material-symbols-outlined">
+      record_voice_over
+    </span>
+  </div>
+
+  <h3 className="font-bold text-lg mb-2 text-slate-900">
+    Giao tiếp Cơ bản
+  </h3>
+
+  <p className="text-sm text-slate-500 mb-4">
+    Dành cho người mới bắt đầu. Học phát âm chuẩn và các mẫu câu thông dụng hàng ngày.
+  </p>
+
+  <Link to="/communicate/basic" className="text-sm font-bold text-primary flex items-center gap-1">
+    Khám phá
+    <span className="material-symbols-outlined text-xs">
+      arrow_forward
+    </span>
+  </Link>
+</div>
 
             {/* Card 2 */}
             <div className="bg-surface rounded-2xl p-6 border border-slate-100 shadow-sm hover:border-secondary/50 hover:shadow-lg transition-all">
@@ -329,12 +403,12 @@ export function HomePage() {
               <p className="text-sm text-slate-500 mb-4">
                 Thảo luận các chủ đề xã hội, văn hóa sâu sắc. Tăng cường khả năng biện luận.
               </p>
-              <a href="/course" className="text-sm font-bold text-primary flex items-center gap-1">
+              <Link to="/communicate/advanced" className="text-sm font-bold text-primary flex items-center gap-1">
                 Khám phá
                 <span className="material-symbols-outlined text-xs">
                   arrow_forward
                 </span>
-              </a>
+              </Link>
             </div>
 
             {/* Card 3 */}
@@ -350,12 +424,12 @@ export function HomePage() {
               <p className="text-sm text-slate-500 mb-4">
                 Các tình huống thực tế khi đi du lịch: đặt phòng, hỏi đường, mua sắm, ăn uống.
               </p>
-              <a href="/course" className="text-sm font-bold text-primary flex items-center gap-1">
+              <Link to="/communicate/travel" className="text-sm font-bold text-primary flex items-center gap-1">
                 Khám phá
                 <span className="material-symbols-outlined text-xs">
                   arrow_forward
                 </span>
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -550,67 +624,72 @@ export function HomePage() {
       </section>
       <div className="bg-slate-50 py-20 px-6 md:px-12 lg:px-16 border-t border-slate-200">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-12">
-          {/* BẢNG VÀNG */}
-          <div className="lg:col-span-1" id="vinhdanh">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="material-symbols-outlined text-secondary text-3xl">
-                emoji_events
-              </span>
-              <h2 className="text-2xl font-black text-primary">
-                Bảng Vàng Thành Tích
-              </h2>
-            </div>
-            <div className="bg-white rounded-xl shadow-lg border border-secondary/20 p-6 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-secondary to-accent-red"></div>
-              <div className="space-y-6">
-                <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
-                  <div className="h-12 w-12 rounded-full bg-primary text-secondary flex items-center justify-center font-bold text-lg">
-                    1
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-900">
-                      Nguyễn Thu Hà
-                    </h4>
-                    <p className="text-xs text-slate-500">
-                      Đạt HSK 6 - 280 điểm
-                    </p>
-                  </div>
-                  <span className="ml-auto text-accent-red font-bold text-sm">
-                    Xuất sắc
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
-                  <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-lg">
-                    2
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-900">
-                      Trần Minh Tuấn
-                    </h4>
-                    <p className="text-xs text-slate-500">
-                      Đạt HSK 5 - 265 điểm
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-lg">
-                    3
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-900">
-                      Lê Ngọc Anh
-                    </h4>
-                    <p className="text-xs text-slate-500">
-                      Học bổng Khổng Tử 2023
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <button className="w-full mt-6 py-2 rounded-lg bg-primary/5 text-primary text-sm font-bold hover:bg-primary hover:text-white transition-colors">
-                Xem tất cả
-              </button>
-            </div>
+         {/* BẢNG VÀNG */}
+<div className="lg:col-span-1" id="vinhdanh">
+
+  <div className="flex items-center gap-2 mb-6">
+    <span className="material-symbols-outlined text-secondary text-3xl">
+      emoji_events
+    </span>
+    <h2 className="text-2xl font-black text-primary">
+      Bảng Vàng Thành Tích
+    </h2>
+  </div>
+
+  <div className="bg-white rounded-xl shadow-lg border border-secondary/20 p-6 relative overflow-hidden">
+
+    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-secondary to-accent-red"></div>
+
+    <div className="space-y-6">
+
+      {(showAll ? students : students.slice(0,3)).map((student,index)=>(
+        
+        <div
+          key={student.id}
+          className={`flex items-center gap-4 ${
+            index !== students.length-1 ? "border-b border-slate-100 pb-4" : ""
+          }`}
+        >
+
+          <div className={`h-12 w-12 rounded-full flex items-center justify-center font-bold text-lg
+            ${index === 0 
+              ? "bg-primary text-secondary" 
+              : "bg-slate-100 text-slate-600"
+            }`}
+          >
+            {index + 1}
           </div>
+
+          <div>
+            <h4 className="font-bold text-slate-900">
+              {student.name}
+            </h4>
+            <p className="text-xs text-slate-500">
+              {student.result}
+            </p>
+          </div>
+
+          {student.badge && (
+            <span className="ml-auto text-accent-red font-bold text-sm">
+              {student.badge}
+            </span>
+          )}
+
+        </div>
+
+      ))}
+
+    </div>
+
+    <button
+      onClick={()=>setShowAll(!showAll)}
+      className="w-full mt-6 py-2 rounded-lg bg-primary/5 text-primary text-sm font-bold hover:bg-primary hover:text-white transition-colors"
+    >
+      {showAll ? "Thu gọn" : "Xem tất cả"}
+    </button>
+
+  </div>
+</div>
 
           {/* BLOG */}
           <div className="lg:col-span-2" id="blog">

@@ -194,24 +194,6 @@ const currentInstructors = instructors.slice(indexOfFirst, indexOfLast);
     <h3 className="font-bold text-slate-900 dark:text-white">
       Danh sách Giảng viên
     </h3>
-
-    <div className="flex gap-2">
-      
-      <button className="px-4 py-2 text-sm font-medium border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center gap-2">
-        <span className="material-symbols-outlined text-sm">
-          filter_list
-        </span>
-        Filter
-      </button>
-
-      <button className="px-4 py-2 text-sm font-medium border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center gap-2">
-        <span className="material-symbols-outlined text-sm">
-          file_download
-        </span>
-        Export
-      </button>
-
-    </div>
   </div>
 
   <div className="overflow-x-auto">
