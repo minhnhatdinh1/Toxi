@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toxiLogo from "../../assets/image/LOGO (1).png";
 import { useCart } from "../../context/CartContext"; 
-
+import { jwtDecode } from "jwt-decode";
 import { loginApi } from "./api/authApi";
 export default function Login() {
   const [userName, setUserName] = useState("");
@@ -21,14 +21,25 @@ const { mergeCartAfterLogin } = useCart();
         userName,
         passWord,
       });
+      const token = res.data.accessToken;  
     localStorage.setItem("token", res.data.accessToken);
     localStorage.setItem("userId", res.data.userId);
     localStorage.setItem("refreshToken", res.data.refreshToken);
     localStorage.setItem("userName", res.data.userName);
     localStorage.setItem("email", res.data.email); 
        localStorage.setItem("phone", res.data.phone); 
-        await mergeCartAfterLogin(res.data.accessToken);
-    navigate("/Home");
+       await mergeCartAfterLogin(token);
+
+    // 🔥 Decode token để lấy role
+    const decoded = jwtDecode(token);
+
+    if (decoded.role === "ADMIN") {
+      navigate("/admin");
+    } else {
+      navigate("/");
+    }
+
+
   } catch (err) {
     setError(err.response?.data?.message || "Đăng nhập thất bại");
   }
@@ -135,6 +146,7 @@ const { mergeCartAfterLogin } = useCart();
                     type="text"
                     placeholder="Nhập tên đăng nhập"
                     value={userName}
+                     autoComplete="off"
                     onChange={(e) => setUserName(e.target.value)}
                     className="w-full h-12 pl-12 pr-4 bg-background-light dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-text-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all placeholder:text-gray-400 font-medium"
                   />
@@ -162,6 +174,7 @@ const { mergeCartAfterLogin } = useCart();
                   <input
                     type="password"
                     placeholder="••••••••"
+                      autoComplete="new-password"
                     value={passWord}
                     onChange={(e) => setPassWord(e.target.value)}
                     className="w-full h-12 pl-12 pr-12 bg-background-light dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-text-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all placeholder:text-gray-400 font-medium"
@@ -181,7 +194,7 @@ const { mergeCartAfterLogin } = useCart();
               {/* SUBMIT */}
               <button
                 type="submit"
-                onClick={handleLogin}
+              
                 className="mt-2 w-full h-12 bg-primary hover:bg-primary-hover text-secondary font-bold text-base rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 transform active:scale-[0.98] flex items-center justify-center gap-2 group"
               >
                 <span>Đăng nhập</span>

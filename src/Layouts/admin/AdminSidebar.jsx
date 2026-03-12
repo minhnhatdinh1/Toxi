@@ -9,7 +9,7 @@ export default function AdminSidebar() {
     { name: "Tổng quan", path: "/admin", icon: "dashboard" },
     { name: "Quản lý học viên", path: "/adminStudent", icon: "group" },
     { name: "Quản lý khóa học", path: "/adminCourse", icon: "menu_book" },
-    { name: "Quản lý Store (Sách)", path: "/adminStore", icon: "shopping_bag" },
+    { name: "Quản lý Store (Sách)", path: "/adminProduct", icon: "shopping_bag" },
 
     { name: "Ngân hàng đề thi HSK", path: "/adminExample", icon: "quiz" },
 
@@ -19,8 +19,10 @@ export default function AdminSidebar() {
     { name: "Bài viết Blog", path: "/AdminBlog", icon: "article" },
     { name: "Báo cáo tài chính", path: "/adminFinance", icon: "payments" },
     { name: "Quản lý giáo viên ", path: "/adminTeacher", icon: "person" },
+    { name: "Quản lý đơn hàng ", path: "/admin/orders", icon: "orders" },
+    
   ];
-
+  
 
 
    const [Open, SetOpen] = useState(false);

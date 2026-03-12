@@ -232,7 +232,16 @@ export default function Cartmain() {
               </div>
 
               <button
-                onClick={() => navigate("/checkout")}
+            onClick={() =>
+  navigate("/checkout", {
+    state: {
+      cartItems,
+      total,
+      shipping,
+      finalTotal,
+    },
+  })
+}
                 className="w-full bg-secondary hover:bg-yellow-400 text-slate-900 font-bold py-3.5 px-4 rounded-lg shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2"
               >
                 Tiến hành thanh toán

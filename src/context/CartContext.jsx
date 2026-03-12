@@ -113,6 +113,25 @@ export const CartProvider = ({ children }) => {
     localStorage.removeItem("guestId");
     await fetchCart();
   };
+  const clearCart = async () => {
+  const token = getToken();
+  const guestId = getGuestId();
+
+  const url = token
+    ? `${API}/cart/clear`
+    : `${API}/cart/clear?guestId=${guestId}`;
+
+  try {
+    await fetch(url, {
+      method: "DELETE",
+      headers: authHeaders(),
+    });
+
+    setCartItems([]); // 🔥 reset ngay UI
+  } catch (err) {
+    console.error("clearCart error:", err);
+  }
+};
 return (
     <CartContext.Provider value={{
       cartItems,
@@ -123,6 +142,7 @@ return (
       removeFromCart,
       mergeCartAfterLogin,
       fetchCart,
+      clearCart,
     }}>
       {children}
     </CartContext.Provider>

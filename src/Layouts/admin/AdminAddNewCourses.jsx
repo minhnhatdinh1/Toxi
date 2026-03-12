@@ -83,7 +83,7 @@ const handleChange = (e) => {
       navigate("/adminCourse");
     } catch (error) {
       console.error(error);
-      alert("Error creating course");
+      alert("Tạo khóa học thất bại: " + error.message);
     }
   };
 
