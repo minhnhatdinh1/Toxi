@@ -141,7 +141,7 @@ await createProduct(payload);
     <>
       <div className="flex h-screen overflow-hidden ">
         <AdminSidebar />
-        {/* Main Content Area */}
+        {/* Main Content Area */}   
         <main className="flex-1 flex flex-col bg-background-light dark:bg-background-dark/50 overflow-y-auto">
           {/* Breadcrumbs & Header */}
           <div className="px-6 py-6 lg:px-10">
