@@ -1,79 +1,57 @@
-import { Link } from "react-router-dom";
+import { Link,  } from "react-router-dom";
 import { useState } from "react";
 
-import { useApi } from "../service/useApi";
-import { registerApi } from "./api/authApi";
+
+
 
 import { useNavigate } from "react-router-dom";
-import { useToast } from "../common/ToastContext";
 
-
-
+import { registerApi } from "./api/authApi";
+1
 export default function Register() {
   const navigate = useNavigate();
-  const toast = useToast();
-  const { call } = useApi();
 
   const [formData, setFormData] = useState({
-    username: "",
-    password: "",
+    userName: "",
+    passWord: "",
     confirmPassword: "",
     fullName: "",
     email: "",
     phone: "",
   });
-  const [error, setError] = useState('');
-  const [fieldErrors, setFieldErrors] = useState({});
- const [apiError, setApiError] = useState(null);
+
+  const [Error, setError] = useState(null);
   const [Loading, setLoading] = useState(false);
 
- const HandleRegister = async () => {
-  // basic client-side validation with inline field errors
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const phoneRegex = /^[0-9]{9,15}$/;
-  const pwdRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+  const HandleRegister = async () => {
+    if (formData.passWord !== formData.confirmPassword) {
+      setError("Mật khẩu xác nhận không khớp");
+      return;
+    }
 
-  const errors = {};
+    try {
+      setLoading(true);
+      setError(null);
 
-  if (!formData.username.trim()) errors.username = 'Tên đăng nhập là bắt buộc';
-  if (!formData.password) errors.password = 'Mật khẩu là bắt buộc';
-  else if (formData.password.length < 8) errors.password = 'Mật khẩu phải có ít nhất 8 ký tự';
-  else if (!pwdRegex.test(formData.password)) errors.password = 'Mật khẩu cần chữ, số và ký tự đặc biệt';
-  if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Mật khẩu xác nhận không khớp';
-  if (!emailRegex.test(formData.email)) errors.email = 'Email không hợp lệ';
-  if (!formData.fullName.trim()) errors.fullName = 'Họ và tên là bắt buộc';
-  if (!phoneRegex.test(formData.phone)) errors.phone = 'Số điện thoại không hợp lệ';
-
-  setFieldErrors(errors);
-  if (Object.keys(errors).length > 0) {
-    const first = Object.values(errors)[0];
-    setError(first);
-    toast.addToast(first, 'error');
-    return;
-  }
-
-  try {
-    setLoading(true);
-    setError('');
-
-    await call(registerApi, {
-      username: formData.username,
-      password: formData.password,
+     const res = await registerApi({
+      userName: formData.userName,      
+      passWord: formData.passWord,
+          confirmPassword: formData.confirmPassword,
       fullName: formData.fullName,
       email: formData.email,
       phone: formData.phone,
     });
+      alert("Đăng ký thành công");
+      navigate("/login");
+    } catch (err) {
+      setError("Đăng ký thất bại");
+    } finally {
+      setLoading(false);
+    }
+ 
+}
 
-    toast.addToast('Đăng ký thành công', 'success');
-    navigate("/login");
-  } catch (err) {
-    setApiError(err.response?.data?.message || "Đăng ký thất bại");
-    // toast already shown by useApi
-  } finally {
-    setLoading(false);
-  }
-}; 
-  return (
+ return (
     <>
       <div className="font-display bg-surface text-slate-800 antialiased selection:bg-primary selection:text-white min-h-screen">
         <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden">
@@ -146,18 +124,15 @@ export default function Register() {
                           <input
                             type="text"
                             placeholder="Nhập tên đăng nhập"
-                            value={formData.username}
+                            value={formData.userName}
                             onChange={(e) =>
                               setFormData({
                                 ...formData,
-                                username: e.target.value,
+                                userName: e.target.value,
                               })
                             }
                             className="w-full bg-white text-slate-800 placeholder:text-slate-400 border border-slate-200 rounded-lg px-4 py-3 pl-11 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-sm group-hover:border-primary/50"
                           />
-                          {fieldErrors.username && (
-                            <p className="text-sm text-red-600 mt-1">{fieldErrors.username}</p>
-                          )}
                           <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-[20px]">
                             person
                           </span>
@@ -172,20 +147,15 @@ export default function Register() {
                           <input
                             type="password"
                             placeholder="Tạo mật khẩu"
-                            value={formData.password}
+                            value={formData.passWord}
                             onChange={(e) =>
                               setFormData({
                                 ...formData,
-                                password: e.target.value,
+                                passWord: e.target.value,
                               })
                             }
                             className="w-full bg-white text-slate-800 placeholder:text-slate-400 border border-slate-200 rounded-lg px-4 py-3 pl-11 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-sm group-hover:border-primary/50"
                           />
-                          {fieldErrors.password ? (
-                            <p className="text-sm text-red-600 mt-1">{fieldErrors.password}</p>
-                          ) : (
-                            <p className="text-sm text-slate-400 mt-1">Mật khẩu ít nhất 8 ký tự, bao gồm chữ, số và ký tự đặc biệt</p>
-                          )}
                           <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-[20px]">
                             lock
                           </span>
@@ -209,9 +179,6 @@ export default function Register() {
                             }
                             className="w-full bg-white text-slate-800 placeholder:text-slate-400 border border-slate-200 rounded-lg px-4 py-3 pl-11 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-sm group-hover:border-primary/50"
                           />
-                          {fieldErrors.confirmPassword && (
-                            <p className="text-sm text-red-600 mt-1">{fieldErrors.confirmPassword}</p>
-                          )}
                           <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-[20px]">
                             lock_reset
                           </span>
@@ -243,9 +210,6 @@ export default function Register() {
                             }
                             className="w-full bg-white text-slate-800 placeholder:text-slate-400 border border-slate-200 rounded-lg px-4 py-3 pl-11 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-sm group-hover:border-primary/50"
                           />
-                          {fieldErrors.fullName && (
-                            <p className="text-sm text-red-600 mt-1">{fieldErrors.fullName}</p>
-                          )}
                           <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-[20px]">
                             id_card
                           </span>
@@ -269,9 +233,6 @@ export default function Register() {
                             }
                             className="w-full bg-white text-slate-800 placeholder:text-slate-400 border border-slate-200 rounded-lg px-4 py-3 pl-11 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-sm group-hover:border-primary/50"
                           />
-                          {fieldErrors.email && (
-                            <p className="text-sm text-red-600 mt-1">{fieldErrors.email}</p>
-                          )}
                           <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-[20px]">
                             mail
                           </span>
@@ -295,9 +256,6 @@ export default function Register() {
                             }
                             className="w-full bg-white text-slate-800 placeholder:text-slate-400 border border-slate-200 rounded-lg px-4 py-3 pl-11 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-sm group-hover:border-primary/50"
                           />
-                          {fieldErrors.phone && (
-                            <p className="text-sm text-red-600 mt-1">{fieldErrors.phone}</p>
-                          )}
                           <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-[20px]">
                             call
                           </span>
@@ -310,15 +268,6 @@ export default function Register() {
                     <button
                       type="button"
                       onClick={HandleRegister}
-                      disabled={
-                        Loading ||
-                        !formData.username ||
-                        !formData.password ||
-                        formData.password !== formData.confirmPassword ||
-                        !formData.email ||
-                        !formData.fullName ||
-                        !formData.phone
-                      }
                       className="w-full md:max-w-md bg-primary hover:bg-primary-dark text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-3 group border border-transparent"
                     >
                       <span className="tracking-wide text-lg">
@@ -374,4 +323,3 @@ export default function Register() {
     </>
   );
 }
-

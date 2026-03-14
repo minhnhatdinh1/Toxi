@@ -1,7 +1,11 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+
+import { Link,useNavigate  } from "react-router-dom";
+import { useState,useRef, useEffect } from "react";
 import ThemeToggle from "./ThemeToggle";
+
 import toxiLogo from "../../assets/image/LOGO (1).png";
+
+ import { useCart } from "../../context/CartContext";
 const Header = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [language, setLanguage] = useState(() => {
@@ -12,14 +16,59 @@ const Header = ({ children }) => {
     }
   });
 
-  useEffect(() => {
-    try {
-      localStorage.setItem("language", language);
-    } catch (e) {}
-  }, [language]);
 
+ // Thêm state avatar (đặt cạnh các useState khác)
+const [avatarUrl, setAvatarUrl] = useState(localStorage.getItem("avatarUrl") || null);
+ const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
+const { cartCount } = useCart();
+
+ const [searchQuery, setSearchQuery] = useState("");
+  const token = localStorage.getItem("token");
+  const userName = localStorage.getItem("userName") || "User";
+  const isLoggedIn = !!token;
+
+useEffect(() => {
+  const handleAvatarUpdated = (e) => {
+      setAvatarUrl(e.detail); // null nếu xóa, URL nếu upload mới
+    };
+  window.addEventListener("avatarUpdated", handleAvatarUpdated);
+  return () => window.removeEventListener("avatarUpdated", handleAvatarUpdated);
+}, []);
+ useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+ const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("guestId");
+     localStorage.removeItem("avatarUrl");
+    setMenuOpen(false);
+    navigate("/Home");
+    window.location.reload();
+  };
+  
+    const AvatarDisplay = ({ size = "w-9 h-9", textSize = "text-sm" }) => (
+    avatarUrl ? (
+      <img
+        src={avatarUrl}
+        alt="avatar"
+        className={`${size} rounded-full object-cover border-2 border-white/30`}
+      />
+    ) : (
+      <div className={`${size} rounded-full bg-primary flex items-center justify-center text-white font-bold ${textSize} shadow-md`}>
+        {userName.charAt(0).toUpperCase()}
+      </div>
+    )
+  );
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -29,7 +78,7 @@ const Header = ({ children }) => {
   };
 
   return (
-    <div className="bg-surface text-slate-900 antialiased overflow-x-hidden">
+    <div className="bg-surface text-slate-900 antialiased ">
       <div className="flex flex-col lg:flex-row ">
         {/* SIDEBAR */}
      <aside
@@ -165,8 +214,11 @@ const Header = ({ children }) => {
         )}
 
         {/* MAIN */}
-        <main className="flex-1 lg:ml-60 bg-slate-50 dark:bg-slate-900 transition-colors duration-300 relative">
-       <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm px-6 py-3 flex justify-between items-center transition-all">
+
+        <main className="flex-1 lg:ml-72 bg-slate-50 relative">
+          <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm px-6 py-3 flex justify-between items-center overflow-visible">
+
+
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -196,18 +248,23 @@ const Header = ({ children }) => {
               </form>
             </div>
 
+
       <div className="flex items-center gap-4">
-              <div
-                className="hidden sm:flex items-center bg-slate-100 rounded-full p-1 text-xs font-bold text-slate-600"
-                role="tablist"
-                aria-label="Language switcher"
-              >
-                <button
-                  onClick={() => setLanguage("VN")}
-                  title="Tiếng Việt"
-                  aria-pressed={language === "VN"}
-                  className={`px-3 py-1 rounded-full ${language === "VN" ? "bg-white shadow-sm text-primary" : "hover:text-primary"}`}
-                >
+     <Link to="/cart" className="relative cursor-pointer">
+  <span className="material-symbols-outlined text-[28px] text-yellow-400 hover:text-secondary transition-colors">
+    shopping_cart
+  </span>
+  {cartCount > 0 && (
+    <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+      {cartCount}
+    </span>
+  )}
+</Link>
+
+     <div className="hidden sm:flex items-center bg-slate-100 rounded-full p-1 text-xs font-bold text-slate-600">
+
+                <button className="px-3 py-1 bg-white shadow-sm rounded-full text-primary">
+
                   VN
                 </button>
                 <button
@@ -222,21 +279,110 @@ const Header = ({ children }) => {
               <ThemeToggle />
               <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
 
-              <Link to="/login">
-                <button className="hidden sm:block text-slate-600 font-bold text-sm hover:text-primary transition-colors">
-                  Đăng nhập
-                </button>
-              </Link>
+              {isLoggedIn ? (
+  <div className="relative z-[9999]" ref={menuRef}>
+    {/* Avatar button */}
+      <button
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    className="flex items-center gap-2 hover:bg-slate-100 rounded-full px-2 py-1 transition-all"
+                  >
+                    <AvatarDisplay />
+                    <span className="hidden sm:block text-sm font-semibold text-slate-700 max-w-[100px] truncate">
+                      {userName}
+                    </span>
+                    <span className="material-symbols-outlined text-slate-400 text-[18px]">
+                      {menuOpen ? "expand_less" : "expand_more"}
+                    </span>
+                  </button>
 
-              <Link to="/register">
-                <button className="bg-primary text-secondary px-5 py-2 rounded-full font-bold text-sm shadow-lg shadow-primary/20 border-b-2 border-primary-dark active:border-b-0 active:translate-y-0.5 hover:bg-primary-dark transition-all">
-                  Đăng ký ngay
-                </button>
-              </Link>
+
+    {/* Dropdown */}
+    {menuOpen && (
+  <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-100   "
+ style={{ 
+      zIndex: 99999,
+      boxShadow: "0 10px 40px rgba(0,0,0,0.15)"
+    }}
+ >
+    {/* ⭐ User info header */}
+    <div className="px-4 py-4 border-b border-slate-100">
+      <div className="flex items-center gap-3">
+       <AvatarDisplay size="w-11 h-11" textSize="text-lg" />
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="font-bold text-slate-800 text-sm truncate">{userName}</p>
+          </div>
+          <p className="text-xs text-slate-400 truncate">
+            {localStorage.getItem("email") || "Học viên TOXI"}
+          </p>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className="mt-3">
+        <div className="flex justify-between text-xs text-slate-500 mb-1">
+          <span>Tiến độ tuần này</span>
+          <span className="font-bold text-primary">65%</span>
+        </div>
+        <div className="w-full bg-slate-100 rounded-full h-1.5">
+          <div className="bg-primary h-1.5 rounded-full" style={{ width: "65%" }}></div>
+        </div>
+      </div>
+    </div>
+
+    {/* ⭐ Menu items */}
+    <div className="py-2">
+      {[
+        { icon: "person", label: "Trang cá nhân", to: "/Profile" },
+        { icon: "school", label: "Khóa học của tôi", to: "/MyCourse" },
+        { icon: "shopping_bag", label: "Đơn hàng", to: "/MyProduct" },
+        { icon: "info", label: "Thông tin cá nhân", to: "/Profile" },
+      ].map((item) => (
+        <Link
+          key={item.label}
+          to={item.to}
+          onClick={() => setMenuOpen(false)}
+          className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors text-slate-600 text-sm"
+        >
+          <span className="material-symbols-outlined text-slate-400 text-[20px]">
+            {item.icon}
+          </span>
+          {item.label}
+        </Link>
+      ))}
+    </div>
+
+    {/* ⭐ Logout */}
+    <div className="border-t border-slate-100 py-2">
+      <button
+        onClick={handleLogout}
+        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors text-red-500 text-sm"
+      >
+        <span className="material-symbols-outlined text-[20px]">logout</span>
+        Đăng xuất
+      </button>
+    </div>
+  </div>
+)}
+  </div>
+) : (
+  <>
+    <Link to="/login">
+      <button className="hidden sm:block text-slate-600 font-bold text-sm hover:text-primary transition-colors">
+        Đăng nhập
+      </button>
+    </Link>
+    <Link to="/register">
+      <button className="bg-primary text-secondary px-5 py-2 rounded-full font-bold text-sm shadow-lg shadow-primary/20 border-b-2 border-primary-dark hover:bg-primary-dark transition-all">
+        Đăng ký ngay
+      </button>
+    </Link>
+  </>
+)}
             </div>
           </header>
 
-          {/* PAGE CONTENT */}
           <div className="p-0">{children}</div>
         </main>
       </div>

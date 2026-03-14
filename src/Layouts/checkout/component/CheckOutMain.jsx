@@ -1,36 +1,99 @@
-import react from 'react';
+import React ,{ useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useCart } from "../../../context/CartContext";
 import logo from '../../../assets/image/LOGO (1).png';
 export default function CheckOutMain() {
-      const navigate = useNavigate();
-  const cartItems = [
-  { id: 1, name: "Combo Giáo trình Hán ngữ", price: 450000, quantity: 1 },
-  { id: 2, name: "Khóa học Online", price: 899000, quantity: 1 }
-];
-    const subtotal = cartItems.reduce(
-  (sum, item) => sum + item.price * item.quantity,
-  0
-);
-const taxRate = 0.1; // 10%
-const tax = subtotal * taxRate;
-const shipping = subtotal > 1000000 ? 0 : 30000;
-const discount = 50000;// Ví dụ giảm giá
-const total = subtotal + tax + shipping - discount;
-const handleCheckout = () => {
-  const order = {
-    items: cartItems,
-    subtotal,
-    tax,
-    shipping,
-    discount,
-    total,
-    status: "PENDING"
+    const navigate = useNavigate();
+ 
+const { cartItems, clearCart } = useCart();
+  const [form, setForm] = useState({
+    fullName: "",
+    phone: "",
+    email: "",
+    province: "",
+    district: "",
+    ward: "",
+    address: "",
+  });
+
+  const shipping = 30000;
+
+  const total = useMemo(() => {
+    return cartItems.reduce(
+      (sum, item) => sum + Number(item.price) * item.quantity,
+      0
+    );
+  }, [cartItems]);
+
+  const finalTotal = total + shipping;
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+  const handleSubmit = async () => {
+  if (!form.fullName || !form.phone || !form.email) {
+    alert("Vui lòng nhập đầy đủ thông tin");
+    return;
+  }
+ const token = localStorage.getItem("token");
+  if (!token) {
+    alert("Vui lòng đăng nhập lại");
+    navigate("/login");
+    return;
+  }
+
+    const decoded = JSON.parse(atob(token.split('.')[1]));
+  if (decoded.exp * 1000 < Date.now()) {
+    alert("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại");
+    localStorage.clear();
+    navigate("/login");
+    return;
+  }
+  const payload = {
+    ...form,
+    items: cartItems.map((item) => ({
+      itemId: item.itemId,
+      itemType: item.itemType,
+      price: item.price,
+      quantity: item.quantity,
+    })),
   };
 
-  console.log("Order:", order);
+  try {
+    const res = await fetch("http://localhost:8080/api/payment/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`, 
+      },
+      body: JSON.stringify(payload),
+    });
 
-  navigate("/order-success");
+    const data = await res.json();
+
+    if (res.ok) {
+        await clearCart();
+      navigate("/payment/qr", {
+      state: {
+  order: {                     // bọc trong "order"
+    orderCode: data.orderCode,
+    amount: finalTotal,        // dùng finalTotal từ frontend
+    bankInfo: {
+      ...data.bankInfo,
+      transferContent: data.orderCode,  // fix double TOXI
+    }
+  }
+}
+      });
+    } else {
+       alert("Lỗi: " + (data.message || "Không xác định"));
+    }
+  } catch (err) {
+    console.error("Fetch error:", err);
+    alert("Lỗi kết nối: " + err.message);
+  }
 };
+
     return (
      <>
        <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
@@ -164,8 +227,11 @@ const handleCheckout = () => {
           Họ và tên <span className="text-red-500">*</span>
         </span>
         <input
-          type="text"
-          placeholder="Nguyễn Văn A"
+           name="fullName"
+  onChange={handleChange}
+  value={form.fullName}
+  type="text"
+  placeholder="Nguyễn Văn A"
           className="w-full h-11 px-4 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-primary focus:ring-primary"
         />
       </label>
@@ -175,6 +241,9 @@ const handleCheckout = () => {
           Số điện thoại <span className="text-red-500">*</span>
         </span>
         <input
+          name="phone"
+  onChange={handleChange}
+  value={form.phone}
           type="tel"
           placeholder="0912 xxx xxx"
           className="w-full h-11 px-4 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-primary focus:ring-primary"
@@ -187,6 +256,9 @@ const handleCheckout = () => {
         Email nhận tài liệu <span className="text-red-500">*</span>
       </span>
       <input
+        name="email"
+  onChange={handleChange}
+  value={form.email}
         type="email"
         placeholder="example@email.com"
         className="w-full h-11 px-4 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-primary focus:ring-primary"
@@ -198,47 +270,42 @@ const handleCheckout = () => {
         <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
           Tỉnh / Thành phố
         </span>
-        <select
-          defaultValue=""
+      <input
+        type="text"
+    name="province"
+    value={form.province}
+    onChange={handleChange}
+          placeholder="Số nhà, tên đường, tòa nhà..."
           className="w-full h-11 px-4 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-primary focus:ring-primary"
-        >
-          <option value="" disabled>
-            Chọn Tỉnh/Thành
-          </option>
-          <option value="HN">Hà Nội</option>
-          <option value="HCM">Hồ Chí Minh</option>
-          <option value="DN">Đà Nẵng</option>
-        </select>
+        />
       </label>
 
       <label className="block space-y-2">
         <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
           Quận / Huyện
         </span>
-        <select
-          disabled
-          defaultValue=""
-          className="w-full h-11 px-4 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-        >
-          <option value="" disabled>
-            Chọn Quận/Huyện
-          </option>
-        </select>
+         <input
+        type="text"
+    name="district"
+    value={form.district}
+    onChange={handleChange}
+          placeholder="Số nhà, tên đường, tòa nhà..."
+          className="w-full h-11 px-4 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-primary focus:ring-primary"
+        />
       </label>
 
       <label className="block space-y-2">
         <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
           Phường / Xã
         </span>
-        <select
-          disabled
-          defaultValue=""
-          className="w-full h-11 px-4 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-        >
-          <option value="" disabled>
-            Chọn Phường/Xã
-          </option>
-        </select>
+          <input
+        type="text"
+    name="ward"
+    value={form.ward}
+    onChange={handleChange}
+          placeholder="Số nhà, tên đường, tòa nhà..."
+          className="w-full h-11 px-4 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-primary focus:ring-primary"
+        />
       </label>
     </div>
 
@@ -247,7 +314,10 @@ const handleCheckout = () => {
         Địa chỉ cụ thể
       </span>
       <input
-        type="text"
+      type="text"
+  name="address"
+  value={form.address}
+  onChange={handleChange}
         placeholder="Số nhà, tên đường, tòa nhà..."
         className="w-full h-11 px-4 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-primary focus:ring-primary"
       />
@@ -280,65 +350,35 @@ const handleCheckout = () => {
       </h3>
     </div>
 
-    {/* List items */}
-    <div className="p-6 max-h-[300px] overflow-y-auto space-y-4">
-      
-      {/* Item 1 */}
-      <div className="flex gap-3">
-        <div className="w-16 h-16 rounded-lg bg-slate-100 dark:bg-slate-700 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-600">
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDk0dPys2cKUb6lnhJJg3VXH4wdG6Ju7WhX3B_VBokihVE8hY43wOo2SeK_cRKJcIlKyZBGXfZdxvsbwhWDt9XK94iChfomOCLVD7tenxxOiQa3WgAZUDJR3WpZdG7YI5fiQau-ZaS7A21nhkUWDFxMEdp_2CP9g2lWCrW-ZjuOmHO1cgFCJzn_DpEviUm6FkT_19M09UtFHuHAN92How71LHCiyUTA-zUqr2aa_u8tCDAf61tMnIZzoTzb4ukQ0Ru36-WvrfdE8nc"
-            alt="Sách tiếng Trung"
-            className="w-full h-full object-cover"
-          />
-        </div>
-
-        <div className="flex-1">
-          <h4 className="text-sm font-semibold text-slate-900 dark:text-white line-clamp-2">
-            Combo Giáo trình Hán ngữ (6 Quyển) + Audio
-          </h4>
-          <div className="flex justify-between items-center mt-1">
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              Số lượng: 1
-            </span>
-            <span className="text-sm font-medium text-slate-900 dark:text-white">
-              450.000đ
-            </span>
-          </div>
-        </div>
+ <div className="p-6 max-h-[300px] overflow-y-auto space-y-4">
+  {cartItems.map((item) => (
+    <div key={item.cartItemId} className="flex gap-3">
+      <div className="w-16 h-16 rounded-lg overflow-hidden border">
+        <img
+          src={item.imageUrl || "/placeholder.png"}
+          alt={item.title}
+          className="w-full h-full object-cover"
+        />
       </div>
 
-      {/* Item 2 */}
-      <div className="flex gap-3">
-        <div className="w-16 h-16 rounded-lg bg-slate-100 dark:bg-slate-700 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-600">
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAl6bOrE9cPDxpIjgxZE7TMqCLbTX8_0oAd3oEfL8mOGqZ9-UThZrFgmRu34lkE6trZVx01nLxrlcsR_YJrRvl1-0aspwQichRQ6ycS4UZmWBiTXIbZpLqECw9IzySvkE8hi8OTB082Dcp8dQkw7devdfrKpvD8bCq7KLXsz5k4d-GImuixKjJe33F5rCWcsAJ9t8v9g9TPDf0c-hI_thcrk3n4ATSTzybys4UpW1wzvvtaDnl9WiIVP8lNeNU6hw6sGRDNwUERjEo"
-            alt="Khóa học online"
-            className="w-full h-full object-cover"
-          />
-        </div>
+      <div className="flex-1">
+        <h4 className="text-sm font-semibold line-clamp-2">
+          {item.title}
+        </h4>
 
-        <div className="flex-1">
-          <h4 className="text-sm font-semibold text-slate-900 dark:text-white line-clamp-2">
-            Khóa học Online: Tiếng Trung Giao tiếp Cơ bản
-          </h4>
-          <div className="flex justify-between items-center mt-1">
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              Khóa học trọn đời
-            </span>
-            <div className="text-right">
-              <span className="text-xs text-slate-400 line-through block">
-                1.200.000đ
-              </span>
-              <span className="text-sm font-medium text-primary">
-                899.000đ
-              </span>
-            </div>
-          </div>
+        <div className="flex justify-between mt-1">
+          <span className="text-xs">
+            Số lượng: {item.quantity}
+          </span>
+
+          <span className="text-sm font-medium">
+            {(item.price * item.quantity).toLocaleString()}đ
+          </span>
         </div>
       </div>
-
-    </div> {/* Voucher */}
+    </div>
+  ))}
+</div>
   <div className="px-6 py-4 bg-slate-50/50 dark:bg-white/5 border-t border-b border-slate-200 dark:border-slate-700">
     <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
       Mã giảm giá / Voucher
@@ -365,42 +405,29 @@ const handleCheckout = () => {
 
   {/* Price summary */}
   <div className="p-6 space-y-3">
-    <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
-      <span>Tạm tính</span>
-      <span>{subtotal.toLocaleString()}đ</span>
-    </div>
+    <div className="flex justify-between text-sm">
+  <span>Tạm tính</span>
+  <span>{total.toLocaleString()}đ</span>
+</div>
 
-    <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
-      <span>Phí vận chuyển</span>
-      <span>{shipping.toLocaleString()}đ</span>
-    </div>
+<div className="flex justify-between text-sm">
+  <span>Phí vận chuyển</span>
+  <span>{shipping.toLocaleString()}đ</span>
+</div>
 
-    <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
-      <span>Giảm giá</span>
-      <span>-{discount.toLocaleString()}đ</span>
-    </div>
+<div className="border-t my-4 pt-4 flex justify-between items-end">
+  <span className="font-bold">Tổng cộng</span>
 
-    <div className="border-t border-slate-200 dark:border-slate-700 my-4 pt-4 flex justify-between items-end">
-      <span className="text-base font-bold text-slate-900 dark:text-white">
-        Tổng cộng
-      </span>
-
-      <div className="text-right">
-        <span className="block text-2xl font-bold text-primary">
-          {total.toLocaleString()}đ
-        </span>
-        <span className="text-xs text-slate-400">(Đã bao gồm VAT)</span>
-      </div>
-    </div>
-
-   <button
-  onClick={handleCheckout}
-  className="w-full bg-secondary hover:bg-secondary/90 text-slate-900 font-bold py-4 rounded-xl shadow-lg shadow-secondary/30 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 mt-4"
->
-  <span>Thanh toán ngay</span>
-  <span className="material-symbols-outlined text-[20px]">
-    arrow_forward
+  <span className="text-2xl font-bold text-primary">
+    {finalTotal.toLocaleString()}đ
   </span>
+</div>
+
+ <button
+  onClick={handleSubmit}
+  className="w-full bg-secondary hover:bg-secondary/90 font-bold py-4 rounded-xl mt-4"
+>
+  Thanh toán ngay
 </button>
 
     <div className="flex items-center justify-center gap-2 pt-4 text-xs text-slate-400">

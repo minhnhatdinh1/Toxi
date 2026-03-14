@@ -151,62 +151,7 @@ export default function Course() {
           </div>
         </section>
 
-        {/* FILTERS SIDEBAR */}
-        <section className="bg-slate-50 border-b border-primary/10 px-6 py-6">
-          <div className="mx-auto flex flex-col md:flex-row gap-6">
-            <FilterSidebar
-              levels={[
-                "HSK 1",
-                "HSK 2",
-                "HSK 3",
-                "HSK 4",
-                "HSK 5",
-                "HSK 6",
-              ]}
-              selectedLevels={selectedLevels}
-              onLevelChange={(level, checked) => {
-                setSelectedLevels((prev) => {
-                  if (checked) return [...prev, level];
-                  return prev.filter((l) => l !== level);
-                });
-              }}
-              categories={[
-                "Luyện thi HSK",
-                "Giao tiếp công sở",
-                "Tiếng Trung du lịch",
-              ]}
-              selectedCategories={selectedCategories}
-              onCategoryChange={(cat, checked) => {
-                setSelectedCategories((prev) => {
-                  if (checked) return [...prev, cat];
-                  return prev.filter((c) => c !== cat);
-                });
-              }}
-              ratingOptions={[5,4,3,2,1]}
-              selectedRatings={selectedRatings}
-              onRatingChange={(rating, checked) => {
-                setSelectedRatings((prev) => {
-                  if (checked) return [...prev, rating];
-                  return prev.filter((r) => r !== rating);
-                });
-              }}
-            />
-
-            {/* Clear Filters Button stays outside sidebar */}
-            {(selectedLevels.length > 0 || selectedCategories.length > 0 || selectedRatings.length > 0) && (
-              <button
-                onClick={() => {
-                  setSelectedLevels([]);
-                  setSelectedCategories([]);
-                  setSelectedRatings([]);
-                }}
-                className="md:ml-auto px-4 py-2 text-sm font-bold text-primary hover:bg-primary/10 rounded-lg transition-colors whitespace-nowrap"
-              >
-                Xóa bộ lọc
-              </button>
-            )}
-          </div>
-        </section>
+     {/* FILTER SECTION */}
 
         {/* COURSE GRID */}
         <section className="py-12 px-6 md:px-12">

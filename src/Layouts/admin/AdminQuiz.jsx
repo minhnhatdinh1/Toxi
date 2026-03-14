@@ -55,7 +55,19 @@ const [hskStats, setHskStats] = useState([
 
 <main className=" flex-1 flex flex-col min-h-screen overflow-y-auto bg-slate-100 dark:bg-slate-900">
 
+<<<<<<< HEAD
   {/* Header */}
+=======
+        <div className="flex items-center gap-3">
+          {/* Add Exam Button */}
+
+          <Link to="/adminAddNewQuiz">
+
+            <button className="size-8 flex items-center justify-center rounded-lg bg-accent-yellow text-primary text-xs font-bold shadow-lg shadow-yellow-500/20">
+              <span className="material-symbols-outlined text-xl">add</span>
+            </button>
+          </Link>
+>>>>>>> 500286068a29e0b31fb1cf4e594cbca2a105c6dd
 
   <header className="h-20 bg-white dark:bg-brand-blue/50 border-b border-slate-200 dark:border-brand-gold/20 flex items-center justify-between px-8 sticky top-0 z-40 backdrop-blur-md">
 

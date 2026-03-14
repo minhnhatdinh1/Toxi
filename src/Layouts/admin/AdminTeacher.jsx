@@ -283,12 +283,14 @@ const currentInstructors = instructors.slice(indexOfFirst, indexOfLast);
                   visibility
                 </span>
               </button>
+
               <Link
   to={`/admin/editTeacher/${teacher.id}`}
   className="p-2 text-slate-400 hover:text-primary transition-colors"
 >
   <span className="material-symbols-outlined text-lg">edit</span>
 </Link>
+
               <button className="p-2 text-slate-400 hover:text-red-500 transition-colors">
                 <span className="material-symbols-outlined text-lg">delete</span>
               </button>

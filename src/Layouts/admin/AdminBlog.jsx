@@ -1,4 +1,5 @@
 import React from "react";
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
@@ -48,6 +49,7 @@ const filteredPosts = posts
 const indexOfLast = currentPage * postsPerPage;
 const indexOfFirst = indexOfLast - postsPerPage;
 const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
+
     return (
         <>
             <div className="flex h-screen overflow-hidden ">
@@ -77,12 +79,14 @@ const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
           search
         </span>
         <input
+
   type="text"
   placeholder="Search posts..."
   value={searchTerm}
   onChange={(e) => setSearchTerm(e.target.value)}
   className="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-slate-900 w-64"
 />
+
       </div>
 
       {/* Notification */}
@@ -192,6 +196,7 @@ const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
 
     {/* Tabs */}
     <div className="flex gap-2">
+
      <button
   onClick={() => setActiveTab("ALL")}
   className={`px-4 py-1.5 rounded-full text-xs font-bold ${
@@ -224,11 +229,11 @@ const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
 >
   Drafts
 </button>
+
     </div>
 
     {/* Actions */}
     <div className="flex gap-3">
-      {/* Add Post Button */}
 
   {/* Add Post */}
   <button
@@ -241,7 +246,7 @@ const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
     Add Post
   </button>
 
-  
+
     </div>
 
   </div>
@@ -263,6 +268,7 @@ const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
       </thead>
 
       {/* Table Body */}
+
      <tbody className="divide-y divide-primary/5">
   {currentPosts.map((post) => (
     <tr key={post.id} className="hover:bg-slate-50 transition-colors">
@@ -310,12 +316,14 @@ const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
       </td>
     </tr>
   ))}
+
 </tbody>
 </table>
 </div>
 
 {/* Pagination */}
 <div className="p-6 border-t border-slate-100 flex items-center justify-between">
+
 
   {/* Text hiển thị số bản ghi */}
   <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -395,8 +403,10 @@ const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
         </span>
       </button>
 
+
     </div>
   )}
+
 </div>
 
 </section>

@@ -45,55 +45,48 @@ const handleChange = (e) => {
       setThumbnailPreview(URL.createObjectURL(file));
     }
   };
-
   // Submit to backend
   const handleSubmit = async (status) => {
     try {
-      const result = await call(async () => {
-        const data = new FormData();
+      const data = new FormData();
 
-        const courseData = {
-          ...formData,
-          status: status,
-        };
+      const courseData = {
+        ...formData,
+        status: status,
+      };
 
-        data.append(
-          "course",
-          new Blob([JSON.stringify(courseData)], {
-            type: "application/json",
-          })
-        );
-        if (ThumbnailFile) {
-          data.append("thumbnail", ThumbnailFile);
+       data.append(
+        "course",
+        new Blob([JSON.stringify(courseData)], {
+          type: "application/json",
+        })
+      ); 
+      if (ThumbnailFile) {
+        data.append("thumbnail", ThumbnailFile);
+      }
+
+      const response = await fetch(
+        "http://localhost:8080/api/admin/courses",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: data,
         }
+      );
 
-        const response = await fetch(
-          "http://localhost:8080/api/admin/courses",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: data,
-          }
-        );
+      if (!response.ok) {
+        throw new Error("Tạo khóa học thất bại");
+      }
 
-        if (!response.ok) {
-          throw new Error("Tạo khóa học thất bại");
-        }
-
-        return response.json();
-      });
-
-      // if we reach here, call succeeded
       alert("Khóa học đã được tạo thành công!quay lại trang quản lý khóa học.");
       navigate("/adminCourse");
     } catch (error) {
       console.error(error);
-      // toast already shown by useApi
+      alert("Tạo khóa học thất bại: " + error.message);
     }
   };
-
 
     return (
         

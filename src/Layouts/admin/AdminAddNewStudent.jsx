@@ -1,5 +1,6 @@
 import { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
+
 import { useNavigate } from "react-router-dom";
 export default function AdminAddNewStudent() {
   const navigate = useNavigate();
@@ -78,6 +79,7 @@ export default function AdminAddNewStudent() {
   };
 
   return (
+
         <>
          <div className="flex h-screen overflow-hidden ">
                     <AdminSidebar />
@@ -123,7 +125,11 @@ export default function AdminAddNewStudent() {
           <div className="h-2 bg-gradient-to-r from-primary via-toxi-gold to-primary"></div>
 
           <div className="p-8">
+
+
             <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+
+
 
               {/* Section: Account Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -143,9 +149,13 @@ export default function AdminAddNewStudent() {
                   </label>
                   <input
                     type="text"
+
+
                     name="username"
                     value={formData.username}
                     onChange={handleChange}
+
+
                     placeholder="e.g. li_wei88"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                   />
@@ -157,9 +167,12 @@ export default function AdminAddNewStudent() {
                   </label>
                   <input
                     type="text"
+
+
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleChange}
+
                     placeholder="e.g. Li Wei"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                   />
@@ -171,9 +184,11 @@ export default function AdminAddNewStudent() {
                   </label>
                   <input
                     type="email"
+
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
+
                     placeholder="li.wei@example.com"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                   />
@@ -185,9 +200,13 @@ export default function AdminAddNewStudent() {
                   </label>
                   <input
                     type="tel"
+
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
+
+
+  
                     placeholder="+86 123 4567 8901"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                   />
@@ -199,9 +218,11 @@ export default function AdminAddNewStudent() {
                   </label>
                   <textarea
                     rows="2"
+
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
+
                     placeholder="123 Blossom Lane, District 5, Shanghai"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                   ></textarea>
@@ -227,10 +248,12 @@ export default function AdminAddNewStudent() {
           </label>
 
           <input
+
             name="password"
             type={showPassword ? "text" : "password"}
             value={formData.password}
             onChange={handleChange}
+
             placeholder="••••••••"
             className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
           />
@@ -253,10 +276,12 @@ export default function AdminAddNewStudent() {
           </label>
 
           <input
+
             name="confirmPassword"
             type={showConfirm ? "text" : "password"}
             value={formData.confirmPassword}
             onChange={handleChange}
+
             placeholder="••••••••"
             className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
           />
@@ -274,6 +299,7 @@ export default function AdminAddNewStudent() {
       </div>
 
       {/* Form Actions */}
+
       {error && (
         <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg flex items-start gap-2">
           <span className="material-symbols-outlined text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5">
@@ -290,19 +316,23 @@ export default function AdminAddNewStudent() {
           <span className="text-sm">{successMessage}</span>
         </div>
       )}
+
       <div className="flex items-center justify-end gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
         
         <button
           type="button"
+
           onClick={handleCancel}
           disabled={saving}
           className="px-6 py-3 rounded-xl text-slate-600 dark:text-slate-400 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+
         >
           Cancel
         </button>
 
         <button
           type="submit"
+
           disabled={saving}
           className="px-10 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -315,6 +345,7 @@ export default function AdminAddNewStudent() {
             person_add
           </span>
           {saving ? "Saving..." : "Save Student"}
+
         </button>
       </div>
 

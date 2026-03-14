@@ -6,11 +6,13 @@ export default function AdminEditCourses() {
   const navigate = useNavigate();
 
   const initialFormData = {
+
     courseId: "TOXI-HSK1-001",
     title: "HSK 1 Standard Course",
     type: "HSK Preparation",
     price: 49.99,
     discountPrice: 39.99,
+
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -62,7 +64,7 @@ export default function AdminEditCourses() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setOriginalFormData(formData);
       setHasChanges(false);
-      setSuccessMessage("Course updated successfully!");
+      setSuccessMessage("Cập nhật khóa học thành công ");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       setError(err.message || "Failed to update course");
@@ -83,6 +85,7 @@ export default function AdminEditCourses() {
     setHasChanges(false);
     setError("");
     navigate("/adminCourse");
+
   };
   const [description, setDescription] = useState(
     "A foundational course designed for absolute beginners. This course covers the first 150 essential Chinese characters and basic grammar structures required for the HSK 1 proficiency exam. Ideal for students starting their Mandarin journey."
@@ -123,6 +126,7 @@ const handleFileChange = (e) => {
     alert("Preview Course");
   };
 
+
   const handleSaveDraft = async () => {
     setError("");
     if (!validateForm()) return;
@@ -142,6 +146,7 @@ const handleFileChange = (e) => {
     } finally {
       setSaving(false);
     }
+
   };
     return(
         <>
@@ -170,6 +175,7 @@ const handleFileChange = (e) => {
           </button>
 
           <button
+
             onClick={handleCancel}
             disabled={saving}
             className="px-6 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -188,12 +194,14 @@ const handleFileChange = (e) => {
               </span>
             )}
             {saving ? "Updating..." : "Update Course"}
+
           </button>
         </div>
       </header>
 
       {/* Content */}
       <div className="p-8  mx-auto">
+
         {error && (
           <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg flex items-start gap-2">
             <span className="material-symbols-outlined text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5">
@@ -210,6 +218,7 @@ const handleFileChange = (e) => {
             <span className="text-sm">{successMessage}</span>
           </div>
         )}
+
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">
@@ -499,8 +508,11 @@ const handleFileChange = (e) => {
           <button
             type="button"
             onClick={handlePreview}
+
             className="w-full border border-primary text-primary hover:bg-primary/10 py-2.5 rounded-lg font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={saving}
+
+
           >
             Preview Course
           </button>
@@ -508,6 +520,7 @@ const handleFileChange = (e) => {
           <button
             type="button"
             onClick={handleSaveDraft}
+
             disabled={saving || !hasChanges}
             className="w-full bg-slate-900 dark:bg-black text-white py-2.5 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
@@ -517,6 +530,7 @@ const handleFileChange = (e) => {
               </span>
             )}
             {saving ? "Saving..." : "Save as Draft"}
+
           </button>
 
         </div>

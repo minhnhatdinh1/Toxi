@@ -1,4 +1,4 @@
-import { UseState } from 'react'
+import { useState } from 'react'
 import ReactLogo from './assets/react.svg'
 import ViteLogo from '/vite.svg'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -8,9 +8,12 @@ import { HomePage } from './Layouts/home/HomePage'
 import { BlogPage } from './Layouts/blog/BlogPage'
 import { Navigate } from "react-router-dom";
 
-
+import AdminRoute from "./AdminRoute";
 import Register from './Layouts/auth/Register.jsx'
 
+import QRPaymentPage from "./pages/payment/QRPaymentPage";
+import WaitingPage from "./pages/payment/WaitingPage";
+import SuccessPage from "./pages/payment/SuccessPage";
 import Login from './Layouts/auth/Login'
 import Productdetail from './Layouts/products/Productdetail'
 import CourseDetail from './Layouts/products/CourseDetail'
@@ -34,6 +37,9 @@ import StepReset from './Layouts/auth/ForgotPassword/StepReset.jsx';
 import AdminPage from './Layouts/admin/AdminPage.jsx';
 import AdminCourse from './Layouts/admin/AdminCourse.jsx';
 import AdminProduct from './Layouts/admin/AdminProduct.jsx';
+
+
+
 import AdminQuiz from "./Layouts/admin/Adminquiz";
 import AdminStudent from './Layouts/admin/AdminStudent.jsx';
 import AdminFinance from './Layouts/admin/AdminFinance.jsx';
@@ -42,6 +48,9 @@ import AdminAddNewProduct from './Layouts/admin/AdminAddNewProduct.jsx';
 import AdminBlog from './Layouts/admin/AdminBlog.jsx';
 import AdminTeacher from './Layouts/admin/AdminTeacher.jsx';
 import AdminAddNewStudent from './Layouts/admin/AdminAddNewStudent.jsx';
+
+import AdminAddNewQuiz from './Layouts/admin/AdminAddNewQuiz.jsx';
+
 import AdminAddNewTeacher from './Layouts/admin/AdmnAddNewTeacher.jsx';
 import AdminEditCourses from './Layouts/admin/AdminEditCourses.jsx';
 import AdminEditProduct from './Layouts/admin/AdminEditProduct.jsx';
@@ -49,6 +58,10 @@ import AdminEditStudent from './Layouts/admin/AdminEditStudent.jsx';
 import AdminEditQuiz from './Layouts/admin/AdminViewQuiz.jsx';
 import AdminAddNewBlog from './Layouts/admin/AdminAddNewBlog.jsx';
 import AdminEditTeacher from './Layouts/admin/AdminEditTeacher.jsx';
+
+import AdminOrders from './Layouts/admin/AdminOrders.jsx';
+import AdminDetalProduct from "./Layouts/admin/AdminDetailProduct.jsx";
+
 import Blog from './Layouts/blog/component/Blog.jsx';
 import BlogDetailPage from './Layouts/blog/BlogDetailPage.jsx';
 import BlogMain from './Layouts/blog/component/BlogDetailMain.jsx';
@@ -60,27 +73,38 @@ import IntroSection from './Layouts/introduce/InTrodusection.jsx';
 import BlogIntrodution from './Layouts/introduce/BlogIntrodution.jsx';
 import AddNewListenQuiz from './Layouts/admin/addnewquiz/AddNewListenQuiz.jsx';
 import AddNewReadQuiz from './Layouts/admin/addnewquiz/AddNewReadQuiz.jsx';
+<<<<<<< HEAD
 import AddNewWritting from './Layouts/admin/addnewquiz/AddNewWritting.jsx';
 import AdminAddNewQuiz from './Layouts/admin/AdminAddNewQuiz.jsx';
 import AdminViewQuiz from './Layouts/admin/AdminViewQuiz.jsx';
 import AddNewFillOfWord from './Layouts/admin/addnewquiz/AddNewFillOfWord.jsx';
 import EditListen from './Layouts/admin/addnewquiz/EditListen.jsx';
+=======
+
+
+>>>>>>> 500286068a29e0b31fb1cf4e594cbca2a105c6dd
 function App() {
   return (
-
     <Routes>
+      {/* ===== PUBLIC ROUTES ===== */}
       <Route path="/" element={<MainLayout />}>
         <Route index element={<Navigate to="/home" replace />} />
         <Route path="home" element={<HomePage />} />
+
         <Route path="/blog" element={<Blog />} />
         
         <Route path="/blog/:id" element={<BlogDetailPage />} />
      
+
         <Route path="Practice" element={<PracticePage />} />
         <Route path="/course" element={<Course />} />
         <Route path="/Introduction" element={<IntroSection />} />
         <Route path="/blogintroduce" element={<BlogIntrodution />} />
       </Route>
+
+      <Route path="/payment/qr"      element={<QRPaymentPage />} />
+      <Route path="/payment/waiting" element={<WaitingPage />} />
+      <Route path="/payment/success" element={<SuccessPage />} />
 
       <Route path="/products/:id" element={<Productdetail />} />
       <Route path="/courses/:id" element={<CourseDetail />} />
@@ -101,6 +125,7 @@ function App() {
       <Route path="/MissingPassword" element={<StepEmail />} />
       <Route path="/MissingPasswordStepCode" element={<StepCode />} />
       <Route path="/reset-password" element={<StepReset />} />
+<<<<<<< HEAD
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/adminCourse" element={<AdminCourse />} />
       <Route path="/adminStore" element={<AdminProduct />} />
@@ -133,19 +158,39 @@ function App() {
         path="/adminEditStudent/:id"
         element={<AdminEditStudent />}
       />
+=======
+>>>>>>> 500286068a29e0b31fb1cf4e594cbca2a105c6dd
 
-      <Route
-        path="/adminAddNewStudent"
-        element={<AdminAddNewStudent />}
-      />
-      <Route path="/editQuiz/:id" element={<AdminEditQuiz />} />
 
-      <Route path="/admin/editTeacher/:id" element={<AdminEditTeacher />} />
-      <Route path="/adminNewExam" element={<AdminAddNewExam />} />
-      {/* catch-all 404 route */}
-      <Route path="*" element={<NotFound />} />
+      {/* ===== ADMIN ROUTES (tất cả đều được bọc trong AdminRoute) ===== */}
+      <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
+      <Route path="/adminCourse" element={<AdminRoute><AdminCourse /></AdminRoute>} />
+      <Route path="/adminProduct" element={<AdminRoute><AdminProduct /></AdminRoute>} />
+
+      <Route path="/adminQuiz" element={<AdminRoute><AdminQuiz /></AdminRoute>} />
+      <Route path="/adminStudent" element={<AdminRoute><AdminStudent /></AdminRoute>} />
+      <Route path="/adminFinance" element={<AdminRoute><AdminFinance /></AdminRoute>} />
+      <Route path="/addnewCourse" element={<AdminRoute><AdminAddNewCourses /></AdminRoute>} />
+      <Route path="/addnewProduct" element={<AdminRoute><AdminAddNewProduct /></AdminRoute>} />
+      <Route path="/adminBlog" element={<AdminRoute><AdminBlog /></AdminRoute>} />
+      <Route path="/adminTeacher" element={<AdminRoute><AdminTeacher /></AdminRoute>} />
+      <Route path="/adminAddNewStudent" element={<AdminRoute><AdminAddNewStudent /></AdminRoute>} />
+      <Route path="/adminAddNewTeacher" element={<AdminRoute><AdminAddNewTeacher /></AdminRoute>} />
+      
+      <Route path="/adminAddNewQuiz" element={<AdminRoute><AdminAddNewQuiz /></AdminRoute>} />
+      <Route path="/admin/courses/edit/:id" element={<AdminRoute><AdminEditCourses /></AdminRoute>} />
+      <Route path="/editCourse/:id" element={<AdminRoute><AdminEditCourses /></AdminRoute>} />
+      <Route path="/admin/products/edit/:id" element={<AdminRoute><AdminEditProduct /></AdminRoute>} />
+      <Route path="/adminEditStudent/:id" element={<AdminRoute><AdminEditStudent /></AdminRoute>} />
+        <Route path="/editQuiz/:id" element={<AdminRoute><AdminEditQuiz /></AdminRoute>} />
+        <Route path="/admin/blog/add" element={<AdminRoute><AdminAddNewBlog /></AdminRoute>} />
+        <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
+      <Route path="/admin/editTeacher/:id" element={<AdminRoute><AdminEditTeacher /></AdminRoute>} />
+      <Route path="/success" element={<SuccessPage />} />
+<Route path="/waiting" element={<WaitingPage />} />
+  <Route path="/adminProductDetail/:id" element={<AdminDetalProduct />} />
+
     </Routes>
-
   )
 };
 

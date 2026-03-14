@@ -2,10 +2,20 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import logo from '../../assets/image/LOGO (1).png'
 import axios from "axios";
 import React, { useState, useEffect } from 'react';
+
+
+import { useCart } from "../../context/CartContext";
+
+
+
 import StarRating from '../../components/StarRating';
+
 export default function CourseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+
+
+const { addToCart, cartCount } = useCart();
 
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -45,28 +55,11 @@ useEffect(() => {
     }
   };
 
-  const handleAddToCart = async () => {
-  try {
-    const res = await fetch("http://localhost:8080/api/cart/add", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-      body: JSON.stringify({
-        courseId: course.courseId,
-      }),
-    });
 
-    if (!res.ok) {
-      throw new Error("Thêm giỏ hàng thất bại");
-    }
+const handleAddToCart = () => {
+  addToCart(course.courseId,"COURSE",1);
+  alert("Đã thêm vào giỏ hàng!");
 
-    alert("Đã thêm vào giỏ hàng!");
-  } catch (err) {
-    console.error(err);
-    alert("Có lỗi xảy ra!");
-  }
 };
   if (loading) return <div className="p-10">Đang tải...</div>;
   if (!course) return <div className="p-10">Không tìm thấy khóa học</div>;
@@ -122,14 +115,17 @@ const discountPercent = hasDiscount
           {/* ACTIONS */}
           <div className="flex items-center gap-6 shrink-0">
             {/* CART */}
-            <div className="relative group cursor-pointer">
-              <span className="material-symbols-outlined text-[28px] text-white hover:text-secondary transition-colors">
-                shopping_cart
-              </span>
-<span className="absolute -top-1 -right-1 bg-accent-red text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                2
-              </span>
-            </div>
+
+           <div className="relative group cursor-pointer" onClick={() => navigate('/cart')}>
+  <span className="material-symbols-outlined text-[28px] text-white hover:text-secondary transition-colors">
+    shopping_cart
+  </span>
+  {cartCount > 0 && (
+    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+      {cartCount}
+    </span>
+  )}
+</div>
 
             {/* AUTH BUTTONS */}
             <div className="hidden sm:flex items-center gap-4">
