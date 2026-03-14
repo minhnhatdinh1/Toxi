@@ -2,16 +2,24 @@ import react from 'react'
 import {useState} from 'react'
 import AdminSidebar from '../AdminSidebar'
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import toxiLogo from "../../../assets/image/LOGO (1).png"
 export default function AddNewListenQuiz() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("listening");
+  const [audioFile, setAudioFile] = useState(null);
   const handleTabChange = (tab) => {
   setActiveTab(tab);
 
   if (tab === "listening") navigate("/listenQuiz");
   if (tab === "reading") navigate("/readQuiz");
-  if (tab === "writing") navigate("/writingQuiz");
+  if (tab === "writing") navigate("/writtingQuiz");
+};
+const handleAudioChange = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    setAudioFile(file);
+  }
 };
 const [showAll, setShowAll] = useState(false);
 
@@ -41,6 +49,7 @@ content:"他在学校学习。 (Anh ấy học ở trường.)",
 level:"HSK 1"
 }
 ]);
+
    return(
         <>  
     <div className="min-h-screen text-text-main flex flex-col">
@@ -75,33 +84,40 @@ level:"HSK 1"
 
   <div className="flex items-center gap-3">
 
-    <button className="px-4 py-2 text-sm font-medium hover:text-secondary transition-colors">
-      Hủy bỏ
-    </button>
+   <Link
+    to="/adminaddnewquiz"
+    className="px-4 py-2 text-sm font-medium hover:text-secondary transition-colors"
+  >
+    Hủy bỏ
+  </Link>
 
-    <button className="bg-white/10 hover:bg-white/20 text-white font-bold px-4 py-2 rounded-full shadow-md text-sm transition-all border border-white/20">
-      Lưu và Thêm câu tiếp theo
-    </button>
+  <Link
+    to="/adminaddnewquiz"
+    className="bg-white/10 hover:bg-white/20 text-white font-bold px-4 py-2 rounded-full shadow-md text-sm transition-all border border-white/20"
+  >
+    Lưu và Thêm câu tiếp theo
+  </Link>
 
-    <button className="bg-secondary text-primary font-bold px-6 py-2 rounded-full shadow-md flex items-center gap-2 text-sm">
+  <Link
+    to="/admin/publish-exam"
+    className="bg-secondary text-primary font-bold px-6 py-2 rounded-full shadow-md flex items-center gap-2 text-sm"
+  >
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
 
-      <svg
-        className="h-4 w-4"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-        />
-      </svg>
-
-      Lưu Câu Hỏi
-
-    </button>
+    Lưu và Xuất bản
+  </Link>
 
   </div>
 
@@ -115,20 +131,22 @@ level:"HSK 1"
 
   <nav className="flex-1 py-6 px-3 space-y-2">
 
-    <a className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all">
-      <span className="material-symbols-outlined text-xl">grid_view</span>
-      <span className="font-medium">bài nghe dạng 1</span>
-    </a>
+   <Link
+to="/AddNewFillOfWord"
+className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+>
+<span className="material-symbols-outlined text-xl">grid_view</span>
+<span className="font-medium">câu hỏi điền từ</span>
+</Link>
 
-    <a className="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary text-white">
-      <span className="material-symbols-outlined text-xl">inventory_2</span>
-      <span className="font-medium">bài nghe dạng 2</span>
-    </a>
+<Link
+to="/listenquiz"
+className="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary text-white"
+>
+<span className="material-symbols-outlined text-xl">inventory_2</span>
+<span className="font-medium">bài nghe </span>
+</Link>
 
-    <a className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all">
-      <span className="material-symbols-outlined text-xl">group</span>
-      <span className="font-medium">bài nghe dạng 3</span>
-    </a>
 
 
   </nav>
@@ -261,43 +279,56 @@ Viết (Writing)
           </div>
 
 
-          <div className="p-6 space-y-6">
+          <div  className="p-6 space-y-6">
 
             {/* Upload Audio */}
 
             <div className="space-y-2">
+<label className="block text-sm font-semibold text-slate-700">
+Tải lên file âm thanh (.mp3, .wav)
+</label>
 
-              <label className="block text-sm font-semibold text-slate-700">
-                Tải lên file âm thanh (.mp3, .wav)
-              </label>
+<input
+type="file"
+accept=".mp3,.wav"
+onChange={handleAudioChange}
+className="hidden"
+id="audioUpload"
+/>
 
-              <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-secondary transition-colors cursor-pointer bg-slate-50 group">
+<label
+htmlFor="audioUpload"
+className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-secondary transition-colors cursor-pointer bg-slate-50 group block"
+>
 
-                <div className="mx-auto w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center mb-2 group-hover:bg-secondary/10">
+<div className="mx-auto w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center mb-2 group-hover:bg-secondary/10">
 
-                  <svg
-                    className="h-5 w-5 text-slate-500 group-hover:text-secondary"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
+<svg
+className="h-5 w-5 text-slate-500 group-hover:text-secondary"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24"
+>
+<path
+d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+strokeLinecap="round"
+strokeLinejoin="round"
+strokeWidth="2"
+/>
+</svg>
 
-                </div>
+</div>
 
-                <p className="text-sm text-slate-600">
-                  Kéo và thả tệp tại đây hoặc{" "}
-                  <span className="text-primary font-bold underline">
-                    chọn tệp
-                  </span>
-                </p>
+<p className="text-sm text-slate-600">
+{audioFile
+? `File đã chọn: ${audioFile.name}`
+: <>Kéo và thả tệp tại đây hoặc <span className="text-primary font-bold underline">chọn tệp</span></>
+}
+</p>
 
+</label>
+
+               
               </div>
 
             </div>
@@ -370,7 +401,7 @@ Viết (Writing)
 
             </div>
 
-          </div>
+         
    {/* Multiple Choice Options */}
 <div className="space-y-4">
 
@@ -746,12 +777,16 @@ Viết (Writing)
 <td className="px-6 py-4">
 <div className="flex gap-2">
 
-<button className="p-1 hover:text-primary">
-✏️
-</button>
+<Link to="/editlisten" className="p-1 hover:text-primary">
+  <span className="material-symbols-outlined text-base">
+    edit
+  </span>
+</Link>
 
 <button className="p-1 hover:text-red-500">
-🗑
+<span className="material-symbols-outlined text-base">
+delete
+</span>
 </button>
 
 </div>

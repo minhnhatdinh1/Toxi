@@ -3,477 +3,495 @@ import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
 export default function AdminQuiz() {
-// =======================
-// STATE
-// =======================
-
-const [currentPage, setCurrentPage] = useState(1);
-const pageSize = 3;
-const [filterStatus, setFilterStatus] = useState("All");
-const [showNoti, setShowNoti] = useState(false);
-const notiRef = useRef(null);
-
-
-// =======================
-// CLICK OUTSIDE NOTI
-// =======================
-
-useEffect(() => {
-  function handleClickOutside(event) {
-    if (notiRef.current && !notiRef.current.contains(event.target)) {
-      setShowNoti(false);
-    }
+const [hskStats, setHskStats] = useState([
+  {
+    level: "HSK Cấp độ 1",
+    total: 12,
+    icon: "trending_up",
+    text: "2 đã thêm trong tháng này",
+    color: "text-green-500"
+  },
+  {
+    level: "HSK Cấp độ 2",
+    total: 18,
+    icon: "horizontal_rule",
+    text: "Số lượng ổn định",
+    color: "text-text-muted"
+  },
+  {
+    level: "HSK Cấp độ 3",
+    total: 24,
+    icon: "trending_up",
+    text: "5 đã thêm trong tháng này",
+    color: "text-green-500"
+  },
+  {
+    level: "HSK Cấp độ 4",
+    total: 15,
+    icon: "trending_down",
+    text: "Cần xem xét",
+    color: "text-accent-red"
+  },
+  {
+    level: "HSK Cấp độ 5",
+    total: 10,
+    icon: "trending_up",
+    text: "Tương tác cao",
+    color: "text-green-500"
+  },
+  {
+    level: "HSK Cấp độ 6",
+    total: "08",
+    icon: "new_releases",
+    text: "Cấp độ nâng cao",
+    color: "text-secondary"
   }
-
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-}, []);
-
-
-// =======================
-// DATA
-// =======================
-
-const exams = [
-  { id: 1, name: "HSK 4 Standard Mock A", category: "HSK 4", duration: "105 min", questions: 100, status: "Active" },
-  { id: 2, name: "Business Chinese Level 1", category: "BCT A", duration: "45 min", questions: 40, status: "Draft" },
-  { id: 3, name: "HSK 6 Advanced Proficiency", category: "HSK 6", duration: "140 min", questions: 101, status: "Active" },
-  { id: 4, name: "HSK 1 Beginner Basics", category: "HSK 1", duration: "35 min", questions: 40, status: "Active" },
-  { id: 5, name: "HSK 3 Intermediate Prep", category: "HSK 3", duration: "90 min", questions: 80, status: "Draft" }
-];
-
-
-// =======================
-// FILTER
-// =======================
-
-const filteredExams =
-  filterStatus === "All"
-    ? exams
-    : exams.filter((exam) => exam.status === filterStatus);
-
-
-// =======================
-// PAGINATION
-// =======================
-
-const totalPages = Math.ceil(filteredExams.length / pageSize);
-
-const startIndex = (currentPage - 1) * pageSize;
-
-const paginatedData = filteredExams.slice(
-  startIndex,
-  startIndex + pageSize
-);
-
-
-// =======================
-// RESET PAGE WHEN FILTER CHANGES
-// =======================
-
-useEffect(() => {
-  setCurrentPage(1);
-}, [filterStatus]);
-
-
-// =======================
-// EXPORT CSV
-// =======================
-
-const handleExport = () => {
-  const headers = ["Name", "Category", "Duration", "Questions", "Status"];
-
-  const rows = filteredExams.map(exam =>
-    [exam.name, exam.category, exam.duration, exam.questions, exam.status].join(",")
-  );
-
-  const csvContent =
-    "data:text/csv;charset=utf-8," +
-    [headers.join(","), ...rows].join("\n");
-
-  const link = document.createElement("a");
-  link.setAttribute("href", encodeURI(csvContent));
-  link.setAttribute("download", "exam-list.csv");
-  document.body.appendChild(link);
-  link.click();
-};
-// EDIT
-const handleEdit = (exam) => {
-  console.log("Editing:", exam);
-  alert(`Editing ${exam.name}`);
-};
-
-// DELETE
-const handleDelete = (id) => {
-  const confirmDelete = window.confirm("Are you sure you want to delete this exam?");
-  if (confirmDelete) {
-    setExams(prev => prev.filter(exam => exam.id !== id));
-  }
-};
+]);
     return (
         <>
    <div class="flex h-screen overflow-hidden">
             <AdminSidebar />
-                 <main className="flex-1 flex flex-col overflow-y-auto">
-      {/* Header */}
-      <header className="h-16 border-b border-border-light bg-white flex items-center justify-between px-8 shrink-0">
-        <div className="flex items-center gap-6 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">
-              auto_stories
-            </span>
-            <h2 className="text-lg font-bold text-primary tracking-tight">
-              Exam Bank Management
-            </h2>
-          </div>
+                {/* Main Content */}
 
-          {/* Search */}
-          <div className="relative max-w-md w-full">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xl">
-              search
-            </span>
-            <input
-              type="text"
-              placeholder="Search exams, levels, or categories..."
-              className="w-full bg-slate-50 border border-border-light text-slate-900 text-sm rounded-xl pl-10 pr-4 h-10 focus:ring-accent-yellow focus:border-accent-yellow transition-all"
-            />
-          </div>
-        </div>
+<main className=" flex-1 flex flex-col min-h-screen overflow-y-auto bg-slate-100 dark:bg-slate-900">
 
-        <div className="flex items-center gap-3">
-          {/* Add Exam Button */}
-          <Link to="/listenQuiz">
-            <button className="size-8 flex items-center justify-center rounded-lg bg-accent-yellow text-primary text-xs font-bold shadow-lg shadow-yellow-500/20">
-              <span className="material-symbols-outlined text-xl">add</span>
-            </button>
-          </Link>
+  {/* Header */}
 
-          <div className="h-8 w-[1px] bg-border-dark mx-2"></div>
+  <header className="h-20 bg-white dark:bg-brand-blue/50 border-b border-slate-200 dark:border-brand-gold/20 flex items-center justify-between px-8 sticky top-0 z-40 backdrop-blur-md">
 
-          {/* Notification */}
-            <div className="relative" ref={notiRef}>
-  {/* Icon */}
-  <div
-    onClick={() => setShowNoti(!showNoti)}
-    className="relative cursor-pointer group"
-  >
-    <span className="material-symbols-outlined text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">
-      notifications
-    </span>
+    {/* Search */}
 
-    <span className="absolute -top-1 -right-1 size-4 bg-red-500 text-[10px] text-white flex items-center justify-center rounded-full font-bold border-2 border-white dark:border-slate-900">
-      4
-    </span>
-  </div>
+    <div className="flex items-center gap-4 flex-1 max-w-xl">
 
-  {/* Dropdown */}
-  {showNoti && (
-    <div className="absolute right-0 mt-4 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 animate-fadeIn">
-      
-      {/* Header */}
-      <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-        <h4 className="font-bold text-sm">Thông báo</h4>
-        <button className="text-xs text-primary font-semibold hover:underline">
-          Đánh dấu đã đọc
-        </button>
-      </div>
+      <div className="relative w-full">
 
-      {/* List */}
-      <div className="max-h-80 overflow-y-auto">
+        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+          search
+        </span>
 
-        {/* Item */}
-        <div className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer border-b border-slate-100 dark:border-slate-800">
-          <p className="text-sm font-medium">
-            Nguyễn An đã mua khóa học HSK 4
-          </p>
-          <p className="text-xs text-slate-400 mt-1">2 phút trước</p>
-        </div>
+        <input
+          className="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-brand-gold text-sm"
+          placeholder="Tìm kiếm đề thi, cấp độ HSK hoặc từ khóa..."
+          type="text"
+        />
 
-        <div className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer border-b border-slate-100 dark:border-slate-800">
-          <p className="text-sm font-medium">
-            Có đơn hàng mới #TX9827
-          </p>
-          <p className="text-xs text-slate-400 mt-1">10 phút trước</p>
-        </div>
-
-        <div className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
-          <p className="text-sm font-medium">
-            Học viên vừa hoàn thành bài thi
-          </p>
-          <p className="text-xs text-slate-400 mt-1">1 giờ trước</p>
-        </div>
-
-      </div>
-
-      {/* Footer */}
-      <div className="p-3 text-center border-t border-slate-200 dark:border-slate-800">
-        <button className="text-primary text-sm font-semibold hover:underline">
-          Xem tất cả thông báo
-        </button>
       </div>
 
     </div>
-  )}
+
+
+    {/* Right Actions */}
+
+    <div className="flex items-center gap-4">
+
+      <Link
+  to="/adminaddnewquiz"
+  className="flex items-center gap-2 bg-primary hover:bg-accent-yellow text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md"
+>
+  <span className="material-symbols-outlined text-lg">
+    add_circle
+  </span>
+
+  Thêm đề thi mới
+</Link>
+
+
+      <div className="h-8 w-px bg-slate-200 dark:bg-brand-gold/20 mx-2"></div>
+
+
+      {/* Notification */}
+
+      <button className="size-10 rounded-xl flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+
+        <span className="material-symbols-outlined text-slate-600 dark:text-slate-300">
+          notifications
+        </span>
+
+      </button>
+
+
+    </div>
+
+  </header>
+{/* Content Area */}
+
+<div className="p-8 space-y-8">
+
+  {/* Hero Stats Section */}
+
+  <section>
+
+    <div className="flex flex-col gap-2 mb-6">
+
+      <h2 className="text-3xl font-extrabold tracking-tight text-text-main">
+        Tổng quan ngân hàng đề thi
+      </h2>
+
+      <p className="text-text-muted">
+        Quản lý và giám sát các bộ đề đánh giá năng lực HSK ở mọi cấp độ.
+      </p>
+
+    </div>
+
+
+   <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+
+  {hskStats.map((item, index) => (
+
+    <div
+      key={index}
+      className="bg-white p-5 rounded-2xl border-b-4 border-secondary shadow-sm hover:shadow-md transition-shadow"
+    >
+
+      <p className="text-xs font-bold text-secondary uppercase tracking-wider mb-1">
+        {item.level}
+      </p>
+
+      <h3 className="text-2xl font-black text-text-main">
+        {item.total}
+      </h3>
+
+      <p className="text-[10px] text-text-muted mt-2 flex items-center gap-1">
+
+        <span className={`material-symbols-outlined text-[12px] ${item.color}`}>
+          {item.icon}
+        </span>
+
+        {item.text}
+
+      </p>
+
+    </div>
+
+  ))}
+
 </div>
+  </section>
+{/* Quiz List Table */}
+<section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-brand-gold/10 overflow-hidden">
 
-          {/* Profile */}
-          <div className="flex items-center gap-3 pl-2">
-            <div className="size-9 rounded-full bg-slate-700 border border-border-dark overflow-hidden">
-              <img
-                className="w-full h-full object-cover"
-                alt="Admin user profile"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXqVJK5CjsOMGIrsYRf-395FUund2hcLFu6B7XjcFmpkN5CwuPBbaJRThsfOuy7IQgzMWaIzy8HTVqn-QwnRkD1syM0Y8lN0kB32bpPR0D0JurY7ifZTAW4yTUkF59YyMc0uxAKrWnqA48WZacmhsAJfvZBCHCKFaLEfawcAqumnjtDQLuM5E5WYuouN7WLBAM-OsO2x1W9VAcdzVfCnyPVOJIH5ymAD1qvB1KhZvRCOohVAtmEsp7-LqweYwxtuYCY3_fpAYjvT0"
-              />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Dashboard Content */}
-      <div className="flex-1 overflow-y-auto p-8">
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Card 1 */}
-          <div className="bg-white p-6 rounded-xl border border-border-light flex items-center gap-4 shadow-sm">
-            <div className="size-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <span className="material-symbols-outlined text-primary text-3xl">
-                assignment
-              </span>
-            </div>
-            <div>
-              <p className="text-slate-400 text-sm font-medium">
-                Total Exams
-              </p>
-              <h3 className="text-2xl font-bold !text-primary mt-1">
-                128
-              </h3>
-              <p className="text-emerald-500 text-xs font-bold mt-1 flex items-center gap-1">
-                <span className="material-symbols-outlined text-xs">
-                  trending_up
-                </span>
-                +5% from last month
-              </p>
-            </div>
-          </div>
-
-          {/* Card 2 */}
-          <div className="bg-white p-6 rounded-xl border border-border-light flex items-center gap-4 shadow-sm">
-            <div className="size-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
-              <span className="material-symbols-outlined text-blue-500 text-3xl">
-                check_circle
-              </span>
-            </div>
-            <div>
-              <p className="text-slate-400 text-sm font-medium">
-                Active Exams
-              </p>
-              <h3 className="text-2xl font-bold !text-primary mt-1">
-                94
-              </h3>
-              <p className="text-slate-500 text-xs font-medium mt-1">
-                73% of total bank
-              </p>
-            </div>
-          </div>
-
-          {/* Card 3 */}
-          <div className="bg-white p-6 rounded-xl border border-border-light flex items-center gap-4 shadow-sm">
-            <div className="size-12 rounded-lg bg-amber-500/10 flex items-center justify-center">
-              <span className="material-symbols-outlined text-amber-500 text-3xl">
-                pending_actions
-              </span>
-            </div>
-            <div>
-              <p className="text-slate-400 text-sm font-medium">
-                New Submissions
-              </p>
-              <h3 className="text-2xl font-bold !text-primary mt-1">
-                12
-              </h3>
-              <p className="text-amber-500 text-xs font-bold mt-1">
-                Awaiting review
-              </p>
-            </div>
-          </div>
-        </div>
-        {/* Main Table Section */}
-<div className="bg-white rounded-xl border border-border-light shadow-sm overflow-hidden">
   {/* Table Header */}
-  <div className="px-6 py-4 border-b border-border-dark flex items-center justify-between bg-white/5">
-    <h3 className="text-primary font-bold flex items-center gap-2">
-      <span className="material-symbols-outlined text-accent-yellow">
-        list
-      </span>
-      Exam List
+  <div className="px-6 py-5 border-b border-slate-200 dark:border-brand-gold/10 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
+
+    <h3 className="text-lg font-bold">
+      Danh sách đề thi đã tạo
     </h3>
 
-  <div className="relative flex items-center gap-2">
-       <span className="material-symbols-outlined text-base text-primary">
-    filter_list
-  </span>
+    <div className="flex gap-2">
 
-  <select
-    value={filterStatus}
-    onChange={(e) => {
-      setFilterStatus(e.target.value);
-      setCurrentPage(1);
-    }}
-    className="appearance-none px-3 py-1.5 pr-8 bg-slate-800 hover:bg-slate-700 
-               text-slate-300 text-xs font-bold rounded-lg 
-               border border-slate-700 transition-colors 
-               focus:outline-none cursor-pointer"
-  >
-    <option value="All">All</option>
-    <option value="Active">Active</option>
-    <option value="Draft">Draft</option>
-  </select>
+      <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+        <span className="material-symbols-outlined text-slate-500">
+          filter_list
+        </span>
+      </button>
 
-  {/* Icon dropdown */}
-  <span className="material-symbols-outlined absolute right-2 text-xs text-slate-400 pointer-events-none">
-    expand_more
-  </span>
+      <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+        <span className="material-symbols-outlined text-slate-500">
+          sort
+        </span>
+      </button>
 
-     <button
-  onClick={handleExport}
-  className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg border border-slate-700 transition-colors"
->
-  <span className="material-symbols-outlined text-base text-primary">
-    download
-  </span>
-  Export
-</button>
     </div>
   </div>
+
 
   {/* Table */}
   <div className="overflow-x-auto">
+
     <table className="w-full text-left">
+
+      {/* Table Head */}
       <thead>
-        <tr className="text-slate-400 text-xs uppercase tracking-wider font-bold ">
-          <th className="px-6 py-4 ">Exam Name</th>
-          <th className="px-6 py-4">Category</th>
-          <th className="px-6 py-4">Duration</th>
-          <th className="px-6 py-4">Questions</th>
-          <th className="px-6 py-4">Status</th>
-          <th className="px-6 py-4 text-right">Actions</th>
+        <tr className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 bg-slate-50/50 dark:bg-transparent">
+
+          <th className="px-6 py-4 font-semibold">Tiêu đề</th>
+          <th className="px-6 py-4 font-semibold">Cấp độ</th>
+          <th className="px-6 py-4 font-semibold text-center">Thời lượng</th>
+          <th className="px-6 py-4 font-semibold text-center">Số câu hỏi</th>
+          <th className="px-6 py-4 font-semibold">Trạng thái</th>
+          <th className="px-6 py-4 font-semibold text-right">Thao tác</th>
+
         </tr>
       </thead>
 
-     <tbody className="divide-y divide-border-light text-slate-600 text-sm">
-  {paginatedData.map((exam) => (
-    <tr key={exam.id} className="hover:bg-white/5 transition-colors group">
-      <td className="px-6 py-4 font-semibold text-primary">
-        {exam.name}
-      </td>
 
-      <td className="px-6 py-4">
-        <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary text-[11px] font-bold border border-primary/30">
-          {exam.category}
-        </span>
-      </td>
+      {/* Table Body */}
+      <tbody className="divide-y divide-slate-100 dark:divide-brand-gold/5">
 
-      <td className="px-6 py-4">{exam.duration}</td>
-      <td className="px-6 py-4">{exam.questions}</td>
+        {/* Row 1 */}
+        <tr className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group">
 
-      <td className="px-6 py-4">
-        <span
-          className={`flex items-center gap-1.5 font-medium ${
-            exam.status === "Active"
-              ? "text-emerald-500"
-              : "text-slate-500"
-          }`}
-        >
-          <span
-            className={`size-2 rounded-full ${
-              exam.status === "Active"
-                ? "bg-emerald-500"
-                : "bg-slate-500"
-            }`}
-          ></span>
-          {exam.status}
-        </span>
-      </td>
+          <td className="px-6 py-4">
+
+            <div className="flex flex-col">
+
+              <span className="font-bold text-slate-900 dark:text-slate-100">
+                Bài luyện tập từ vựng hàng ngày bộ 1
+              </span>
+
+              <span className="text-xs text-slate-400">
+                Ngày tạo: 12/10/2023
+              </span>
+
+            </div>
+
+          </td>
+
+
+          <td className="px-6 py-4">
+
+            <span className="px-3 py-1 bg-brand-gold/10 text-brand-gold text-xs font-bold rounded-full">
+              HSK 1
+            </span>
+
+          </td>
+
+
+          <td className="px-6 py-4 text-center text-sm font-medium">
+            15 phút
+          </td>
+
+
+          <td className="px-6 py-4 text-center text-sm font-medium">
+            20
+          </td>
+
+
+          <td className="px-6 py-4">
+
+            <span className="flex items-center gap-1.5 text-green-500 text-xs font-bold">
+
+              <span className="size-2 rounded-full bg-green-500"></span>
+
+              Đang hoạt động
+
+            </span>
+
+          </td>
+
+
+          <td className="px-6 py-4 text-right">
+
+            <div className="flex items-center justify-end gap-2">
+
+            {/* Edit */}
+  <Link
+    to="/adminviewquiz"
+    className="p-1.5 text-slate-400 hover:text-brand-gold transition-colors"
+    title="Chỉnh sửa"
+  >
+    <span className="material-symbols-outlined text-[20px]">
+      edit
+    </span>
+  </Link>
+
+  {/* Preview */}
+  <Link
+    to="/adminviewquiz"
+    className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors"
+    title="Xem trước"
+  >
+    <span className="material-symbols-outlined text-[20px]">
+      visibility
+    </span>
+  </Link>
+
+  {/* Delete */}
+  <Link
+    to="/admindeletequiz"
+    className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
+    title="Xóa"
+  >
+    <span className="material-symbols-outlined text-[20px]">
+      delete
+    </span>
+  </Link>
+
+
+            </div>
+
+          </td>
+
+        </tr>
+{/* Row 2 */}
+<tr className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+  <td className="px-6 py-4">
+    <div className="flex flex-col">
+      <span className="font-bold text-slate-900 dark:text-slate-100">
+        Luyện nghe hiểu trung cấp
+      </span>
+      <span className="text-xs text-slate-400">
+        Ngày tạo: 08/10/2023
+      </span>
+    </div>
+  </td>
+
+  <td className="px-6 py-4">
+    <span className="px-3 py-1 bg-brand-gold/10 text-brand-gold text-xs font-bold rounded-full">
+      HSK 3
+    </span>
+  </td>
+
+  <td className="px-6 py-4 text-center text-sm font-medium">
+    45 phút
+  </td>
+
+  <td className="px-6 py-4 text-center text-sm font-medium">
+    35
+  </td>
+
+  <td className="px-6 py-4">
+    <span className="flex items-center gap-1.5 text-slate-400 text-xs font-bold">
+      <span className="size-2 rounded-full bg-slate-300"></span>
+      Bản nháp
+    </span>
+  </td>
 
   <td className="px-6 py-4 text-right">
-  <div className="flex items-center justify-end gap-2">
+    <div className="flex items-center justify-end gap-2">
+      <button className="p-1.5 text-slate-400 hover:text-brand-gold transition-colors">
+        <span className="material-symbols-outlined text-[20px]">edit</span>
+      </button>
 
-    {/* EDIT */}
-    <Link
-  to={`/editQuiz/${exam.id}`}
-      className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
-    >
-      <span className="material-symbols-outlined text-lg">edit</span>
-    </Link>
+      <button className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors">
+        <span className="material-symbols-outlined text-[20px]">visibility</span>
+      </button>
 
-    {/* DELETE */}
-    <button
-      onClick={() => handleDelete(exam.id)}
-      className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-    >
-      <span className="material-symbols-outlined text-lg">delete</span>
-    </button>
+      <button className="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
+        <span className="material-symbols-outlined text-[20px]">delete</span>
+      </button>
+    </div>
+  </td>
+</tr>
 
-  </div>
-</td>
-    </tr>
-  ))}
-</tbody>
+{/* Row 3 */}
+<tr className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+  <td className="px-6 py-4">
+    <div className="flex flex-col">
+      <span className="font-bold text-slate-900 dark:text-slate-100">
+        Đề thi thử HSK 6 cuối khóa
+      </span>
+      <span className="text-xs text-slate-400">
+        Ngày tạo: 29/09/2023
+      </span>
+    </div>
+  </td>
+
+  <td className="px-6 py-4">
+    <span className="px-3 py-1 bg-brand-gold/10 text-brand-gold text-xs font-bold rounded-full">
+      HSK 6
+    </span>
+  </td>
+
+  <td className="px-6 py-4 text-center text-sm font-medium">
+    120 phút
+  </td>
+
+  <td className="px-6 py-4 text-center text-sm font-medium">
+    100
+  </td>
+
+  <td className="px-6 py-4">
+    <span className="flex items-center gap-1.5 text-green-500 text-xs font-bold">
+      <span className="size-2 rounded-full bg-green-500"></span>
+      Đang hoạt động
+    </span>
+  </td>
+
+  <td className="px-6 py-4 text-right">
+    <div className="flex items-center justify-end gap-2">
+      <button className="p-1.5 text-slate-400 hover:text-brand-gold transition-colors">
+        <span className="material-symbols-outlined text-[20px]">edit</span>
+      </button>
+
+      <button className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors">
+        <span className="material-symbols-outlined text-[20px]">visibility</span>
+      </button>
+
+      <button className="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
+        <span className="material-symbols-outlined text-[20px]">delete</span>
+      </button>
+    </div>
+  </td>
+</tr>
+
+{/* Row 4 */}
+<tr className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+  <td className="px-6 py-4">
+    <div className="flex flex-col">
+      <span className="font-bold text-slate-900 dark:text-slate-100">
+        Trọng tâm ngữ pháp: Trợ từ "Le"
+      </span>
+      <span className="text-xs text-slate-400">
+        Ngày tạo: 15/09/2023
+      </span>
+    </div>
+  </td>
+
+  <td className="px-6 py-4">
+    <span className="px-3 py-1 bg-brand-gold/10 text-brand-gold text-xs font-bold rounded-full">
+      HSK 2
+    </span>
+  </td>
+
+  <td className="px-6 py-4 text-center text-sm font-medium">
+    20 phút
+  </td>
+
+  <td className="px-6 py-4 text-center text-sm font-medium">
+    15
+  </td>
+
+  <td className="px-6 py-4">
+    <span className="flex items-center gap-1.5 text-green-500 text-xs font-bold">
+      <span className="size-2 rounded-full bg-green-500"></span>
+      Đang hoạt động
+    </span>
+  </td>
+
+  <td className="px-6 py-4 text-right">
+    <div className="flex items-center justify-end gap-2">
+      <button className="p-1.5 text-slate-400 hover:text-brand-gold transition-colors">
+        <span className="material-symbols-outlined text-[20px]">edit</span>
+      </button>
+
+      <button className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors">
+        <span className="material-symbols-outlined text-[20px]">visibility</span>
+      </button>
+
+      <button className="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
+        <span className="material-symbols-outlined text-[20px]">delete</span>
+      </button>
+    </div>
+  </td>
+</tr>
+      </tbody>
+
     </table>
+
   </div>
-  {/* Pagination */}
-<div className="p-4 bg-gray-50 border-t border-[#e7ebf3] flex items-center justify-between">
-  <p className="text-sm text-[#4c669a]">
-    Page <span className="font-bold text-[#0d121b]">{currentPage}</span> of{" "}
-    <span className="font-bold text-[#0d121b]">{totalPages}</span>
+<div className="px-6 py-4 border-t border-slate-100 dark:border-brand-gold/5 flex items-center justify-between">
+
+  <p className="text-xs text-slate-400 font-medium">
+    Hiển thị 4 trong tổng số 67 đề thi
   </p>
 
-  <div className="flex items-center gap-2">
-    {/* Prev */}
-    <button
-      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-      disabled={currentPage === 1}
-      className="px-3 py-1 border rounded disabled:opacity-50"
-    >
-      Prev
+  <div className="flex gap-2">
+
+    <button className="px-3 py-1 border border-slate-200 dark:border-brand-gold/20 rounded text-xs font-bold hover:bg-slate-50 transition-colors">
+      1
     </button>
 
-    {/* Page Numbers */}
-    {Array.from({ length: totalPages }).map((_, index) => {
-      const page = index + 1;
-      return (
-        <button
-          key={page}
-          onClick={() => setCurrentPage(page)}
-          className={`px-3 py-1 rounded ${
-            currentPage === page
-              ? "bg-primary text-white"
-              : "bg-white border"
-          }`}
-        >
-          {page}
-        </button>
-      );
-    })}
-
-    {/* Next */}
-    <button
-      onClick={() =>
-        setCurrentPage((prev) =>
-          Math.min(prev + 1, totalPages)
-        )
-      }
-      disabled={currentPage === totalPages}
-      className="px-3 py-1 border rounded disabled:opacity-50"
-    >
-      Next
+    <button className="px-3 py-1 border border-slate-200 dark:border-brand-gold/20 rounded text-xs font-bold hover:bg-slate-50 transition-colors">
+      2
     </button>
+
   </div>
+
 </div>
+</section>
 </div>
-      </div>
-    </main>
+</main>
                 </div>
         </>
     )

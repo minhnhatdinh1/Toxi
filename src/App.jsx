@@ -46,7 +46,7 @@ import AdminAddNewTeacher from './Layouts/admin/AdmnAddNewTeacher.jsx';
 import AdminEditCourses from './Layouts/admin/AdminEditCourses.jsx';
 import AdminEditProduct from './Layouts/admin/AdminEditProduct.jsx';
 import AdminEditStudent from './Layouts/admin/AdminEditStudent.jsx';
-import AdminEditQuiz from './Layouts/admin/AdminEditQuiz.jsx';
+import AdminEditQuiz from './Layouts/admin/AdminViewQuiz.jsx';
 import AdminAddNewBlog from './Layouts/admin/AdminAddNewBlog.jsx';
 import AdminEditTeacher from './Layouts/admin/AdminEditTeacher.jsx';
 import Blog from './Layouts/blog/component/Blog.jsx';
@@ -60,7 +60,11 @@ import IntroSection from './Layouts/introduce/InTrodusection.jsx';
 import BlogIntrodution from './Layouts/introduce/BlogIntrodution.jsx';
 import AddNewListenQuiz from './Layouts/admin/addnewquiz/AddNewListenQuiz.jsx';
 import AddNewReadQuiz from './Layouts/admin/addnewquiz/AddNewReadQuiz.jsx';
-
+import AddNewWritting from './Layouts/admin/addnewquiz/AddNewWritting.jsx';
+import AdminAddNewQuiz from './Layouts/admin/AdminAddNewQuiz.jsx';
+import AdminViewQuiz from './Layouts/admin/AdminViewQuiz.jsx';
+import AddNewFillOfWord from './Layouts/admin/addnewquiz/AddNewFillOfWord.jsx';
+import EditListen from './Layouts/admin/addnewquiz/EditListen.jsx';
 function App() {
   return (
 
@@ -115,6 +119,12 @@ function App() {
       <Route path="/order-success" element={<OderSuccess />} />
       <Route path="/listenQuiz" element={<AddNewListenQuiz />} />
       <Route path="/readQuiz" element={<AddNewReadQuiz />} />
+      <Route path="/writtingQuiz" element={<AddNewWritting />} />
+      <Route path="/adminaddnewquiz" element={<AdminAddNewQuiz />} />
+      <Route path="/adminEditQuiz/:id" element={<AdminEditQuiz />} />
+      <Route path ="/adminviewquiz" element={<AdminViewQuiz />} />
+      <Route path="/AddNewFillOfWord" element={<AddNewFillOfWord />} />
+      <Route path="/editlisten" element={<EditListen />} />
       <Route
         path="/admin/products/edit/:id"
         element={<AdminEditProduct />}
