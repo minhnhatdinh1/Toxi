@@ -1,37 +1,30 @@
-import axios from "axios";
+import API from '../../service/ApiService';
 
-const API_URL = "http://localhost:8080/api/courses";
+const RESOURCE = '/courses';
 
-const getAuthHeader = () => {
-  const token = localStorage.getItem("accessToken");
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },  
-  };
-};
+// note: auth header is injected by ApiService interceptor
 
 export const getAllCourses = async () => {
-  const response = await axios.get(API_URL);
+  const response = await API.get(RESOURCE);
   return response.data;
 };  
 
 export const getCourseById = async (id) => {
-  const response = await axios.get(`${API_URL}/${id}`);
+  const response = await API.get(`${RESOURCE}/${id}`);
   return response.data;
 };
 
 export const createCourse = async (course) => {
-  const response = await axios.post(API_URL, course, getAuthHeader());
+  const response = await API.post(RESOURCE, course);
   return response.data;
 };
 
 export const updateCourse = async (id, course) => {
-  const response = await axios.put(`${API_URL}/${id}`, course, getAuthHeader());
+  const response = await API.put(`${RESOURCE}/${id}`, course);
   return response.data;
 };
 
 export const deleteCourse = async (id) => {
-  const response = await axios.delete(`${API_URL}/${id}`, getAuthHeader());
+  const response = await API.delete(`${RESOURCE}/${id}`);
   return response.data;
 };

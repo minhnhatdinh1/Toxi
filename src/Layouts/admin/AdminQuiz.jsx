@@ -144,7 +144,9 @@ const handleDelete = (id) => {
 
         <div className="flex items-center gap-3">
           {/* Add Exam Button */}
+
           <Link to="/adminAddNewQuiz">
+
             <button className="size-8 flex items-center justify-center rounded-lg bg-accent-yellow text-primary text-xs font-bold shadow-lg shadow-yellow-500/20">
               <span className="material-symbols-outlined text-xl">add</span>
             </button>

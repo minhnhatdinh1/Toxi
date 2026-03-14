@@ -1,9 +1,98 @@
-import react from "react";
+import react, { useState, useEffect } from "react";
 import logo from '../../../assets/image/LOGO (1).png'
 import { Link, useNavigate } from "react-router-dom";
 
 export default function ExamMain({ selectedExam }) {
     const navigate = useNavigate();
+    
+    // State Management
+    const [activeTab, setActiveTab] = useState('listening'); // listening, speaking, reading, writing
+    const [currentQuestion, setCurrentQuestion] = useState(1);
+    const [selectedAnswer, setSelectedAnswer] = useState(null);
+    const [userAnswers, setUserAnswers] = useState({}); // { questionId: answer }
+    const [timeRemaining, setTimeRemaining] = useState(2100); // 35 minutes in seconds
+    const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
+    const [examProgress, setExamProgress] = useState({
+        correct: 1,
+        answered: 1,
+        skipped: 0
+    });
+
+    // Auto-save answer when selected
+    useEffect(() => {
+        if (selectedAnswer !== null) {
+            setUserAnswers(prev => ({
+                ...prev,
+                [currentQuestion]: selectedAnswer
+            }));
+        }
+    }, [selectedAnswer, currentQuestion]);
+
+    // Timer countdown
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setTimeRemaining(prev => {
+                if (prev <= 0) {
+                    clearInterval(timer);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        
+        return () => clearInterval(timer);
+    }, []);
+
+    // Format time display
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    // Handle tab switch
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        setCurrentQuestion(1);
+        setSelectedAnswer(null);
+        setIsAnswerSubmitted(false);
+    };
+
+    // Handle next question
+    const handleNextQuestion = () => {
+        if (currentQuestion < 40) {
+            setCurrentQuestion(currentQuestion + 1);
+            setSelectedAnswer(userAnswers[currentQuestion + 1] || null);
+            setIsAnswerSubmitted(false);
+        }
+    };
+
+    // Handle previous question
+    const handlePreviousQuestion = () => {
+        if (currentQuestion > 1) {
+            setCurrentQuestion(currentQuestion - 1);
+            setSelectedAnswer(userAnswers[currentQuestion - 1] || null);
+            setIsAnswerSubmitted(false);
+        }
+    };
+
+    // Handle submit answer (show feedback)
+    const handleSubmitAnswer = () => {
+        if (selectedAnswer !== null) {
+            setIsAnswerSubmitted(true);
+            // Update progress
+            setExamProgress(prev => ({
+                ...prev,
+                correct: selectedAnswer === 'B' ? prev.correct + 1 : prev.correct
+            }));
+        }
+    };
+
+    // Handle submit exam
+    const handleSubmitExam = () => {
+        navigate('/ExamResult', { state: { selectedExam: examData, userAnswers, timeRemaining } });
+    };
+
     // Nếu không có selectedExam, sử dụng dữ liệu mặc định
     const examData = selectedExam || {
         id: 1,
@@ -16,87 +105,16 @@ export default function ExamMain({ selectedExam }) {
 
     return(
         <>
-        <div className="relative flex h-auto min-h-screen w-full flex-col bg-chinese-pattern overflow-x-hidden">
-      {/* Header */}
-       <div className="max-w-5xl mx-auto bg-white dark:bg-surface-dark shadow-sm z-50 sticky top-0">
-       <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-chinese-pattern opacity-10 pointer-events-none"></div>
-
-      <div className="max-w-6xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-8 relative z-10">
-        {/* LOGO */}
-        <Link to="/Home" className="flex items-center gap-3 shrink-0">
-          <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />
-          <div>
-            <h1 className="text-2xl font-black tracking-tighter leading-none">
-              TOXI
-            </h1>
-            <p className="text-[8px] uppercase tracking-widest text-secondary font-bold">
-              学以致用
-            </p>
-          </div>
-        </Link>
-
-        {/* SEARCH */}
-        <div className="flex-1 max-w-2xl hidden md:block">
-          <div className="relative group">
-            <input
-              type="text"
-              placeholder="Tìm kiếm sản phẩm, giáo trình, dụng cụ..."
-              className="w-full pl-12 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-full text-sm focus:ring-2 focus:ring-secondary focus:bg-white focus:text-primary transition-all placeholder-white/60"
-            />
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/60 group-focus-within:text-primary">
-              search
-            </span>
-          </div>
-        </div>
-
-        {/* ACTIONS */}
-        <div className="flex items-center gap-6 shrink-0">
-          {/* CART */}
-          <div className="relative group cursor-pointer">
-          <button className="flex-[1.5] px-8 py-5 bg-primary text-secondary font-bold rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 group">
       
-      <span
-        className="material-symbols-outlined group-hover:scale-110 transition-transform cursor-pointer"
-        onClick={(e) => {
-          e.stopPropagation(); // không trigger click của button
-          navigate("/cart");
-        }}
-      >
-        shopping_cart
-      </span>
-      </button>
-          </div>
-
-        {/* Avatar */}
-<div className="hidden sm:flex items-center">
-  <div
-    className="bg-center bg-no-repeat bg-cover rounded-full size-9 border-2 border-white shadow-sm cursor-pointer"
-    style={{
-      backgroundImage:
-        'url("https://lh3.googleusercontent.com/aida-public/AB6AXuANadJSyOfDTclENxTAo2sw3Zjh7pnp9KKg6h2O4DPIjBYyTW71cyBejL6epjf4bncopuLtFsS_S28mcoEHv7h1zzA9eQlltIXtwDZfsYjCeMxjDdAPnQkvKLCnuYjrECMphza2dJScBgPHRGqoIUccTQUhZWLevuqN5gbt-Gdi0v_35rRW79Z__1-tjeWPfsTpAYBzqjrPwvrzKlKTY8K7uLo1-SOwA3-7T7eW-upJSD1KOVr7iIff5utR8-CjWJTlAFJYfsztm9s")',
-    }}
-  />
-</div>
-
-          {/* MOBILE MENU */}
-          <button className="md:hidden text-white">
-            <span className="material-symbols-outlined">menu</span>
-          </button>
-        </div>
-      </div>
-    </header>
-      </div>
            <main className="layout-container flex flex-col flex-1 w-full px-4 md:px-6 lg:px-10 py-6 md:py-8 gap-6">
       
       {/* Breadcrumbs */}
       <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-text-secondary dark:text-gray-400 overflow-x-auto">
-        <a className="hover:text-primary dark:hover:text-primary-light transition-colors whitespace-nowrap" href="#">
+        <a className="hover:text-primary dark:hover:text-primary-light transition-colors whitespace-nowrap" href="/Home">
           Trang chủ
         </a>
         <span className="material-symbols-outlined text-sm sm:text-[16px] flex-shrink-0">chevron_right</span>
-        <a className="hover:text-primary dark:hover:text-primary-light transition-colors whitespace-nowrap" href="#">
+        <a className="hover:text-primary dark:hover:text-primary-light transition-colors whitespace-nowrap" href="/Practice">
           Học tập
         </a>
         <span className="material-symbols-outlined text-sm sm:text-[16px] flex-shrink-0">chevron_right</span>
@@ -143,25 +161,53 @@ export default function ExamMain({ selectedExam }) {
       {/* Tabs Navigation */}
       <div className="sticky top-[64px] sm:top-[72px] z-40 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm pt-1 sm:pt-2 -mx-4 px-4 md:mx-0 md:px-0">
         <div className="flex overflow-x-auto pb-2 gap-1 sm:gap-2 hide-scrollbar md:gap-4 border-b border-gray-200 dark:border-gray-800">
-          <button className="group flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-3 border-b-2 border-primary text-primary bg-white/50 dark:bg-surface-dark/50 rounded-t-lg transition-all text-xs sm:text-base">
+          <button 
+            onClick={() => handleTabChange('listening')}
+            className={`group flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-3 border-b-2 rounded-t-lg transition-all text-xs sm:text-base ${
+              activeTab === 'listening'
+                ? 'border-primary text-primary bg-white/50 dark:bg-surface-dark/50'
+                : 'border-transparent text-text-secondary hover:text-text-main hover:bg-white/30 dark:hover:bg-surface-dark/30'
+            }`}
+          >
             <span className="material-symbols-outlined filled text-base sm:text-lg">headphones</span>
             <span className="font-bold whitespace-nowrap hidden sm:inline">Nghe (听)</span>
             <span className="font-bold whitespace-nowrap sm:hidden">Nghe</span>
           </button>
 
-          <button className="group flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-3 border-b-2 border-transparent text-text-secondary hover:text-text-main hover:bg-white/30 dark:hover:bg-surface-dark/30 rounded-t-lg transition-all text-xs sm:text-base">
+          <button 
+            onClick={() => handleTabChange('speaking')}
+            className={`group flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-3 border-b-2 rounded-t-lg transition-all text-xs sm:text-base ${
+              activeTab === 'speaking'
+                ? 'border-primary text-primary bg-white/50 dark:bg-surface-dark/50'
+                : 'border-transparent text-text-secondary hover:text-text-main hover:bg-white/30 dark:hover:bg-surface-dark/30'
+            }`}
+          >
             <span className="material-symbols-outlined text-base sm:text-lg">mic</span>
             <span className="font-medium whitespace-nowrap hidden sm:inline">Nói (说)</span>
             <span className="font-medium whitespace-nowrap sm:hidden">Nói</span>
           </button>
 
-          <button className="group flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-3 border-b-2 border-transparent text-text-secondary hover:text-text-main hover:bg-white/30 dark:hover:bg-surface-dark/30 rounded-t-lg transition-all text-xs sm:text-base">
+          <button 
+            onClick={() => handleTabChange('reading')}
+            className={`group flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-3 border-b-2 rounded-t-lg transition-all text-xs sm:text-base ${
+              activeTab === 'reading'
+                ? 'border-primary text-primary bg-white/50 dark:bg-surface-dark/50'
+                : 'border-transparent text-text-secondary hover:text-text-main hover:bg-white/30 dark:hover:bg-surface-dark/30'
+            }`}
+          >
             <span className="material-symbols-outlined text-base sm:text-lg">menu_book</span>
             <span className="font-medium whitespace-nowrap hidden sm:inline">Đọc (读)</span>
             <span className="font-medium whitespace-nowrap sm:hidden">Đọc</span>
           </button>
 
-          <button className="group flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-3 border-b-2 border-transparent text-text-secondary hover:text-text-main hover:bg-white/30 dark:hover:bg-surface-dark/30 rounded-t-lg transition-all text-xs sm:text-base">
+          <button 
+            onClick={() => handleTabChange('writing')}
+            className={`group flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-3 border-b-2 rounded-t-lg transition-all text-xs sm:text-base ${
+              activeTab === 'writing'
+                ? 'border-primary text-primary bg-white/50 dark:bg-surface-dark/50'
+                : 'border-transparent text-text-secondary hover:text-text-main hover:bg-white/30 dark:hover:bg-surface-dark/30'
+            }`}
+          >
             <span className="material-symbols-outlined text-base sm:text-lg">edit_square</span>
             <span className="font-medium whitespace-nowrap hidden sm:inline">Viết (写)</span>
             <span className="font-medium whitespace-nowrap sm:hidden">Viết</span>
@@ -181,20 +227,27 @@ export default function ExamMain({ selectedExam }) {
             </h3>
 
             <div className="grid grid-cols-6 sm:grid-cols-4 gap-1 sm:gap-2">
-              <button className="aspect-square rounded-lg bg-primary text-white font-bold flex items-center justify-center shadow-md shadow-primary/30 transition-transform hover:scale-105">
-                1
-              </button>
-
-              <button className="aspect-square rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-bold flex items-center justify-center border border-green-200 dark:border-green-800">
-                <span className="material-symbols-outlined text-lg">check</span>
-              </button>
-
-              {[3, 4, 5, 6, 7, 8].map((num) => (
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
                 <button
                   key={num}
-                  className="aspect-square rounded-lg bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-400 font-medium flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  onClick={() => {
+                    setCurrentQuestion(num);
+                    setSelectedAnswer(userAnswers[num] || null);
+                    setIsAnswerSubmitted(false);
+                  }}
+                  className={`aspect-square rounded-lg font-bold flex items-center justify-center shadow-sm transition-all ${
+                    currentQuestion === num
+                      ? 'bg-primary text-white shadow-md shadow-primary/30 scale-105'
+                      : userAnswers[num]
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200'
+                      : 'bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
                 >
-                  {num}
+                  {userAnswers[num] && !userAnswers[num] ? (
+                    <span className="material-symbols-outlined text-lg">check</span>
+                  ) : (
+                    num
+                  )}
                 </button>
               ))}
             </div>
@@ -234,7 +287,9 @@ export default function ExamMain({ selectedExam }) {
 
           <div className="flex items-center gap-1 sm:gap-2 text-text-secondary text-xs sm:text-sm font-medium">
             <span className="material-symbols-outlined text-base sm:text-lg">timer</span>
-            <span>04:12</span>
+            <span className={`font-bold ${timeRemaining < 300 ? 'text-red-500' : 'text-primary'}`}>
+              {formatTime(timeRemaining)}
+            </span>
           </div>
         </div>
 
@@ -280,7 +335,14 @@ export default function ExamMain({ selectedExam }) {
 
             {/* Option A */}
             <label className="cursor-pointer group relative">
-              <input type="radio" name="answer" className="peer sr-only" />
+              <input 
+                type="radio" 
+                name="answer" 
+                value="A"
+                checked={selectedAnswer === 'A'}
+                onChange={(e) => setSelectedAnswer(e.target.value)}
+                className="peer sr-only" 
+              />
               <div className="relative overflow-hidden rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-1 transition-all peer-checked:border-primary peer-checked:shadow-lg peer-checked:shadow-primary/20 hover:border-primary/50">
                 <div
                   className="w-full rounded-lg bg-cover bg-center h-40 sm:h-48 md:h-56"
@@ -298,7 +360,14 @@ export default function ExamMain({ selectedExam }) {
 
             {/* Option B */}
             <label className="cursor-pointer group relative">
-              <input type="radio" name="answer" className="peer sr-only" />
+              <input 
+                type="radio" 
+                name="answer" 
+                value="B"
+                checked={selectedAnswer === 'B'}
+                onChange={(e) => setSelectedAnswer(e.target.value)}
+                className="peer sr-only" 
+              />
               <div className="relative overflow-hidden rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-1 transition-all peer-checked:border-primary peer-checked:shadow-lg peer-checked:shadow-primary/20 hover:border-primary/50">
                 <div
                   className="w-full rounded-lg bg-cover bg-center h-40 sm:h-48 md:h-56"
@@ -319,7 +388,11 @@ export default function ExamMain({ selectedExam }) {
 
         {/* Footer */}
         <div className="mt-auto px-3 sm:px-6 py-3 sm:py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
-          <button className="flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-text-secondary font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm sm:text-base">
+          <button 
+            onClick={handlePreviousQuestion}
+            disabled={currentQuestion === 1}
+            className="flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-text-secondary font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <span className="material-symbols-outlined text-lg sm:text-xl">arrow_back</span>
             <span className="hidden sm:inline">Trước</span>
           </button>
@@ -330,7 +403,11 @@ export default function ExamMain({ selectedExam }) {
               <span className="sm:hidden">Đáp án</span>
             </button>
 
-            <button type="button" onClick={() => navigate('/ExamResult', { state: { selectedExam: examData } })} className="flex-1 sm:flex-none flex items-center justify-center gap-1 sm:gap-2 px-4 sm:px-8 py-2 sm:py-2.5 rounded-lg bg-primary text-white font-bold shadow-md shadow-primary/30 hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/40 transition-all active:scale-95 text-xs sm:text-base">
+            <button 
+              onClick={handleSubmitExam}
+              type="button" 
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1 sm:gap-2 px-4 sm:px-8 py-2 sm:py-2.5 rounded-lg bg-primary text-white font-bold shadow-md shadow-primary/30 hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/40 transition-all active:scale-95 text-xs sm:text-base"
+            >
               <span className="hidden sm:inline">Nộp bài</span>
               <span className="sm:hidden">Nộp</span>
               <span className="material-symbols-outlined text-sm sm:text-lg">send</span>
@@ -339,7 +416,11 @@ export default function ExamMain({ selectedExam }) {
         </div>
 
         {/* Feedback Overlay */}
-        <div className="absolute bottom-3 sm:bottom-6 right-3 sm:right-6 max-w-xs sm:max-w-sm bg-white dark:bg-surface-dark rounded-lg sm:rounded-xl shadow-2xl shadow-green-900/10 border-2 border-green-500 overflow-hidden transform translate-y-2 opacity-0 pointer-events-none group-hover/card:opacity-100 group-hover/card:translate-y-0 transition-all duration-300 z-10">
+        <div className={`absolute bottom-3 sm:bottom-6 right-3 sm:right-6 max-w-xs sm:max-w-sm bg-white dark:bg-surface-dark rounded-lg sm:rounded-xl shadow-2xl shadow-green-900/10 border-2 border-green-500 overflow-hidden z-10 transition-all duration-300 ${
+          isAnswerSubmitted
+            ? 'translate-y-0 opacity-100'
+            : 'translate-y-2 opacity-0 pointer-events-none'
+        }`}>
           <div className="bg-green-500 px-3 sm:px-4 py-1.5 sm:py-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
             <span className="text-white font-bold flex items-center gap-1 sm:gap-2 text-xs sm:text-base">
               <span className="material-symbols-outlined text-lg sm:text-xl">check_circle</span>
@@ -441,7 +522,7 @@ export default function ExamMain({ selectedExam }) {
       </div>
     </div>
       </main>
-    </div>
+
     
         </>
     )

@@ -126,7 +126,9 @@ export default function AdminAddNewStudent() {
 
           <div className="p-8">
 
+
             <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+
 
 
               {/* Section: Account Information */}
@@ -148,9 +150,11 @@ export default function AdminAddNewStudent() {
                   <input
                     type="text"
 
+
                     name="username"
                     value={formData.username}
                     onChange={handleChange}
+
 
                     placeholder="e.g. li_wei88"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
@@ -163,6 +167,7 @@ export default function AdminAddNewStudent() {
                   </label>
                   <input
                     type="text"
+
 
                     name="fullName"
                     value={formData.fullName}
@@ -200,6 +205,8 @@ export default function AdminAddNewStudent() {
                     value={formData.phone}
                     onChange={handleChange}
 
+
+  
                     placeholder="+86 123 4567 8901"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                   />

@@ -37,7 +37,9 @@ import StepReset from './Layouts/auth/ForgotPassword/StepReset.jsx';
 import AdminPage from './Layouts/admin/AdminPage.jsx';
 import AdminCourse from './Layouts/admin/AdminCourse.jsx';
 import AdminProduct from './Layouts/admin/AdminProduct.jsx';
-import AdminExample from './Layouts/admin/AdminExample.jsx';
+
+
+
 import AdminQuiz from "./Layouts/admin/Adminquiz";
 import AdminStudent from './Layouts/admin/AdminStudent.jsx';
 import AdminFinance from './Layouts/admin/AdminFinance.jsx';
@@ -46,8 +48,9 @@ import AdminAddNewProduct from './Layouts/admin/AdminAddNewProduct.jsx';
 import AdminBlog from './Layouts/admin/AdminBlog.jsx';
 import AdminTeacher from './Layouts/admin/AdminTeacher.jsx';
 import AdminAddNewStudent from './Layouts/admin/AdminAddNewStudent.jsx';
-import AdminAddNewExample from './Layouts/admin/AdminAddNewExample.jsx';
+
 import AdminAddNewQuiz from './Layouts/admin/AdminAddNewQuiz.jsx';
+
 import AdminAddNewTeacher from './Layouts/admin/AdmnAddNewTeacher.jsx';
 import AdminEditCourses from './Layouts/admin/AdminEditCourses.jsx';
 import AdminEditProduct from './Layouts/admin/AdminEditProduct.jsx';
@@ -55,8 +58,23 @@ import AdminEditStudent from './Layouts/admin/AdminEditStudent.jsx';
 import AdminEditQuiz from './Layouts/admin/AdminEditQuiz.jsx';
 import AdminAddNewBlog from './Layouts/admin/AdminAddNewBlog.jsx';
 import AdminEditTeacher from './Layouts/admin/AdminEditTeacher.jsx';
+
 import AdminOrders from './Layouts/admin/AdminOrders.jsx';
 import AdminDetalProduct from "./Layouts/admin/AdminDetailProduct.jsx";
+
+import Blog from './Layouts/blog/component/Blog.jsx';
+import BlogDetailPage from './Layouts/blog/BlogDetailPage.jsx';
+import BlogMain from './Layouts/blog/component/BlogDetailMain.jsx';
+import AdminExam from './Layouts/admin/AdminExam.jsx';
+import AdminAddNewExam from './Layouts/admin/AdminAddNewExam.jsx';
+import NotFound from './Layouts/common/NotFound.jsx';
+import OderSuccess from './Layouts/common/OderSuccess.jsx';
+import IntroSection from './Layouts/introduce/InTrodusection.jsx';
+import BlogIntrodution from './Layouts/introduce/BlogIntrodution.jsx';
+import AddNewListenQuiz from './Layouts/admin/addnewquiz/AddNewListenQuiz.jsx';
+import AddNewReadQuiz from './Layouts/admin/addnewquiz/AddNewReadQuiz.jsx';
+
+
 function App() {
   return (
     <Routes>
@@ -64,9 +82,16 @@ function App() {
       <Route path="/" element={<MainLayout />}>
         <Route index element={<Navigate to="/home" replace />} />
         <Route path="home" element={<HomePage />} />
-        <Route path="blog" element={<BlogPage />} />
+
+        <Route path="/blog" element={<Blog />} />
+        
+        <Route path="/blog/:id" element={<BlogDetailPage />} />
+     
+
         <Route path="Practice" element={<PracticePage />} />
         <Route path="/course" element={<Course />} />
+        <Route path="/Introduction" element={<IntroSection />} />
+        <Route path="/blogintroduce" element={<BlogIntrodution />} />
       </Route>
 
       <Route path="/payment/qr"      element={<QRPaymentPage />} />
@@ -93,11 +118,12 @@ function App() {
       <Route path="/MissingPasswordStepCode" element={<StepCode />} />
       <Route path="/reset-password" element={<StepReset />} />
 
+
       {/* ===== ADMIN ROUTES (tất cả đều được bọc trong AdminRoute) ===== */}
       <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
       <Route path="/adminCourse" element={<AdminRoute><AdminCourse /></AdminRoute>} />
       <Route path="/adminProduct" element={<AdminRoute><AdminProduct /></AdminRoute>} />
-      <Route path="/adminExample" element={<AdminRoute><AdminExample /></AdminRoute>} />
+
       <Route path="/adminQuiz" element={<AdminRoute><AdminQuiz /></AdminRoute>} />
       <Route path="/adminStudent" element={<AdminRoute><AdminStudent /></AdminRoute>} />
       <Route path="/adminFinance" element={<AdminRoute><AdminFinance /></AdminRoute>} />
@@ -107,7 +133,7 @@ function App() {
       <Route path="/adminTeacher" element={<AdminRoute><AdminTeacher /></AdminRoute>} />
       <Route path="/adminAddNewStudent" element={<AdminRoute><AdminAddNewStudent /></AdminRoute>} />
       <Route path="/adminAddNewTeacher" element={<AdminRoute><AdminAddNewTeacher /></AdminRoute>} />
-      <Route path="/adminNewExample" element={<AdminRoute><AdminAddNewExample /></AdminRoute>} />
+      
       <Route path="/adminAddNewQuiz" element={<AdminRoute><AdminAddNewQuiz /></AdminRoute>} />
       <Route path="/admin/courses/edit/:id" element={<AdminRoute><AdminEditCourses /></AdminRoute>} />
       <Route path="/editCourse/:id" element={<AdminRoute><AdminEditCourses /></AdminRoute>} />
@@ -120,6 +146,7 @@ function App() {
       <Route path="/success" element={<SuccessPage />} />
 <Route path="/waiting" element={<WaitingPage />} />
   <Route path="/adminProductDetail/:id" element={<AdminDetalProduct />} />
+
     </Routes>
   )
 };

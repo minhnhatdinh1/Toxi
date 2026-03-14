@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
+// shared components
+import FilterSidebar from '../../components/FilterSidebar';
+import StarRating from '../../components/StarRating';
+
 export default function Course() {
   const [courses, setCourses] = useState([]);
   const [sortType, setSortType] = useState("newest");
+  const [selectedLevels, setSelectedLevels] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedRatings, setSelectedRatings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const formatCurrency = (number) => {
@@ -25,9 +32,33 @@ export default function Course() {
       });
   }, []);
 
-  const sortedCourses = [...courses].sort((a, b) => {
+  const sortedCourses = [...courses].filter((course) => {
+    // Filter by level
+    if (selectedLevels.length > 0) {
+      if (!selectedLevels.includes(course.level)) {
+        return false;
+      }
+    }
+
+    // Filter by category
+    if (selectedCategories.length > 0) {
+      if (!selectedCategories.includes(course.courseType)) {
+        return false;
+      }
+    }
+
+    // Filter by ratings
+    if (selectedRatings.length > 0) {
+      if (!selectedRatings.includes(Math.round(course.rating))) {
+        return false;
+      }
+    }
+
+    return true;
+  }).sort((a, b) => {
     if (sortType === "price-low-to-high") return a.price - b.price;
     if (sortType === "price-high-to-low") return b.price - a.price;
+    if (sortType === "rating-high-to-low") return (b.rating || 0) - (a.rating || 0);
     return b.courseId - a.courseId; // newest
   });
 
@@ -97,7 +128,7 @@ export default function Course() {
             <div className="flex flex-wrap items-center gap-4 md:gap-8">
               <div className="text-sm text-slate-500">
                 Hiển thị{" "}
-                <span className="font-bold text-primary">{courses.length}</span>{" "}
+                <span className="font-bold text-primary">{sortedCourses.length}</span>{" "}
                 khóa học
               </div>
 
@@ -113,11 +144,14 @@ export default function Course() {
                   <option value="newest">Mới nhất</option>
                   <option value="price-low-to-high">Giá: Thấp đến cao</option>
                   <option value="price-high-to-low">Giá: Cao đến thấp</option>
+                  <option value="rating-high-to-low">Đánh giá cao nhất</option>
                 </select>
               </div>
             </div>
           </div>
         </section>
+
+     {/* FILTER SECTION */}
 
         {/* COURSE GRID */}
         <section className="py-12 px-6 md:px-12">
@@ -126,7 +160,7 @@ export default function Course() {
               Đang tải khóa học...
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
               {sortedCourses.map((course) => (
                 <div
                   key={course.courseId}
@@ -160,7 +194,15 @@ export default function Course() {
                     </div>
 
                     <div className="mt-auto"> 
-                      
+                      {/* rating */}
+                      <div className="flex items-center gap-1 mb-2">
+                        <StarRating value={course.rating || 0} size="text-sm" />
+                        {course.rating != null && (
+                          <span className="text-xs text-slate-400">
+                            {course.rating.toFixed(1)}
+                          </span>
+                        )}
+                      </div>
                       {/* PRICE */}
                       {course.discountPrice &&
                       course.discountPrice < course.price ? (

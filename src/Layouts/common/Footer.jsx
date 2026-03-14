@@ -48,7 +48,7 @@ const Footer = () => {
             <h3 className="text-white font-bold mb-4">Về TOXI</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a className="hover:text-primary transition-colors" href="#">
+                <a className="hover:text-primary transition-colors" href="/blogintroduce">
                   Giới thiệu chung
                 </a>
               </li>

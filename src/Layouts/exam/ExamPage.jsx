@@ -1,20 +1,12 @@
 import { useEffect, useState } from 'react';
-import ExamMain from "./component/ExamMain";
-
+import { Link, useNavigate } from 'react-router-dom';
+import logo from '../../assets/image/LOGO (1).png';
+import ExamMain from './component/ExamMain';
 export default function ExamPage() {
-    const [selectedExam, setSelectedExam] = useState(null);
-
-    useEffect(() => {
-        // Lấy dữ liệu exam từ sessionStorage
-        const examData = sessionStorage.getItem('selectedExam');
-        if (examData) {
-            setSelectedExam(JSON.parse(examData));
-        }
-    }, []);
-
-    return(
+    return (
         <>
-            <ExamMain selectedExam={selectedExam} />
+        <ExamMain />
         </>
     )
+    
 };

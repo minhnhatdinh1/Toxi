@@ -17,7 +17,9 @@ html {
   scroll-behavior: smooth;
 }
 
-   body {
+   body 
+   
+   {
             font-family: 'Lexend', 'Noto Sans SC', sans-serif;
         }
         .no-scrollbar::-webkit-scrollbar {
@@ -53,7 +55,7 @@ html {
             width: 100%;
             height: 100%;
         }
-
+       
 /* Table helpers used across pages */
 .table-header-cell {
     @apply text-white text-left px-6 py-4 font-bold align-middle; /* header text + spacing */
@@ -70,4 +72,7 @@ html {
 /* Improve table responsiveness */
 table {
     @apply w-full table-auto border-separate border-spacing-0;
+}
+body {
+  margin: 0;
 }

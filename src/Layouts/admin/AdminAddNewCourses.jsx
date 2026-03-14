@@ -2,9 +2,11 @@ import React from "react";
 import { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
 import { Link , useNavigate } from "react-router-dom";
+import { useApi } from "../service/useApi";
 export default function AdminAddNewCourses() {
   
     const navigate = useNavigate();
+  const { call, loading: apiLoading } = useApi();
  
   const [formData, setFormData] = useState({
     courseId: "",
@@ -43,7 +45,6 @@ const handleChange = (e) => {
       setThumbnailPreview(URL.createObjectURL(file));
     }
   };
-
   // Submit to backend
   const handleSubmit = async (status) => {
     try {
@@ -87,7 +88,6 @@ const handleChange = (e) => {
     }
   };
 
-
     return (
         
         <>
@@ -130,9 +130,10 @@ const handleChange = (e) => {
 
             <button
               onClick={handleSave}
-              className="px-6 py-2.5 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/20 hover:brightness-110 transition-all"
+              disabled={apiLoading}
+              className="px-6 py-2.5 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/20 hover:brightness-110 transition-all disabled:opacity-50"
             >
-              Save Course
+              {apiLoading ? 'Đang xử lý...' : 'Save Course'}
             </button>
           </div>
         </div>

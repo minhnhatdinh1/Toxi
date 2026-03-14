@@ -5,6 +5,7 @@ import { getAllProducts, deleteProduct } from "./api/apiProduct";
 import { exportBooksExcel } from "./api/apiFile";
 
 export default function AdminProduct() {
+
   const initialProducts = [];
   const [products, setProducts] = useState(initialProducts);
   const [filteredProducts, setFilteredProducts] = useState(initialProducts);
@@ -140,6 +141,7 @@ result = result.filter((p) => p.category === selectedCategory);
     <>
       <div className="flex h-screen overflow-hidden">
         <AdminSidebar />
+
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto bg-background-light">
           {/* Top Header */}
@@ -167,6 +169,7 @@ result = result.filter((p) => p.category === selectedCategory);
               </Link>
             </div>
           </header>
+
 
           <div className="p-8 space-y-6">
             {error && (

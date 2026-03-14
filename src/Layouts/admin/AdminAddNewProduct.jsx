@@ -5,6 +5,7 @@ import { createProduct } from "./api/apiProduct";
 import { getAllCategories } from "./api/apiCategory";
 import { uploadImage } from "./api/apiFile";
 
+
 export default function AdminAddNewProduct() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -35,6 +36,7 @@ export default function AdminAddNewProduct() {
   }, []);
  
   const [formData, setFormData] = useState({
+
     bookId: "",
     title: "",
     category: [],

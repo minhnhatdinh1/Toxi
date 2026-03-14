@@ -235,8 +235,6 @@ const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
     {/* Actions */}
     <div className="flex gap-3">
 
-      {/* Add Post Button */}
-
   {/* Add Post */}
   <button
     onClick={() => navigate("/admin/blog/add")}
@@ -404,6 +402,7 @@ const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
           chevron_right
         </span>
       </button>
+
 
     </div>
   )}

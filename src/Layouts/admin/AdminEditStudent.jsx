@@ -16,7 +16,9 @@ export default function AdminEditStudent() {
     password: "password123",
     confirmPassword: "password123",
 
+
   };
+
 
   const [formData, setFormData] = useState(initialFormData);
   const [originalFormData, setOriginalFormData] = useState(initialFormData);
@@ -144,6 +146,7 @@ export default function AdminEditStudent() {
 
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+
 
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -341,8 +344,6 @@ export default function AdminEditStudent() {
         </button>
       </div>
     </form>
-
-
 
           </div>
         </div>

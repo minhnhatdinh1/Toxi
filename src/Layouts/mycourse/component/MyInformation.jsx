@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+
 import logo from '../../../assets/image/LOGO (1).png';
 import UserSidebar from './UserSidebar';
 import { fetchWithAuth } from "../../../utils/apiClient";
@@ -108,6 +109,7 @@ export default function MyInformation() {
 
     return data.avatarUrl;
   };
+
 
   // ─────────────────────────────────────────
   // Upload avatar ngay (nút "Lưu ảnh ngay")
@@ -453,5 +455,6 @@ export default function MyInformation() {
         </div>
       </main>
     </div>
+
   );
 }

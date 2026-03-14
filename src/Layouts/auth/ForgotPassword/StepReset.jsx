@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import toxiLogo from "../../../assets/image/LOGO (1).png"
 import { Link, useNavigate } from "react-router-dom";
 import { resetPasswordApi } from "../api/authApi";
+import { useToast } from '../../common/ToastContext';
 
 export default function StepReset(){
   const navigate = useNavigate();
+  const toast = useToast();
   const [passwords, setPasswords] = useState({ new: '', confirm: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -51,16 +53,19 @@ export default function StepReset(){
     // Validation
     if (passwords.new.length < 8) {
       setError('Mật khẩu phải có ít nhất 8 ký tự');
+      toast.addToast('Mật khẩu phải có ít nhất 8 ký tự', 'error');
       return;
     }
     
     if (passwords.new !== passwords.confirm) {
       setError('Mật khẩu xác nhận không khớp');
+      toast.addToast('Mật khẩu xác nhận không khớp', 'error');
       return;
     }
 
     if (!verifiedEmail) {
       setError('Email không tìm thấy. Vui lòng quay lại và xác thực lại.');
+      toast.addToast('Email không tìm thấy', 'error');
       return;
     }
 
@@ -77,14 +82,17 @@ export default function StepReset(){
         localStorage.removeItem('otpToken');
         localStorage.removeItem('resetEmail');
 
-        alert('Mật khẩu đã được cập nhật thành công!');
+        toast.addToast('Mật khẩu đã được cập nhật thành công!', 'success');
         navigate('/login');
       } else {
-        setError(response.data?.message || 'Cập nhật mật khẩu thất bại');
+        const msg = response.data?.message || 'Cập nhật mật khẩu thất bại';
+        setError(msg);
+        toast.addToast(msg, 'error');
       }
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Cập nhật mật khẩu không thành công. Vui lòng thử lại.';
       setError(errorMsg);
+      toast.addToast(errorMsg, 'error');
     } finally {
       setLoading(false);
     }

@@ -198,6 +198,13 @@ className="hidden md:table-cell"
 ```jsx
 // Responsive heading
 <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black">
+```
+
+## 🧩 Các thành phần UI bổ sung
+
+- **Breadcrumbs Navigation**: Tăng trải nghiệm người dùng, đã hiện diện ở nhiều trang (sản phẩm, khóa học, dashboard…).
+- **Star Rating Component**: Hiển thị đánh giá sao cho sản phẩm/khóa học; có thể dùng cả trong bộ lọc và thẻ sản phẩm.
+- **Filter Sidebar**: Thanh lọc bên trái (danh mục, giá, đánh giá, chủ đề) cho trang products/courses.
   Title
 </h1>
 

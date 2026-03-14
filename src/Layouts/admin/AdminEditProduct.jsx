@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
+
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { uploadImage, deleteImagesByBook } from "./api/apiFile";
 import { getAllCategories } from "./api/apiCategory";
@@ -7,6 +8,7 @@ import {
   getProductById,
   updateProduct,
 } from "../../Layouts/admin/api/apiProduct";
+
 
 export default function AdminEditProduct() {
   const navigate = useNavigate();
@@ -87,9 +89,11 @@ export default function AdminEditProduct() {
     description: "",
   });
 
+
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
 
     const tempId = `new-${Date.now()}`;
     const previewUrl = URL.createObjectURL(file);

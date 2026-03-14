@@ -1,7 +1,6 @@
 import react from "react";
 import { useState, useRef } from "react";
 import AdminSidebar from "./AdminSidebar";
-
 import { useNavigate } from "react-router-dom";
 export default function AdminEditCourses() {
   const navigate = useNavigate();
@@ -65,7 +64,7 @@ export default function AdminEditCourses() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setOriginalFormData(formData);
       setHasChanges(false);
-      setSuccessMessage("Course updated successfully!");
+      setSuccessMessage("Cập nhật khóa học thành công ");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       setError(err.message || "Failed to update course");
@@ -512,6 +511,7 @@ const handleFileChange = (e) => {
 
             className="w-full border border-primary text-primary hover:bg-primary/10 py-2.5 rounded-lg font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={saving}
+
 
           >
             Preview Course
