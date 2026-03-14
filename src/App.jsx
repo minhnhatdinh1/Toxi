@@ -55,7 +55,7 @@ import AdminAddNewTeacher from './Layouts/admin/AdmnAddNewTeacher.jsx';
 import AdminEditCourses from './Layouts/admin/AdminEditCourses.jsx';
 import AdminEditProduct from './Layouts/admin/AdminEditProduct.jsx';
 import AdminEditStudent from './Layouts/admin/AdminEditStudent.jsx';
-import AdminEditQuiz from './Layouts/admin/AdminEditQuiz.jsx';
+import AdminEditQuiz from './Layouts/admin/AdminViewQuiz.jsx';
 import AdminAddNewBlog from './Layouts/admin/AdminAddNewBlog.jsx';
 import AdminEditTeacher from './Layouts/admin/AdminEditTeacher.jsx';
 
@@ -73,8 +73,16 @@ import IntroSection from './Layouts/introduce/InTrodusection.jsx';
 import BlogIntrodution from './Layouts/introduce/BlogIntrodution.jsx';
 import AddNewListenQuiz from './Layouts/admin/addnewquiz/AddNewListenQuiz.jsx';
 import AddNewReadQuiz from './Layouts/admin/addnewquiz/AddNewReadQuiz.jsx';
+<<<<<<< HEAD
+import AddNewWritting from './Layouts/admin/addnewquiz/AddNewWritting.jsx';
+import AdminAddNewQuiz from './Layouts/admin/AdminAddNewQuiz.jsx';
+import AdminViewQuiz from './Layouts/admin/AdminViewQuiz.jsx';
+import AddNewFillOfWord from './Layouts/admin/addnewquiz/AddNewFillOfWord.jsx';
+import EditListen from './Layouts/admin/addnewquiz/EditListen.jsx';
+=======
 
 
+>>>>>>> 500286068a29e0b31fb1cf4e594cbca2a105c6dd
 function App() {
   return (
     <Routes>
@@ -117,6 +125,41 @@ function App() {
       <Route path="/MissingPassword" element={<StepEmail />} />
       <Route path="/MissingPasswordStepCode" element={<StepCode />} />
       <Route path="/reset-password" element={<StepReset />} />
+<<<<<<< HEAD
+      <Route path="/admin" element={<AdminPage />} />
+      <Route path="/adminCourse" element={<AdminCourse />} />
+      <Route path="/adminStore" element={<AdminProduct />} />
+      <Route path="/adminQuiz" element={<AdminQuiz />} />
+      <Route path="/adminStudent" element={<AdminStudent />} />
+      <Route path="/adminFinance" element={<AdminFinance />} />
+      <Route path="/addnewCourse" element={<AdminAddNewCourses />} />
+      <Route path="/addnewProduct" element={<AdminAddNewProduct />} />
+      <Route path="/adminBlog" element={<AdminBlog />} />
+      <Route path="/adminTeacher" element={<AdminTeacher />} />
+      <Route path="/adminAddNewStudent" element={<AdminAddNewStudent />} />
+      <Route path="/adminAddNewTeacher" element={<AdminAddNewTeacher />} />
+      <Route path="/adminExam" element={<AdminExam />} />
+      <Route path="/editCourse/:id" element={<AdminEditCourses />} />
+      <Route path="//admin/blog/add" element={<AdminAddNewBlog />} />
+      <Route path="/order-success" element={<OderSuccess />} />
+      <Route path="/listenQuiz" element={<AddNewListenQuiz />} />
+      <Route path="/readQuiz" element={<AddNewReadQuiz />} />
+      <Route path="/writtingQuiz" element={<AddNewWritting />} />
+      <Route path="/adminaddnewquiz" element={<AdminAddNewQuiz />} />
+      <Route path="/adminEditQuiz/:id" element={<AdminEditQuiz />} />
+      <Route path ="/adminviewquiz" element={<AdminViewQuiz />} />
+      <Route path="/AddNewFillOfWord" element={<AddNewFillOfWord />} />
+      <Route path="/editlisten" element={<EditListen />} />
+      <Route
+        path="/admin/products/edit/:id"
+        element={<AdminEditProduct />}
+      />
+      <Route
+        path="/adminEditStudent/:id"
+        element={<AdminEditStudent />}
+      />
+=======
+>>>>>>> 500286068a29e0b31fb1cf4e594cbca2a105c6dd
 
 
       {/* ===== ADMIN ROUTES (tất cả đều được bọc trong AdminRoute) ===== */}

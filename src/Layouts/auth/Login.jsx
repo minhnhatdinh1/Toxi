@@ -23,7 +23,9 @@ const { mergeCartAfterLogin } = useCart();
     const errors = {};
     if (!userName.trim()) errors.userName = 'Vui lòng nhập tài khoản';
     if (!passWord) errors.passWord = 'Vui lòng nhập mật khẩu';
-    if (passWord && passWord.length < 5) errors.passWord = 'Mật khẩu phải có ít nhất 8 ký tự';
+
+    if (passWord && passWord.length < 5) errors.passWord = 'Mật khẩu phải có ít nhất 5 ký tự';
+
 
     setFieldErrors(errors);
 
