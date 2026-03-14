@@ -1,11 +1,13 @@
 import react from "react";
 import { useState, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
+
 import { useNavigate } from "react-router-dom";
 export default function AdminEditStudent() {
   const navigate = useNavigate();
 
   const initialFormData = {
+
     username: "li_wei88",
     fullName: "Li Wei",
     email: "li.wei@example.com",
@@ -13,7 +15,10 @@ export default function AdminEditStudent() {
     address: "123 Blossom Lane, District 5, Shanghai",
     password: "password123",
     confirmPassword: "password123",
+
+
   };
+
 
   const [formData, setFormData] = useState(initialFormData);
   const [originalFormData, setOriginalFormData] = useState(initialFormData);
@@ -88,6 +93,7 @@ export default function AdminEditStudent() {
     setFormData(originalFormData);
     setHasChanges(false);
     navigate("/adminStudent");
+
   };
 
     return(
@@ -137,7 +143,11 @@ export default function AdminEditStudent() {
           <div className="h-2 bg-gradient-to-r from-primary via-toxi-gold to-primary"></div>
 
           <div className="p-8">
+
+
             <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+
+
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -227,6 +237,7 @@ export default function AdminEditStudent() {
                 </div>
 
               </div>
+
       {/* Section: Security */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {error && (
@@ -245,6 +256,7 @@ export default function AdminEditStudent() {
             <span className="text-sm">{successMessage}</span>
           </div>
         )}
+
         <div className="col-span-2 flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
           <span className="material-symbols-outlined text-primary">
             lock
@@ -308,14 +320,17 @@ export default function AdminEditStudent() {
         <button
           type="button"
           onClick={handleCancel}
+
           disabled={saving}
           className="px-6 py-3 rounded-xl text-slate-600 dark:text-slate-400 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+
         >
           Cancel
         </button>
 
         <button
           type="submit"
+
           disabled={saving || !hasChanges}
           className="px-10 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -329,6 +344,7 @@ export default function AdminEditStudent() {
         </button>
       </div>
     </form>
+
           </div>
         </div>
 

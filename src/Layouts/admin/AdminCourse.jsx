@@ -2,8 +2,9 @@ import React, { useState,useEffect   } from 'react';
 import AdminSidebar from "./AdminSidebar";
 import { Link } from "react-router-dom";
 export default function AdminCourse() {
-const [loading, setLoading] = useState(false);
-const [error, setError] = useState("");
+
+
+
   
  const [courses, setCourses] = useState([]);
   const token = localStorage.getItem("token");
@@ -37,29 +38,18 @@ const [error, setError] = useState("");
 
     fetchCourses(); // reload lại danh sách
   };
-  
-  const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState('All'); // All, Active, Draft
-  const coursesPerPage = 5; // mỗi trang 5 khóa học
- 
-  // Filter courses by status
-  const filteredCourses = statusFilter === 'All'
-    ? courses
-    : courses.filter(c => c.status === statusFilter);
 
-  const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
-  const indexOfLastCourse = currentPage * coursesPerPage;
-  const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
+const [currentPage, setCurrentPage] = useState(1);
+const coursesPerPage = 5; // mỗi trang 5 khóa học
+ const totalPages = Math.ceil(courses.length / coursesPerPage);
+ const indexOfLastCourse = currentPage * coursesPerPage;
+const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
 
-  const paginated = filteredCourses.slice(
-    indexOfFirstCourse,
-    indexOfLastCourse
-  );
+const paginated = courses.slice(
+  indexOfFirstCourse,
+  indexOfLastCourse
+);
 
-  const handleTabChange = (tab) => {
-    setStatusFilter(tab);
-    setCurrentPage(1); // reset về trang đầu
-  };
 
   return (
     <>
@@ -94,34 +84,21 @@ const [error, setError] = useState("");
           <div className="flex-1 overflow-auto p-8">
             {/* Tabs */}
             <div className="flex gap-8 mb-6 border-b border-gray-200 dark:border-white/10">
-              <button
-                onClick={() => handleTabChange('All')}
-                className={`pb-4 font-bold border-b-2 flex items-center gap-2 transition-colors ${statusFilter === 'All' ? 'text-primary dark:text-accent border-primary dark:border-accent' : 'text-gray-400 border-transparent hover:text-primary dark:hover:text-accent'}`}
-              >
+
+              <button className="pb-4 text-primary dark:text-accent font-bold border-b-2 border-primary dark:border-accent flex items-center gap-2">
                 All Courses
                 <span className="bg-primary/10 text-primary dark:bg-accent/10 dark:text-accent px-2 py-0.5 rounded text-xs">
-                  {courses.length}
+                  24
                 </span>
               </button>
 
-              <button
-                onClick={() => handleTabChange('Active')}
-                className={`pb-4 font-medium border-b-2 flex items-center gap-2 transition-colors ${statusFilter === 'Active' ? 'text-primary dark:text-accent border-primary dark:border-accent' : 'text-gray-400 border-transparent hover:text-primary dark:hover:text-accent'}`}
-              >
+              <button className="pb-4 text-gray-400 font-medium hover:text-primary dark:hover:text-accent transition-colors">
                 Active
-                <span className="bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 px-2 py-0.5 rounded text-xs">
-                  {courses.filter(c => c.status === 'Active').length}
-                </span>
               </button>
 
-              <button
-                onClick={() => handleTabChange('Draft')}
-                className={`pb-4 font-medium border-b-2 flex items-center gap-2 transition-colors ${statusFilter === 'Draft' ? 'text-primary dark:text-accent border-primary dark:border-accent' : 'text-gray-400 border-transparent hover:text-primary dark:hover:text-accent'}`}
-              >
+              <button className="pb-4 text-gray-400 font-medium hover:text-primary dark:hover:text-accent transition-colors">
                 Draft
-                <span className="bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-400 px-2 py-0.5 rounded text-xs">
-                  {courses.filter(c => c.status === 'Draft').length}
-                </span>
+
               </button>
             </div>
 
@@ -150,16 +127,8 @@ const [error, setError] = useState("");
                 </thead>
 
            <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-  {paginated.length === 0 ? (
-    <tr>
-      <td colSpan="8" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-        <div className="flex flex-col items-center gap-2">
-          <span className="material-symbols-outlined text-4xl opacity-30">folder_off</span>
-          <p className="text-sm font-medium">Không có khóa học nào phù hợp</p>
-        </div>
-      </td>
-    </tr>
-  ) : null}
+
+
   {paginated.map((course) => (
     <tr
       key={course.courseId}
@@ -189,7 +158,9 @@ const [error, setError] = useState("");
           <span className="material-symbols-outlined text-gray-400 text-sm">
             person
           </span>
-{(course.enrolled || 0).toLocaleString()}
+
+        {(course.enrolled || 0).toLocaleString()}
+
         </div>
       </td>
       <td className="px-6 py-5 text-gray-900 dark:text-white font-semibold">
@@ -286,7 +257,9 @@ const [error, setError] = useState("");
         )
       }
       disabled={currentPage === totalPages}
-className="px-3 py-1 border rounded disabled:opacity-50"
+
+      className="px-3 py-1 border rounded disabled:opacity-50"
+
     >
       Next
     </button>
@@ -298,4 +271,5 @@ className="px-3 py-1 border rounded disabled:opacity-50"
       </div>
     </>
   )
+
 };

@@ -2,24 +2,28 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toxiLogo from "../../assets/image/LOGO (1).png";
+
+import { useCart } from "../../context/CartContext"; 
+import { jwtDecode } from "jwt-decode";
+import { loginApi } from "./api/authApi";
 import { useToast } from '../common/ToastContext';
-//import { loginApi } from "./api/authApi";
 export default function Login() {
   const [userName, setUserName] = useState("");
   const [passWord, setPassWord] = useState("");
-  const [error, setError] = useState('');
+ const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const navigate = useNavigate();
-  const toast = useToast();
+    const toast = useToast();
+const { mergeCartAfterLogin } = useCart();
+
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
-    setError('');
+  setError('');
     const errors = {};
     if (!userName.trim()) errors.userName = 'Vui lòng nhập tài khoản';
     if (!passWord) errors.passWord = 'Vui lòng nhập mật khẩu';
-    if (passWord && passWord.length < 8) errors.passWord = 'Mật khẩu phải có ít nhất 8 ký tự';
+    if (passWord && passWord.length < 5) errors.passWord = 'Mật khẩu phải có ít nhất 8 ký tự';
 
     setFieldErrors(errors);
 
@@ -30,23 +34,47 @@ export default function Login() {
       return;
     }
 
+
+
     try {
       // replace with real API call
       const res = await loginApi({
         userName,
         passWord,
       });
+      const token = res.data.accessToken;  
+    localStorage.setItem("token", res.data.accessToken);
+    localStorage.setItem("userId", res.data.userId);
+    localStorage.setItem("refreshToken", res.data.refreshToken);
+    localStorage.setItem("userName", res.data.userName);
+    localStorage.setItem("email", res.data.email); 
+       localStorage.setItem("phone", res.data.phone); 
+       await mergeCartAfterLogin(token);
+
+
+    // 🔥 Decode token để lấy role
+    const decoded = jwtDecode(token);
 
       console.log("Login success:", res.data);
-      toast.addToast('Đăng nhập thành công', 'success');
 
+
+    if (decoded.role === "ADMIN") {
+      navigate("/admin");
+        toast.addToast('Đăng nhập thành công', 'success');
+    } else {
+        toast.addToast('Đăng nhập thành công', 'success');
       navigate("/");
-    } catch (err) {
+
+    } }catch (err) {
       const message = err.response?.data?.message || "Đăng nhập thất bại";
       setError(message);
       toast.addToast(message, 'error');
+
     }
-  };
+
+
+
+};
 
   return (
     <>
@@ -101,7 +129,7 @@ export default function Login() {
                 khác.
               </p>
             </div>
-
+     
             <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
           </div>
 
@@ -149,6 +177,7 @@ export default function Login() {
                     type="text"
                     placeholder="Nhập tên đăng nhập"
                     value={userName}
+                     autoComplete="off"
                     onChange={(e) => setUserName(e.target.value)}
                     className="w-full h-12 pl-12 pr-4 bg-background-light dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-text-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all placeholder:text-gray-400 font-medium"
                   />
@@ -179,6 +208,7 @@ export default function Login() {
                   <input
                     type="password"
                     placeholder="••••••••"
+                      autoComplete="new-password"
                     value={passWord}
                     onChange={(e) => setPassWord(e.target.value)}
                     className="w-full h-12 pl-12 pr-12 bg-background-light dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-text-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all placeholder:text-gray-400 font-medium"
@@ -201,8 +231,11 @@ export default function Login() {
               {/* SUBMIT */}
               <button
                 type="submit"
-                  disabled={!userName.trim() || !passWord}
-                className="mt-2 w-full h-12 bg-primary hover:bg-primary-hover disabled:bg-gray-400 disabled:cursor-not-allowed text-secondary font-bold text-base rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 transform active:scale-[0.98] flex items-center justify-center gap-2 group"
+
+              
+                className="mt-2 w-full h-12 bg-primary hover:bg-primary-hover text-secondary font-bold text-base rounded-xl shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 transform active:scale-[0.98] flex items-center justify-center gap-2 group"
+
+
               >
                 <span>Đăng nhập</span>
                 <span className="material-symbols-outlined text-lg transition-transform group-hover:translate-x-1">
@@ -213,20 +246,7 @@ export default function Login() {
                 <p className="text-red-600 text-sm mt-2">{error}</p>
               )}
         {/* PASSWORD */}
-        <div className="flex flex-col gap-2">
-          <div className="flex justify-between items-center">
-            <label className="text-secondary dark:text-white text-sm font-semibold">
-              Mật khẩu
-            </label>
-            <a
-              href="/MissingPassword"
-              className="text-sm text-gray-500 hover:text-secondary dark:hover:text-primary transition-colors"
-            >
-              Quên mật khẩu?
-            </a>
-          </div>
-          </div>
-
+       
               {/* DIVIDER */}
               <div className="relative flex py-2 items-center">
                 <div className="flex-grow border-t border-gray-200 dark:border-white/10"></div>
