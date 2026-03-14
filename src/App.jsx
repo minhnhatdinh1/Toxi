@@ -73,11 +73,12 @@ import BlogIntrodution from './Layouts/introduce/BlogIntrodution.jsx';
 import AddNewListenQuiz from './Layouts/admin/addnewquiz/AddNewListenQuiz.jsx';
 import AddNewReadQuiz from './Layouts/admin/addnewquiz/AddNewReadQuiz.jsx';
 import AddNewWritting from './Layouts/admin/addnewquiz/AddNewWritting.jsx';
-import AdminAddNewQuiz from './Layouts/admin/AdminAddNewQuiz.jsx';
+{/*import AdminAddNewQuiz from './Layouts/admin/AdminAddNewQuiz.jsx';*/}
 import AdminViewQuiz from './Layouts/admin/AdminViewQuiz.jsx';
 import AddNewFillOfWord from './Layouts/admin/addnewquiz/AddNewFillOfWord.jsx';
 import EditListen from './Layouts/admin/addnewquiz/EditListen.jsx';
-
+import EditRead from './Layouts/admin/addnewquiz/EditRead.jsx';
+import EditWritting from './Layouts/admin/addnewquiz/EditWritting.jsx';
 function App() {
   return (
     <Routes>
@@ -121,9 +122,6 @@ function App() {
       <Route path="/MissingPasswordStepCode" element={<StepCode />} />
       <Route path="/reset-password" element={<StepReset />} />
 
-
-
-      {/* ===== ADMIN ROUTES (tất cả đều được bọc trong AdminRoute) ===== */}
       <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
       <Route path="/adminCourse" element={<AdminRoute><AdminCourse /></AdminRoute>} />
       <Route path="/adminProduct" element={<AdminRoute><AdminProduct /></AdminRoute>} />
@@ -138,12 +136,10 @@ function App() {
       <Route path="/adminAddNewStudent" element={<AdminRoute><AdminAddNewStudent /></AdminRoute>} />
       <Route path="/adminAddNewTeacher" element={<AdminRoute><AdminAddNewTeacher /></AdminRoute>} />
       
-      <Route path="/adminAddNewQuiz" element={<AdminRoute><AdminAddNewQuiz /></AdminRoute>} />
       <Route path="/admin/courses/edit/:id" element={<AdminRoute><AdminEditCourses /></AdminRoute>} />
       <Route path="/editCourse/:id" element={<AdminRoute><AdminEditCourses /></AdminRoute>} />
       <Route path="/admin/products/edit/:id" element={<AdminRoute><AdminEditProduct /></AdminRoute>} />
       <Route path="/adminEditStudent/:id" element={<AdminRoute><AdminEditStudent /></AdminRoute>} />
-        <Route path="/editQuiz/:id" element={<AdminRoute><AdminEditQuiz /></AdminRoute>} />
         <Route path="/admin/blog/add" element={<AdminRoute><AdminAddNewBlog /></AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
       <Route path="/admin/editTeacher/:id" element={<AdminRoute><AdminEditTeacher /></AdminRoute>} />
@@ -151,16 +147,17 @@ function App() {
 <Route path="/waiting" element={<WaitingPage />} />
   <Route path="/adminProductDetail/:id" element={<AdminDetalProduct />} />
 
-    
+    <Route path="/adminExam" element={<AdminRoute><AdminExam /></AdminRoute>} />
     <Route path="/listenQuiz" element={<AdminRoute><AddNewListenQuiz /></AdminRoute>} />
       <Route path="/readQuiz" element={<AdminRoute><AddNewReadQuiz /></AdminRoute>} />
       <Route path="/writtingQuiz" element={<AdminRoute><AddNewWritting /></AdminRoute>} />
-      <Route path="/adminaddnewquiz" element={<AdminRoute><AdminAddNewQuiz /></AdminRoute>} />
-      <Route path="/adminEditQuiz/:id" element={<AdminRoute><AdminEditQuiz /></AdminRoute>} />
+    {/* <Route path="/adminaddnewquiz" element={<AdminRoute><AdminAddNewQuiz /></AdminRoute>} /> */}
+      
       <Route path ="/adminviewquiz" element={<AdminRoute><AdminViewQuiz /></AdminRoute>} />
       <Route path="/AddNewFillOfWord" element={<AdminRoute><AddNewFillOfWord /></AdminRoute>} />
       <Route path="/editlisten" element={<AdminRoute><EditListen /></AdminRoute>} />
-     
+      <Route path="/editread" element={<AdminRoute><EditRead /></AdminRoute>} />
+      <Route path ="/editwritting" element={<AdminRoute><EditWritting /></AdminRoute>} />
     </Routes>
   )
 };

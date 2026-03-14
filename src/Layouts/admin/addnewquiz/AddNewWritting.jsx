@@ -681,12 +681,11 @@ Tải ảnh lên cho đề bài Viết (Ví dụ: đề bài HSK 5 phần 2 câu
 <td className="px-6 py-4">
 <div className="flex gap-2">
 
-<button className="p-1 hover:text-primary">
-<span className="material-symbols-outlined text-base">
-edit
-</span>
-</button>
-
+<Link to="/editwritting" className="p-1 hover:text-primary">
+  <span className="material-symbols-outlined text-base">
+    edit
+  </span>
+</Link>
 <button className="p-1 hover:text-red-500">
 <span className="material-symbols-outlined text-base">
 delete

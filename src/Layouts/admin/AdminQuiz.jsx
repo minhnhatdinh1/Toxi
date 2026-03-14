@@ -1,8 +1,16 @@
-
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
 export default function AdminQuiz() {
+const [currentPage, setCurrentPage] = useState(1);
+
+const handlePageChange = (page) => {
+  setCurrentPage(page);
+};
+
+const [filterLevel, setFilterLevel] = useState("all");
+const [sortType, setSortType] = useState("none");
+
 const [hskStats, setHskStats] = useState([
   {
     level: "HSK Cấp độ 1",
@@ -47,6 +55,48 @@ const [hskStats, setHskStats] = useState([
     color: "text-secondary"
   }
 ]);
+
+const quizzes = [
+  { title: "Bài luyện tập từ vựng hàng ngày bộ 1", level: "HSK 1", duration: "15 phút", questions: 20 },
+  { title: "Luyện nghe hiểu trung cấp", level: "HSK 3", duration: "45 phút", questions: 35 },
+  { title: "Đề thi thử HSK 6 cuối khóa", level: "HSK 6", duration: "120 phút", questions: 100 },
+  { title: "Trọng tâm ngữ pháp Le", level: "HSK 2", duration: "20 phút", questions: 15 },
+  { title: "Đề luyện tập HSK 4", level: "HSK 4", duration: "30 phút", questions: 40 },
+  { title: "Đề luyện tập HSK 5", level: "HSK 5", duration: "40 phút", questions: 50 }
+];
+
+const itemsPerPage = 4;
+
+//
+// FILTER
+//
+const filteredQuizzes =
+  filterLevel === "all"
+    ? quizzes
+    : quizzes.filter((quiz) => quiz.level === filterLevel);
+
+//
+// SORT
+//
+const sortedQuizzes = [...filteredQuizzes].sort((a, b) => {
+  if (sortType === "asc") return a.questions - b.questions;
+  if (sortType === "desc") return b.questions - a.questions;
+  return 0;
+});
+
+//
+// PAGINATION
+//
+const totalPages = Math.ceil(sortedQuizzes.length / itemsPerPage);
+
+const startIndex = (currentPage - 1) * itemsPerPage;
+
+const currentQuizzes = sortedQuizzes.slice(
+  startIndex,
+  startIndex + itemsPerPage
+);
+
+
     return (
         <>
    <div class="flex h-screen overflow-hidden">
@@ -55,19 +105,7 @@ const [hskStats, setHskStats] = useState([
 
 <main className=" flex-1 flex flex-col min-h-screen overflow-y-auto bg-slate-100 dark:bg-slate-900">
 
-<<<<<<< HEAD
   {/* Header */}
-=======
-        <div className="flex items-center gap-3">
-          {/* Add Exam Button */}
-
-          <Link to="/adminAddNewQuiz">
-
-            <button className="size-8 flex items-center justify-center rounded-lg bg-accent-yellow text-primary text-xs font-bold shadow-lg shadow-yellow-500/20">
-              <span className="material-symbols-outlined text-xl">add</span>
-            </button>
-          </Link>
->>>>>>> 500286068a29e0b31fb1cf4e594cbca2a105c6dd
 
   <header className="h-20 bg-white dark:bg-brand-blue/50 border-b border-slate-200 dark:border-brand-gold/20 flex items-center justify-between px-8 sticky top-0 z-40 backdrop-blur-md">
 
@@ -191,13 +229,21 @@ const [hskStats, setHskStats] = useState([
 
     <div className="flex gap-2">
 
-      <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+      <button  onClick={() =>
+    setFilterLevel(filterLevel === "HSK 1" ? "all" : "HSK 1")
+  }
+  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+>
         <span className="material-symbols-outlined text-slate-500">
           filter_list
         </span>
       </button>
 
-      <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+      <button  onClick={() =>
+    setSortType(sortType === "asc" ? "desc" : "asc")
+  }
+  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+>
         <span className="material-symbols-outlined text-slate-500">
           sort
         </span>
@@ -228,274 +274,112 @@ const [hskStats, setHskStats] = useState([
 
 
       {/* Table Body */}
-      <tbody className="divide-y divide-slate-100 dark:divide-brand-gold/5">
+     <tbody className="divide-y divide-slate-100">
 
-        {/* Row 1 */}
-        <tr className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group">
+{currentQuizzes.map((quiz, index) => (
 
-          <td className="px-6 py-4">
+<tr key={index} className="hover:bg-slate-50 transition-colors">
 
-            <div className="flex flex-col">
+<td className="px-6 py-4 font-bold">
+  {quiz.title}
+</td>
 
-              <span className="font-bold text-slate-900 dark:text-slate-100">
-                Bài luyện tập từ vựng hàng ngày bộ 1
-              </span>
+<td className="px-6 py-4">
+  <span className="px-3 py-1 bg-brand-gold/10 text-brand-gold text-xs font-bold rounded-full">
+    {quiz.level}
+  </span>
+</td>
 
-              <span className="text-xs text-slate-400">
-                Ngày tạo: 12/10/2023
-              </span>
+<td className="px-6 py-4 text-center">
+  {quiz.duration}
+</td>
 
-            </div>
+<td className="px-6 py-4 text-center">
+  {quiz.questions}
+</td>
 
-          </td>
+<td className="px-6 py-4">
+  Đang hoạt động
+</td>
 
-
-          <td className="px-6 py-4">
-
-            <span className="px-3 py-1 bg-brand-gold/10 text-brand-gold text-xs font-bold rounded-full">
-              HSK 1
-            </span>
-
-          </td>
-
-
-          <td className="px-6 py-4 text-center text-sm font-medium">
-            15 phút
-          </td>
-
-
-          <td className="px-6 py-4 text-center text-sm font-medium">
-            20
-          </td>
-
-
-          <td className="px-6 py-4">
-
-            <span className="flex items-center gap-1.5 text-green-500 text-xs font-bold">
-
-              <span className="size-2 rounded-full bg-green-500"></span>
-
-              Đang hoạt động
-
-            </span>
-
-          </td>
-
-
-          <td className="px-6 py-4 text-right">
-
-            <div className="flex items-center justify-end gap-2">
-
-            {/* Edit */}
-  <Link
+<td className="px-6 py-4 text-right">
+  <div className="flex justify-end gap-2">
+     <Link
     to="/adminviewquiz"
     className="p-1.5 text-slate-400 hover:text-brand-gold transition-colors"
-    title="Chỉnh sửa"
   >
-    <span className="material-symbols-outlined text-[20px]">
+    <span className="material-symbols-outlined">
       edit
     </span>
   </Link>
 
-  {/* Preview */}
   <Link
     to="/adminviewquiz"
     className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors"
-    title="Xem trước"
   >
-    <span className="material-symbols-outlined text-[20px]">
+    <span className="material-symbols-outlined">
       visibility
     </span>
   </Link>
-
-  {/* Delete */}
-  <Link
-    to="/admindeletequiz"
-    className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
-    title="Xóa"
-  >
-    <span className="material-symbols-outlined text-[20px]">
-      delete
-    </span>
-  </Link>
-
-
-            </div>
-
-          </td>
-
-        </tr>
-{/* Row 2 */}
-<tr className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
-  <td className="px-6 py-4">
-    <div className="flex flex-col">
-      <span className="font-bold text-slate-900 dark:text-slate-100">
-        Luyện nghe hiểu trung cấp
-      </span>
-      <span className="text-xs text-slate-400">
-        Ngày tạo: 08/10/2023
-      </span>
+    <div className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors">
+    <span className="material-symbols-outlined">delete</span>
     </div>
-  </td>
+  </div>
+</td>
 
-  <td className="px-6 py-4">
-    <span className="px-3 py-1 bg-brand-gold/10 text-brand-gold text-xs font-bold rounded-full">
-      HSK 3
-    </span>
-  </td>
-
-  <td className="px-6 py-4 text-center text-sm font-medium">
-    45 phút
-  </td>
-
-  <td className="px-6 py-4 text-center text-sm font-medium">
-    35
-  </td>
-
-  <td className="px-6 py-4">
-    <span className="flex items-center gap-1.5 text-slate-400 text-xs font-bold">
-      <span className="size-2 rounded-full bg-slate-300"></span>
-      Bản nháp
-    </span>
-  </td>
-
-  <td className="px-6 py-4 text-right">
-    <div className="flex items-center justify-end gap-2">
-      <button className="p-1.5 text-slate-400 hover:text-brand-gold transition-colors">
-        <span className="material-symbols-outlined text-[20px]">edit</span>
-      </button>
-
-      <button className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors">
-        <span className="material-symbols-outlined text-[20px]">visibility</span>
-      </button>
-
-      <button className="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
-        <span className="material-symbols-outlined text-[20px]">delete</span>
-      </button>
-    </div>
-  </td>
 </tr>
 
-{/* Row 3 */}
-<tr className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
-  <td className="px-6 py-4">
-    <div className="flex flex-col">
-      <span className="font-bold text-slate-900 dark:text-slate-100">
-        Đề thi thử HSK 6 cuối khóa
-      </span>
-      <span className="text-xs text-slate-400">
-        Ngày tạo: 29/09/2023
-      </span>
-    </div>
-  </td>
+))}
 
-  <td className="px-6 py-4">
-    <span className="px-3 py-1 bg-brand-gold/10 text-brand-gold text-xs font-bold rounded-full">
-      HSK 6
-    </span>
-  </td>
-
-  <td className="px-6 py-4 text-center text-sm font-medium">
-    120 phút
-  </td>
-
-  <td className="px-6 py-4 text-center text-sm font-medium">
-    100
-  </td>
-
-  <td className="px-6 py-4">
-    <span className="flex items-center gap-1.5 text-green-500 text-xs font-bold">
-      <span className="size-2 rounded-full bg-green-500"></span>
-      Đang hoạt động
-    </span>
-  </td>
-
-  <td className="px-6 py-4 text-right">
-    <div className="flex items-center justify-end gap-2">
-      <button className="p-1.5 text-slate-400 hover:text-brand-gold transition-colors">
-        <span className="material-symbols-outlined text-[20px]">edit</span>
-      </button>
-
-      <button className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors">
-        <span className="material-symbols-outlined text-[20px]">visibility</span>
-      </button>
-
-      <button className="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
-        <span className="material-symbols-outlined text-[20px]">delete</span>
-      </button>
-    </div>
-  </td>
-</tr>
-
-{/* Row 4 */}
-<tr className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
-  <td className="px-6 py-4">
-    <div className="flex flex-col">
-      <span className="font-bold text-slate-900 dark:text-slate-100">
-        Trọng tâm ngữ pháp: Trợ từ "Le"
-      </span>
-      <span className="text-xs text-slate-400">
-        Ngày tạo: 15/09/2023
-      </span>
-    </div>
-  </td>
-
-  <td className="px-6 py-4">
-    <span className="px-3 py-1 bg-brand-gold/10 text-brand-gold text-xs font-bold rounded-full">
-      HSK 2
-    </span>
-  </td>
-
-  <td className="px-6 py-4 text-center text-sm font-medium">
-    20 phút
-  </td>
-
-  <td className="px-6 py-4 text-center text-sm font-medium">
-    15
-  </td>
-
-  <td className="px-6 py-4">
-    <span className="flex items-center gap-1.5 text-green-500 text-xs font-bold">
-      <span className="size-2 rounded-full bg-green-500"></span>
-      Đang hoạt động
-    </span>
-  </td>
-
-  <td className="px-6 py-4 text-right">
-    <div className="flex items-center justify-end gap-2">
-      <button className="p-1.5 text-slate-400 hover:text-brand-gold transition-colors">
-        <span className="material-symbols-outlined text-[20px]">edit</span>
-      </button>
-
-      <button className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors">
-        <span className="material-symbols-outlined text-[20px]">visibility</span>
-      </button>
-
-      <button className="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
-        <span className="material-symbols-outlined text-[20px]">delete</span>
-      </button>
-    </div>
-  </td>
-</tr>
-      </tbody>
+</tbody>
 
     </table>
 
   </div>
+  {/*pagination*/}
 <div className="px-6 py-4 border-t border-slate-100 dark:border-brand-gold/5 flex items-center justify-between">
 
   <p className="text-xs text-slate-400 font-medium">
-    Hiển thị 4 trong tổng số 67 đề thi
+    Trang {currentPage} / {totalPages}
   </p>
 
   <div className="flex gap-2">
 
-    <button className="px-3 py-1 border border-slate-200 dark:border-brand-gold/20 rounded text-xs font-bold hover:bg-slate-50 transition-colors">
-      1
+    {/* Previous */}
+    <button
+      onClick={() => handlePageChange(currentPage - 1)}
+      disabled={currentPage === 1}
+      className="px-3 py-1 border border-slate-200 dark:border-brand-gold/20 rounded text-xs font-bold hover:bg-slate-50 transition-colors disabled:opacity-40"
+    >
+      Prev
     </button>
 
-    <button className="px-3 py-1 border border-slate-200 dark:border-brand-gold/20 rounded text-xs font-bold hover:bg-slate-50 transition-colors">
-      2
+    {/* Page Numbers */}
+    {[...Array(totalPages)].map((_, index) => {
+      const page = index + 1;
+
+      return (
+        <button
+          key={page}
+          onClick={() => handlePageChange(page)}
+          className={`px-3 py-1 border rounded text-xs font-bold transition-colors
+            ${currentPage === page
+              ? "bg-primary text-white border-primary"
+              : "border-slate-200 dark:border-brand-gold/20 hover:bg-slate-50"}
+          `}
+        >
+          {page}
+        </button>
+      );
+    })}
+
+    {/* Next */}
+    <button
+      onClick={() => handlePageChange(currentPage + 1)}
+      disabled={currentPage === totalPages}
+      className="px-3 py-1 border border-slate-200 dark:border-brand-gold/20 rounded text-xs font-bold hover:bg-slate-50 transition-colors disabled:opacity-40"
+    >
+      Next
     </button>
 
   </div>

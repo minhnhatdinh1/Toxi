@@ -772,11 +772,11 @@ tải lên
 <td className="px-6 py-4">
 <div className="flex gap-2">
 
-<button className="p-1 hover:text-primary">
-<span className="material-symbols-outlined text-base">
-edit
-</span>
-</button>
+<Link to="/editread" className="p-1 hover:text-primary">
+  <span className="material-symbols-outlined text-base">
+    edit
+  </span>
+</Link>
 
 <button className="p-1 hover:text-red-500">
 <span className="material-symbols-outlined text-base">

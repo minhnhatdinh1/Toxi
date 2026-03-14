@@ -62,13 +62,6 @@ const handleImageUpload = (e) => {
   </Link>
 
   <Link
-    to="/adminaddnewquiz"
-    className="bg-white/10 hover:bg-white/20 text-white font-bold px-4 py-2 rounded-full shadow-md text-sm transition-all border border-white/20"
-  >
-    Lưu và Thêm câu tiếp theo
-  </Link>
-
-  <Link
     to="/admin/publish-exam"
     className="bg-secondary text-primary font-bold px-6 py-2 rounded-full shadow-md flex items-center gap-2 text-sm"
   >

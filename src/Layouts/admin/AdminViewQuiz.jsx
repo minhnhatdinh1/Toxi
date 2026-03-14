@@ -21,7 +21,7 @@ export default function AdminViewQuiz() {
 
     <div className="flex items-center gap-4">
 
-      <a className="text-slate-500 hover:text-primary transition-colors" href="#">
+      <a className="text-slate-500 hover:text-primary transition-colors" href="/adminquiz">
         <span className="material-symbols-outlined">
           arrow_back
         </span>
@@ -396,14 +396,15 @@ export default function AdminViewQuiz() {
 
         <div className="flex items-center gap-1 transition-opacity">
 
-          <button
-            className="p-1.5 text-secondary hover:text-accent transition-all"
-            title="Sửa"
-          >
-            <span className="material-symbols-outlined text-sm font-bold">
-              edit
-            </span>
-          </button>
+        <Link
+  to="/editlisten"
+  className="p-1.5 text-secondary hover:text-accent transition-all"
+  title="Sửa"
+>
+  <span className="material-symbols-outlined text-sm font-bold">
+    edit
+  </span>
+</Link>
 
           <button
             className="p-1.5 text-secondary hover:text-red-500 transition-all"
@@ -466,15 +467,15 @@ export default function AdminViewQuiz() {
         </span>
 
         <div className="flex items-center gap-1 transition-opacity">
-
-          <button
+      
+          <Link to="/editread"
             className="p-1.5 text-secondary hover:text-accent transition-all"
             title="Sửa"
           >
             <span className="material-symbols-outlined text-sm font-bold">
               edit
             </span>
-          </button>
+          </Link>
 
           <button
             className="p-1.5 text-secondary hover:text-red-500 transition-all"
