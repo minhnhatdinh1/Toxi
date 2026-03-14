@@ -36,6 +36,8 @@ useEffect(() => {
   window.addEventListener("avatarUpdated", handleAvatarUpdated);
   return () => window.removeEventListener("avatarUpdated", handleAvatarUpdated);
 }, []);
+
+
  useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {

@@ -49,7 +49,7 @@ import AdminBlog from './Layouts/admin/AdminBlog.jsx';
 import AdminTeacher from './Layouts/admin/AdminTeacher.jsx';
 import AdminAddNewStudent from './Layouts/admin/AdminAddNewStudent.jsx';
 
-import AdminAddNewQuiz from './Layouts/admin/AdminAddNewQuiz.jsx';
+
 
 import AdminAddNewTeacher from './Layouts/admin/AdmnAddNewTeacher.jsx';
 import AdminEditCourses from './Layouts/admin/AdminEditCourses.jsx';
@@ -73,16 +73,15 @@ import IntroSection from './Layouts/introduce/InTrodusection.jsx';
 import BlogIntrodution from './Layouts/introduce/BlogIntrodution.jsx';
 import AddNewListenQuiz from './Layouts/admin/addnewquiz/AddNewListenQuiz.jsx';
 import AddNewReadQuiz from './Layouts/admin/addnewquiz/AddNewReadQuiz.jsx';
-<<<<<<< HEAD
+
 import AddNewWritting from './Layouts/admin/addnewquiz/AddNewWritting.jsx';
 import AdminAddNewQuiz from './Layouts/admin/AdminAddNewQuiz.jsx';
 import AdminViewQuiz from './Layouts/admin/AdminViewQuiz.jsx';
 import AddNewFillOfWord from './Layouts/admin/addnewquiz/AddNewFillOfWord.jsx';
 import EditListen from './Layouts/admin/addnewquiz/EditListen.jsx';
-=======
 
 
->>>>>>> 500286068a29e0b31fb1cf4e594cbca2a105c6dd
+
 function App() {
   return (
     <Routes>
@@ -125,22 +124,15 @@ function App() {
       <Route path="/MissingPassword" element={<StepEmail />} />
       <Route path="/MissingPasswordStepCode" element={<StepCode />} />
       <Route path="/reset-password" element={<StepReset />} />
-<<<<<<< HEAD
-      <Route path="/admin" element={<AdminPage />} />
-      <Route path="/adminCourse" element={<AdminCourse />} />
-      <Route path="/adminStore" element={<AdminProduct />} />
-      <Route path="/adminQuiz" element={<AdminQuiz />} />
-      <Route path="/adminStudent" element={<AdminStudent />} />
-      <Route path="/adminFinance" element={<AdminFinance />} />
-      <Route path="/addnewCourse" element={<AdminAddNewCourses />} />
-      <Route path="/addnewProduct" element={<AdminAddNewProduct />} />
-      <Route path="/adminBlog" element={<AdminBlog />} />
-      <Route path="/adminTeacher" element={<AdminTeacher />} />
-      <Route path="/adminAddNewStudent" element={<AdminAddNewStudent />} />
-      <Route path="/adminAddNewTeacher" element={<AdminAddNewTeacher />} />
+
+
+
+    
+
+
       <Route path="/adminExam" element={<AdminExam />} />
-      <Route path="/editCourse/:id" element={<AdminEditCourses />} />
-      <Route path="//admin/blog/add" element={<AdminAddNewBlog />} />
+     
+    
       <Route path="/order-success" element={<OderSuccess />} />
       <Route path="/listenQuiz" element={<AddNewListenQuiz />} />
       <Route path="/readQuiz" element={<AddNewReadQuiz />} />
@@ -150,16 +142,8 @@ function App() {
       <Route path ="/adminviewquiz" element={<AdminViewQuiz />} />
       <Route path="/AddNewFillOfWord" element={<AddNewFillOfWord />} />
       <Route path="/editlisten" element={<EditListen />} />
-      <Route
-        path="/admin/products/edit/:id"
-        element={<AdminEditProduct />}
-      />
-      <Route
-        path="/adminEditStudent/:id"
-        element={<AdminEditStudent />}
-      />
-=======
->>>>>>> 500286068a29e0b31fb1cf4e594cbca2a105c6dd
+  
+    
 
 
       {/* ===== ADMIN ROUTES (tất cả đều được bọc trong AdminRoute) ===== */}
@@ -186,6 +170,9 @@ function App() {
         <Route path="/admin/blog/add" element={<AdminRoute><AdminAddNewBlog /></AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
       <Route path="/admin/editTeacher/:id" element={<AdminRoute><AdminEditTeacher /></AdminRoute>} />
+         <Route path="/adminaddnewquiz" element={<AdminRoute><AdminAddNewQuiz /></AdminRoute>} />
+      <Route path="/adminEditQuiz/:id" element={<AdminRoute><AdminEditQuiz /></AdminRoute>} />
+      <Route path ="/adminviewquiz" element={<AdminRoute><AdminViewQuiz /></AdminRoute>} />
       <Route path="/success" element={<SuccessPage />} />
 <Route path="/waiting" element={<WaitingPage />} />
   <Route path="/adminProductDetail/:id" element={<AdminDetalProduct />} />

@@ -79,7 +79,7 @@ export default function AdminAddNewProduct() {
       "Bạn chắc chắn muốn hủy? Dữ liệu sẽ không được lưu.",
     );
     if (confirm) {
-      navigate("/adminStore");
+      navigate("/adminProduct");
     }
   };
   const handleUrlChange = (e) => {
@@ -131,7 +131,7 @@ await createProduct(payload);
   
 
       alert("Thêm sản phẩm thành công!");
-      navigate("/adminStore");
+      navigate("/adminProduct");
     } catch (err) {
       console.error("BACKEND ERROR:", err.response?.data);
       setError(err.response?.data?.message || "Không thể thêm sản phẩm.");
