@@ -1,4 +1,4 @@
-{/*import react from "react";
+import react from "react";
 import {usestate} from "react";
 import { Link } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
@@ -7,10 +7,10 @@ export default function AdminAddNewQuiz() {
         <>
   <div class="flex h-screen overflow-hidden">
             <AdminSidebar />
-            {/* Main Content 
+           {/* Main Content */}
 <main className="flex-1 flex flex-col h-screen overflow-y-auto">
 
-  {/* Header 
+  {/* Header */}
   <header className="sticky top-0 z-10 flex items-center justify-between px-8 py-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
 
     <div className="flex items-center gap-4">
@@ -35,11 +35,7 @@ export default function AdminAddNewQuiz() {
 
 
     <div className="flex items-center gap-3">
-
-      
-
-
-     {/* Publish Button 
+{/* Publish Button */}
 <Link
   to="/listenquiz"
   className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg font-bold text-sm transition-all"
@@ -56,7 +52,7 @@ export default function AdminAddNewQuiz() {
   </header>
 
 
-  {/* Form Content
+  {/* Form Content */}
   <div className="p-8 mx-auto w-full">
 
     <div className="mb-8">
@@ -74,7 +70,7 @@ export default function AdminAddNewQuiz() {
 
     <form className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-      {/* Left Column 
+      {/* Left Column */}
       <div className="lg:col-span-2 space-y-6">
 
         <section className="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -94,7 +90,7 @@ export default function AdminAddNewQuiz() {
 
           <div className="space-y-4">
 
-            {/* Exam Title 
+            {/* Exam Title */}
             <div>
 
               <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
@@ -112,7 +108,7 @@ export default function AdminAddNewQuiz() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-              {/* HSK Level 
+              {/* HSK Level */}
               <div>
 
                 <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
@@ -136,7 +132,7 @@ export default function AdminAddNewQuiz() {
               </div>
 
 
-              {/* Duration 
+              {/* Duration */}
               <div>
 
                 <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
@@ -181,7 +177,7 @@ export default function AdminAddNewQuiz() {
 
   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-    {/* Passing Score 
+    {/* Passing Score */}
     <div>
 
       <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
@@ -207,7 +203,7 @@ export default function AdminAddNewQuiz() {
     </div>
 
 
-    {/* Max Attempts 
+    {/* Max Attempts */}
     <div>
 
       <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
@@ -231,7 +227,7 @@ export default function AdminAddNewQuiz() {
   </div>
 
 </section>
-  {/* Chinese Accent Banner 
+  {/* Chinese Accent Banner */}
   <div className="bg-hsk-blue text-white p-6 rounded-xl flex items-center justify-between relative overflow-hidden group">
 
     <div className="relative z-10">
@@ -273,7 +269,7 @@ export default function AdminAddNewQuiz() {
   </div>
 
 
-  {/* Right Column 
+  {/* Right Column */}
   <div className="space-y-6">
 
     <section className="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -293,7 +289,7 @@ export default function AdminAddNewQuiz() {
 
       <div className="space-y-6">
 
-        {/* Date 
+        {/* Date */}
         <div>
 
           <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
@@ -320,7 +316,7 @@ export default function AdminAddNewQuiz() {
         </div>
 
 
-        {/* Visibility 
+        {/* Visibility */}
         <div>
 
           <label className="block text-sm font-semibold mb-3 text-slate-700 dark:text-slate-300">
@@ -329,7 +325,7 @@ export default function AdminAddNewQuiz() {
 
           <div className="space-y-3">
 
-            {/* Public 
+            {/* Public */}
             <label className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 cursor-pointer hover:border-primary/50 transition-colors">
 
               <input
@@ -354,7 +350,7 @@ export default function AdminAddNewQuiz() {
             </label>
 
 
-            {/* Draft 
+            {/* Draft */}
             <label className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 cursor-pointer hover:border-primary/50 transition-colors">
 
               <input
@@ -378,7 +374,7 @@ export default function AdminAddNewQuiz() {
             </label>
 
 
-            {/* Private 
+            {/* Private */}
             <label className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 cursor-pointer hover:border-primary/50 transition-colors">
 
               <input
@@ -437,10 +433,7 @@ export default function AdminAddNewQuiz() {
   </div>
 </section>
   </div>
-
-     
-
-    </form>
+</form>
 
   </div>
 
@@ -449,4 +442,3 @@ export default function AdminAddNewQuiz() {
         </>
     )
 }
-*/}

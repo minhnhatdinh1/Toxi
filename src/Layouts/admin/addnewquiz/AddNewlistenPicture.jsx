@@ -1,11 +1,12 @@
-import react from 'react'
+import react from "react";
+import {usestate} from "react";
 import {useState} from 'react'
 import AdminSidebar from '../AdminSidebar'
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import toxiLogo from "../../../assets/image/LOGO (1).png"
-export default function addnewlistenPicture() {
-  const navigate = useNavigate();
+export default function Addnewlistenpicture(){
+   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("listening");
   const [audioFile, setAudioFile] = useState(null);
   const handleTabChange = (tab) => {
@@ -249,7 +250,7 @@ Viết (Writing)
               Loại câu hỏi
             </label>
 
-          <select
+         <select
   id="question-type"
   onChange={(e) => navigate(e.target.value)}
   className="w-full rounded-md border-slate-300 focus:ring-secondary focus:border-secondary"
@@ -273,7 +274,6 @@ Nghe và chọn đáp án đúng (Listening - MCQs)
 </option>
 
 </select>
-
           </div>
 
         </div>
@@ -401,19 +401,55 @@ strokeWidth="2"
 
             {/* Script */}
 
+            {/* Upload Audio */}
+
             <div className="space-y-2">
+<label className="block text-sm font-semibold text-slate-700">
+Tải lên file âm thanh (.mp3, .wav)
+</label>
 
-              <label className="block text-sm font-semibold text-slate-700">
-                Nội dung câu hỏi
-              </label>
+<input
+type="file"
+accept=".mp3,.wav"
+onChange={handleAudioChange}
+className="hidden"
+id="audioUpload"
+/>
 
-              <textarea
-                className="w-full rounded-md border-slate-300 focus:ring-secondary focus:border-secondary"
-                placeholder="Nhập lời thoại của đoạn băng..."
-                rows="2"
-              />
+<label
+htmlFor="audioUpload"
+className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-secondary transition-colors cursor-pointer bg-slate-50 group block"
+>
 
-            </div>
+<div className="mx-auto w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center mb-2 group-hover:bg-secondary/10">
+
+<svg
+className="h-5 w-5 text-slate-500 group-hover:text-secondary"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24"
+>
+<path
+d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+strokeLinecap="round"
+strokeLinejoin="round"
+strokeWidth="2"
+/>
+</svg>
+
+</div>
+
+<p className="text-sm text-slate-600">
+{audioFile
+? `File đã chọn: ${audioFile.name}`
+: <>Kéo và thả tệp tại đây hoặc <span className="text-primary font-bold underline">chọn tệp</span></>
+}
+</p>
+
+</label>
+
+               
+              </div>
 
          
    {/* Multiple Choice Options */}
@@ -791,7 +827,7 @@ strokeWidth="2"
 <td className="px-6 py-4">
 <div className="flex gap-2">
 
-<Link to="/editlisten" className="p-1 hover:text-primary">
+<Link to="/editlistenpicture" className="p-1 hover:text-primary">
   <span className="material-symbols-outlined text-base">
     edit
   </span>

@@ -79,6 +79,8 @@ import AddNewFillOfWord from './Layouts/admin/addnewquiz/AddNewFillOfWord.jsx';
 import EditListen from './Layouts/admin/addnewquiz/EditListen.jsx';
 import EditRead from './Layouts/admin/addnewquiz/EditRead.jsx';
 import EditWritting from './Layouts/admin/addnewquiz/EditWritting.jsx';
+import AddNewlistenPicture from './Layouts/admin/addnewquiz/AddNewlistenPicture.jsx';
+import EditListenPicture from './Layouts/admin/addnewquiz/EditListenPicture.jsx';
 function App() {
   return (
     <Routes>
@@ -158,6 +160,8 @@ function App() {
       <Route path="/editlisten" element={<AdminRoute><EditListen /></AdminRoute>} />
       <Route path="/editread" element={<AdminRoute><EditRead /></AdminRoute>} />
       <Route path ="/editwritting" element={<AdminRoute><EditWritting /></AdminRoute>} />
+      <Route path="/addnewlistenPicture" element={<AdminRoute><AddNewlistenPicture /></AdminRoute>} />
+      <Route path="/editlistenPicture" element={<AdminRoute><EditListenPicture /></AdminRoute>} />
     </Routes>
   )
 };
