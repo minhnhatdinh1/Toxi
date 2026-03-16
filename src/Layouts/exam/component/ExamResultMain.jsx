@@ -1,724 +1,347 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import logo from '../../../assets/image/LOGO (1).png';
-export default function ExamResultMain({ selectedExamResult }) {
-    const navigate = useNavigate();
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import logo from "../../../assets/image/LOGO (1).png";
 
-    const handleRetryExam = () => {
-        // Clear kết quả cũ và quay lại trang exam
-        sessionStorage.removeItem('examResult');
-        navigate('/Exam');
-    };
+const MOCK_RESULT = {
+  title: "Đề thi HSK 4 — Mã đề 101",
+  hsk: "HSK 4", date: "15/03/2025",
+  total: 300, score: 245, pass: true,
+  sections: [
+    { id:"nghe",  label:"Nghe hiểu", icon:"hearing",   color:"blue",   score:85,  max:100, change:+5 },
+    { id:"doc",   label:"Đọc hiểu",  icon:"menu_book", color:"violet", score:90,  max:100, change:+10 },
+    { id:"viet",  label:"Viết",      icon:"edit_note", color:"orange", score:70,  max:100, change:-2 },
+  ],
+  questions: [
+    { id:1, section:"nghe", correct:true,  userAns:"A", correctAns:"A", content:"他想去北京旅游。",                          explanation:"Trong đoạn hội thoại, người nam nói muốn đi du lịch Bắc Kinh nên câu trần thuật là ĐÚNG.", audio:true },
+    { id:2, section:"nghe", correct:false, userAns:"A", correctAns:"B", content:"请选择与录音内容一致的图片。",               explanation:'Đoạn audio nhắc đến "图书馆" (thư viện) nên đáp án đúng là ảnh B — thư viện.', audio:true },
+    { id:3, section:"nghe", correct:true,  userAns:"C", correctAns:"C", content:'"经理，这份材料我已经翻译好了。"',          explanation:'Câu "翻译好了" có nghĩa là đã dịch xong, tương ứng với đáp án C.', audio:true },
+    { id:4, section:"nghe", correct:true,  userAns:"A", correctAns:"A", content:"女的觉得这次旅行怎么样？",                   explanation:"Phụ nữ nói '很开心' — rất vui, đáp án A đúng.", audio:true },
+    { id:5, section:"doc",  correct:true,  userAns:"true", correctAns:"true", content:"图片中的人正在跑步。",                explanation:"Ảnh cho thấy người đang chạy bộ, câu trần thuật ĐÚNG." },
+    { id:6, section:"doc",  correct:false, userAns:"A", correctAns:"B", content:"Sắp xếp: 我 / 把 / 书 / 放在 / 桌子 / 上", explanation:'Cấu trúc 把: Chủ ngữ + 把 + Tân ngữ + Động từ. Câu đúng là "我把书放在桌子上".' },
+    { id:7, section:"doc",  correct:true,  userAns:"C", correctAns:"C", content:"根据短文，下面哪个说法是正确的？",          explanation:"Đoạn văn nêu rõ thành tích học tập của Vương Minh rất tốt." },
+    { id:8, section:"doc",  correct:true,  userAns:"B", correctAns:"B", content:"他___去过北京，所以对那里的景点非常熟悉。",  explanation:'"已经" phù hợp vì anh ta quen thuộc với các điểm du lịch, chứng tỏ đã từng đến.' },
+    { id:9, section:"viet", correct:true,  userAns:"A", correctAns:"A", content:"Sắp xếp: 她 / 非常 / 喜欢 / 唱歌 / 和 / 跳舞", explanation:'Câu đúng: "她非常喜欢唱歌和跳舞" — trạng từ đứng trước động từ.' },
+    { id:10,section:"viet", correct:null,  userAns:"(Bài viết)", correctAns:"Chấm tay",content:"根据图片，写一篇80字左右的短文。",explanation:"Bài viết sẽ được giáo viên chấm và phản hồi trong vòng 24h." },
+  ],
+};
 
-    const handleDownloadPDF = () => {
-        alert('Đang tải xuống PDF...');
-        // Implement PDF download logic here
-    };
-    return(
-        <>
-          {/* Header */}
-       <div className="w-full bg-white dark:bg-surface-dark shadow-sm z-50 sticky top-0">
-       <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-chinese-pattern opacity-10 pointer-events-none"></div>
+const SECTION_COLORS = {
+  nghe:  { bar:"bg-blue-500",   badge:"bg-blue-100 text-blue-800",   icon:"text-blue-500" },
+  doc:   { bar:"bg-violet-500", badge:"bg-violet-100 text-violet-800",icon:"text-violet-500" },
+  viet:  { bar:"bg-orange-500", badge:"bg-orange-100 text-orange-800",icon:"text-orange-500" },
+};
 
-      <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-8 relative z-10">
-        {/* LOGO */}
-        <Link to="/Home" className="flex items-center gap-3 shrink-0">
-          <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />
-          <div>
-            <h1 className="text-2xl font-black tracking-tighter leading-none">
-              TOXI
-            </h1>
-            <p className="text-[8px] uppercase tracking-widest text-secondary font-bold">
-              学以致用
-            </p>
-          </div>
-        </Link>
-
-        {/* SEARCH */}
-        <div className="flex-1 max-w-2xl hidden md:block">
-          <div className="relative group">
-            <input
-              type="text"
-              placeholder="Tìm kiếm sản phẩm, giáo trình, dụng cụ..."
-              className="w-full pl-12 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-full text-sm focus:ring-2 focus:ring-secondary focus:bg-white focus:text-primary transition-all placeholder-white/60"
-            />
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/60 group-focus-within:text-primary">
-              search
-            </span>
-          </div>
-        </div>
-
-        {/* ACTIONS */}
-        <div className="flex items-center gap-6 shrink-0">
-          {/* CART */}
-          <div className="relative group cursor-pointer">
-          <button className="flex-[1.5] px-8 py-5 bg-primary text-secondary font-bold rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-dark transition-all flex items-center justify-center gap-3 group">
-      
-      <span
-        className="material-symbols-outlined group-hover:scale-110 transition-transform cursor-pointer"
-        onClick={(e) => {
-          e.stopPropagation(); // không trigger click của button
-          navigate("/cart");
-        }}
-      >
-        shopping_cart
-      </span>
+function AudioMini() {
+  const [p,setP]=useState(false);
+  return (
+    <div className="flex items-center gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200 mb-3 w-fit">
+      <button onClick={()=>setP(!p)} className="w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center text-sm">
+        <span className="material-symbols-outlined text-sm">{p?"pause":"play_arrow"}</span>
       </button>
-          </div>
+      <div className="flex gap-0.5 items-end h-4">
+        {[3,5,4,7,5,8,4,6,3,7,5].map((h,i)=>(
+          <div key={i} className={`w-1 rounded-full ${i<(p?6:3)?"bg-primary":"bg-slate-300"}`} style={{height:h*2}}/>
+        ))}
+      </div>
+      <span className="text-[10px] font-mono text-slate-500">0:45</span>
+    </div>
+  );
+}
 
-        {/* Avatar */}
-<div className="hidden sm:flex items-center">
-  <div
-    className="bg-center bg-no-repeat bg-cover rounded-full size-9 border-2 border-white shadow-sm cursor-pointer"
-    style={{
-      backgroundImage:
-        'url("https://lh3.googleusercontent.com/aida-public/AB6AXuANadJSyOfDTclENxTAo2sw3Zjh7pnp9KKg6h2O4DPIjBYyTW71cyBejL6epjf4bncopuLtFsS_S28mcoEHv7h1zzA9eQlltIXtwDZfsYjCeMxjDdAPnQkvKLCnuYjrECMphza2dJScBgPHRGqoIUccTQUhZWLevuqN5gbt-Gdi0v_35rRW79Z__1-tjeWPfsTpAYBzqjrPwvrzKlKTY8K7uLo1-SOwA3-7T7eW-upJSD1KOVr7iIff5utR8-CjWJTlAFJYfsztm9s")',
-    }}
-  />
-</div>
+export default function ExamResultMain() {
+  const navigate = useNavigate();
+  const [filter, setFilter] = useState("all");
+  const [expanded, setExpanded] = useState({});
+  const r = MOCK_RESULT;
 
-          {/* MOBILE MENU */}
-          <button className="md:hidden text-white">
-            <span className="material-symbols-outlined">menu</span>
+  const filtered = r.questions.filter(q => {
+    if (filter==="correct") return q.correct===true;
+    if (filter==="wrong")   return q.correct===false;
+    if (filter==="pending") return q.correct===null;
+    return true;
+  });
+
+  const cntCorrect = r.questions.filter(q=>q.correct===true).length;
+  const cntWrong   = r.questions.filter(q=>q.correct===false).length;
+  const cntPending = r.questions.filter(q=>q.correct===null).length;
+
+  return (
+    <div className="min-h-screen bg-slate-100">
+
+      {/* ── HEADER ── */}
+      <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
+        <div className="max-w-screen-2xl mx-auto px-4 md:px-8 py-4 flex items-center gap-4">
+          <Link to="/Home" className="flex items-center gap-3 flex-shrink-0">
+            <img src={logo} alt="TOXI" className="h-10 w-10 rounded-xl shadow-lg"/>
+            <div>
+              <h1 className="text-lg font-black tracking-tighter leading-none">TOXI</h1>
+              <p className="text-[8px] uppercase tracking-widest text-secondary font-bold">学以致用</p>
+            </div>
+          </Link>
+          <div className="flex-1"/>
+          <button onClick={()=>{ navigate("/Exam"); }}
+            className="flex items-center gap-2 px-4 py-2 bg-secondary text-primary font-bold text-sm rounded-xl hover:bg-secondary/90 transition">
+            <span className="material-symbols-outlined text-base">replay</span>Làm lại bài
+          </button>
+          <button className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-semibold text-sm rounded-xl transition">
+            <span className="material-symbols-outlined text-base">download</span>Tải PDF
           </button>
         </div>
-      </div>
-    </header>
-      </div>
-       <main className="flex-grow">
-      {/* Header / Summary Section */}
-      <div className="relative bg-primary bg-chinese-pattern text-white pt-8 pb-20">
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/90 to-primary/95"></div>
+      </header>
 
-        <div className="relative max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-white/60 text-xs mb-6 font-medium">
-            <a className="hover:text-white transition-colors" href="#">
-              Trang chủ
-            </a>
-            <span className="material-symbols-outlined text-[10px]">
-              arrow_forward_ios
-            </span>
-            <a className="hover:text-white transition-colors" href="#">
-              Thi thử HSK 4
-            </a>
-            <span className="material-symbols-outlined text-[10px]">
-              arrow_forward_ios
-            </span>
+      {/* ── HERO ── */}
+      <div className="bg-primary pb-16 pt-8">
+        <div className="max-w-screen-2xl mx-auto px-4 md:px-8">
+          <div className="flex items-center gap-2 text-white/60 text-xs mb-4 font-medium">
+            <Link to="/home" className="hover:text-white transition">Trang chủ</Link>
+            <span className="material-symbols-outlined text-[10px]">chevron_right</span>
+            <Link to="/Practice" className="hover:text-white transition">Luyện thi HSK</Link>
+            <span className="material-symbols-outlined text-[10px]">chevron_right</span>
             <span className="text-white">Kết quả</span>
           </div>
-
-          {/* Header Content */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <span className="px-2 py-0.5 bg-accent text-primary font-bold text-xs rounded uppercase tracking-wider">
-                  Đề số 15
-                </span>
-
-                <span className="text-white/80 text-sm flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[16px]">
-                    schedule
-                  </span>
-                  24/05/2024
-                </span>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="px-2 py-0.5 bg-secondary/30 text-secondary text-xs font-bold rounded-md uppercase">{r.hsk}</span>
+                <span className="text-white/60 text-xs">{r.date}</span>
               </div>
-
-              <h1 className="text-3xl md:text-4xl font-black mb-2 tracking-tight">
-                Kết quả thi thử HSK 4
-              </h1>
-
-              <p className="text-white/80 max-w-2xl">
-                Chúc mừng bạn đã hoàn thành bài thi! Hãy xem lại chi tiết lỗi sai
-                và lời giải thích để cải thiện kỹ năng.
-              </p>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3">
-              <button 
-                onClick={handleDownloadPDF}
-                className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all"
-              >
-                <span className="material-symbols-outlined text-[20px]">
-                  download
-                </span>
-                Tải PDF
-              </button>
-
-              <button 
-                onClick={handleRetryExam}
-                className="bg-accent hover:bg-yellow-400 text-primary-dark px-6 py-2 rounded-lg font-bold text-sm shadow-lg shadow-accent/20 flex items-center gap-2 transition-all"
-              >
-                <span className="material-symbols-outlined text-[20px]">
-                  replay
-                </span>
-                Làm lại bài
-              </button>
+              <h1 className="text-3xl font-black text-white mb-1">Kết quả thi thử {r.hsk}</h1>
+              <p className="text-white/70 text-sm">{r.title}</p>
             </div>
           </div>
         </div>
       </div>
-       {/* Dashboard Content Container (Overlapping Header) */}
-      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-10 pb-12">
-        {/* Overall Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          
-          {/* Total Score */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col items-center justify-center text-center relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-              <span className="material-symbols-outlined text-6xl text-primary">
-                emoji_events
-              </span>
+
+      <div className="max-w-screen-2xl mx-auto px-4 md:px-8 -mt-10 pb-10 relative z-10">
+
+        {/* ── SCORE CARDS ── */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          {/* Total */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 text-center relative overflow-hidden">
+            <div className="absolute top-3 right-3 opacity-10">
+              <span className="material-symbols-outlined text-5xl text-primary">emoji_events</span>
             </div>
-
-            <p className="text-slate-500 font-medium text-sm mb-1 uppercase tracking-wider">
-              Tổng điểm
-            </p>
-
-            <div className="text-5xl font-black text-primary mb-2 tracking-tight">
-              245
-              <span className="text-2xl text-slate-400 font-normal">
-                /300
-              </span>
-            </div>
-
-            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold border border-green-200">
-              ĐẠT (PASS)
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Tổng điểm</p>
+            <p className="text-4xl font-black text-primary mb-1">{r.score}<span className="text-xl text-slate-400 font-normal">/{r.total}</span></p>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${r.pass?"bg-emerald-100 text-emerald-700 border-emerald-200":"bg-red-100 text-red-700 border-red-200"}`}>
+              {r.pass?"ĐẠT (PASS)":"KHÔNG ĐẠT"}
             </span>
           </div>
 
-          {/* Listening */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col relative overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <span className="bg-blue-100 text-blue-600 p-1.5 rounded-md material-symbols-outlined text-[20px]">
-                  headphones
-                </span>
-                <span className="font-bold text-slate-700">
-                  Nghe hiểu
-                </span>
-              </div>
-
-              <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded">
-                +5% so với TB
-              </span>
-            </div>
-
-            <div className="mt-auto">
-              <div className="flex items-end justify-between mb-2">
-                <span className="text-3xl font-bold text-slate-800">
-                  85
-                  <span className="text-sm text-slate-400 font-normal">
-                    /100
-                  </span>
-                </span>
-                <span className="text-sm font-bold text-blue-600">
-                  85%
-                </span>
-              </div>
-
-              <div className="w-full bg-slate-100 rounded-full h-2">
-                <div
-                  className="bg-blue-500 h-2 rounded-full"
-                  style={{ width: "85%" }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Reading */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col relative overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <span className="bg-purple-100 text-purple-600 p-1.5 rounded-md material-symbols-outlined text-[20px]">
-                  menu_book
-                </span>
-                <span className="font-bold text-slate-700">
-                  Đọc hiểu
-                </span>
-              </div>
-
-              <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded">
-                +10% so với TB
-              </span>
-            </div>
-
-            <div className="mt-auto">
-              <div className="flex items-end justify-between mb-2">
-                <span className="text-3xl font-bold text-slate-800">
-                  90
-                  <span className="text-sm text-slate-400 font-normal">
-                    /100
-                  </span>
-                </span>
-                <span className="text-sm font-bold text-purple-600">
-                  90%
-                </span>
-              </div>
-
-              <div className="w-full bg-slate-100 rounded-full h-2">
-                <div
-                  className="bg-purple-500 h-2 rounded-full"
-                  style={{ width: "90%" }}
-                />
-              </div>
-            </div>
-          </div>
-        {/* Writing */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col relative overflow-hidden">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="bg-orange-100 text-orange-600 p-1.5 rounded-md material-symbols-outlined text-[20px]">
-              edit
-            </span>
-            <span className="font-bold text-slate-700">Viết</span>
-          </div>
-          <span className="text-xs font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded">
-            -2% so với TB
-          </span>
-        </div>
-
-        <div className="mt-auto">
-          <div className="flex items-end justify-between mb-2">
-            <span className="text-3xl font-bold text-slate-800">
-              70
-              <span className="text-sm text-slate-400 font-normal">/100</span>
-            </span>
-            <span className="text-sm font-bold text-orange-500">70%</span>
-          </div>
-
-          <div className="w-full bg-slate-100 rounded-full h-2">
-            <div
-              className="bg-orange-500 h-2 rounded-full"
-              style={{ width: "70%" }}
-            />
-          </div>
-        </div>
-      </div>
-   </div>
-      {/* Main Layout: Review & Navigation */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-8">
-        {/* Left: Question Review List */}
-        <div className="lg:col-span-8 flex flex-col gap-6">
-          {/* Filter Toolbar */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex flex-wrap items-center justify-between gap-4 sticky top-[70px] z-30">
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-              <h3 className="font-bold text-slate-700 mr-2 whitespace-nowrap">
-                Xem lại bài thi:
-              </h3>
-              <button className="px-3 py-1.5 rounded-lg bg-primary text-white text-sm font-medium whitespace-nowrap shadow-sm shadow-primary/30">
-                Tất cả (40)
-              </button>
-              <button className="px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-600 text-sm font-medium whitespace-nowrap transition-colors">
-                Sai (5)
-              </button>
-              <button className="px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-600 text-sm font-medium whitespace-nowrap transition-colors">
-                Đúng (35)
-              </button>
-              <button className="px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-600 text-sm font-medium whitespace-nowrap transition-colors">
-                Chưa làm (0)
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2 text-sm text-slate-500 ml-auto">
-              <span className="w-3 h-3 rounded-full bg-green-500" /> Đúng
-              <span className="w-3 h-3 rounded-full bg-red-500 ml-2" /> Sai
-            </div>
-          </div>
-
-          {/* Question 1 */}
-          <div
-            className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"
-            id="q1"
-          >
-            <div className="bg-slate-50 px-6 py-3 border-b border-slate-100 flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <span className="bg-primary/10 text-primary font-bold px-2.5 py-1 rounded text-sm">
-                  Câu 1
-                </span>
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                  Nghe hiểu - Phần 1
-                </span>
-              </div>
-              <span className="material-symbols-outlined text-green-500">
-                check_circle
-              </span>
-            </div>
-
-            <div className="p-6">
-              {/* Audio Player */}
-              <div className="flex items-center gap-4 bg-slate-50 rounded-lg p-3 border border-slate-200 mb-6 w-full max-w-md">
-                <button className="size-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary-dark transition-colors shadow-sm">
-                  <span className="material-symbols-outlined">
-                    play_arrow
-                  </span>
-                </button>
-
-                <div className="flex-1">
-                  <div className="h-1 bg-slate-200 rounded-full w-full mb-1">
-                    <div className="h-1 bg-primary w-1/3 rounded-full relative">
-                      <div className="absolute right-0 top-1/2 -translate-y-1/2 size-3 bg-primary rounded-full shadow cursor-pointer" />
-                    </div>
-                  </div>
-                  <div className="flex justify-between text-[10px] text-slate-400 font-medium">
-                    <span>00:12</span>
-                    <span>00:35</span>
-                  </div>
-                </div>
-
-                <span className="material-symbols-outlined text-slate-400">
-                  volume_up
-                </span>
-              </div>
-
-              <p className="mb-4 text-slate-800 font-medium">
-                Nghe đoạn hội thoại và chọn bức tranh đúng:
-              </p>
-
-              {/* Answers */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <label className="relative flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer opacity-50">
-                  <div className="size-5 rounded-full border border-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-400">
-                    A
-                  </div>
-                  <div className="text-sm font-chinese">图片 A</div>
-                </label>
-
-                <label className="relative flex items-center gap-3 p-3 rounded-lg border-2 border-green-500 bg-green-50 cursor-pointer">
-                  <div className="absolute -top-3 -right-3 bg-green-500 text-white rounded-full p-0.5 shadow-sm">
-                    <span className="material-symbols-outlined text-[16px]">
-                      check
-                    </span>
-                  </div>
-                  <div className="size-5 rounded-full bg-green-500 border border-green-500 flex items-center justify-center text-[10px] font-bold text-white">
-                    B
-                  </div>
-                  <div className="text-sm font-chinese text-slate-800">
-                    图片 B
-                  </div>
-                  <span className="ml-auto text-xs font-bold text-green-600">
-                    Bạn đã chọn
-                  </span>
-                </label>
-
-                <label className="relative flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer opacity-50">
-                  <div className="size-5 rounded-full border border-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-400">
-                    C
-                  </div>
-                  <div className="text-sm font-chinese">图片 C</div>
-                </label>
-              </div>
-
-              {/* Explanation */}
-              <div className="mt-6 bg-yellow-50/50 rounded-lg border border-accent/20 overflow-hidden">
-                <button className="w-full flex items-center justify-between p-3 text-left hover:bg-accent/5 transition-colors group/exp">
+          {/* Section scores */}
+          {r.sections.map(sec=>{
+            const c = SECTION_COLORS[sec.id];
+            const pct = Math.round(sec.score/sec.max*100);
+            return (
+              <div key={sec.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-accent">
-                      lightbulb
-                    </span>
-                    <span className="text-sm font-bold text-primary-dark">
-                      Giải thích chi tiết
+                    <div className={`w-8 h-8 rounded-xl bg-${sec.color}-100 flex items-center justify-center`}>
+                      <span className={`material-symbols-outlined text-base ${c.icon}`}>{sec.icon}</span>
+                    </div>
+                    <span className="font-bold text-slate-700 text-sm">{sec.label}</span>
+                  </div>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${sec.change>=0?"bg-emerald-50 text-emerald-600":"bg-red-50 text-red-500"}`}>
+                    {sec.change>=0?"+":""}{sec.change}% so với TB
+                  </span>
+                </div>
+                <div className="flex items-end justify-between mb-1.5">
+                  <span className="text-2xl font-bold text-slate-800">{sec.score}<span className="text-sm text-slate-400 font-normal">/{sec.max}</span></span>
+                  <span className={`text-sm font-bold ${c.icon}`}>{pct}%</span>
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className={`h-full ${c.bar} rounded-full transition-all duration-700`} style={{width:`${pct}%`}}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ── MAIN GRID ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+          {/* LEFT: Question review */}
+          <div className="lg:col-span-8 space-y-4">
+
+            {/* Filter bar */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-3 flex items-center gap-2 flex-wrap sticky top-16 z-30 shadow-sm">
+              <span className="text-xs font-bold text-slate-600 mr-1">Xem lại:</span>
+              {[
+                {v:"all",     l:`Tất cả (${r.questions.length})`,    active:"bg-primary text-white"},
+                {v:"wrong",   l:`Sai (${cntWrong})`,                  active:"bg-red-500 text-white"},
+                {v:"correct", l:`Đúng (${cntCorrect})`,               active:"bg-emerald-500 text-white"},
+                {v:"pending", l:`Chờ chấm (${cntPending})`,           active:"bg-amber-500 text-white"},
+              ].map(f=>(
+                <button key={f.v} onClick={()=>setFilter(f.v)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${filter===f.v?f.active+" border-transparent":"border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+                  {f.l}
+                </button>
+              ))}
+              <div className="ml-auto flex items-center gap-2 text-xs text-slate-500">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"/>Đúng
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 ml-1"/>Sai
+              </div>
+            </div>
+
+            {filtered.map(q => {
+              const c = SECTION_COLORS[q.section];
+              const isExp = expanded[q.id];
+              return (
+                <div key={q.id} id={`q${q.id}`}
+                  className={`bg-white rounded-2xl border overflow-hidden ${
+                    q.correct===true?"border-emerald-200":q.correct===false?"border-red-200":q.correct===null?"border-amber-200":"border-slate-200"
+                  }`}>
+                  {/* Header */}
+                  <div className={`flex items-center justify-between px-5 py-3 border-b ${
+                    q.correct===true?"bg-emerald-50 border-emerald-200":q.correct===false?"bg-red-50 border-red-200":q.correct===null?"bg-amber-50 border-amber-200":"bg-slate-50 border-slate-200"
+                  }`}>
+                    <div className="flex items-center gap-2.5">
+                      <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white ${
+                        q.correct===true?"bg-emerald-500":q.correct===false?"bg-red-500":"bg-amber-500"
+                      }`}>{q.id}</span>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-lg ${c.badge}`}>
+                        {MOCK_RESULT.sections.find(s=>s.id===q.section)?.label}
+                      </span>
+                    </div>
+                    <span className={`material-symbols-outlined text-xl ${
+                      q.correct===true?"text-emerald-500":q.correct===false?"text-red-500":"text-amber-500"
+                    }`}>
+                      {q.correct===true?"check_circle":q.correct===false?"cancel":"pending"}
                     </span>
                   </div>
-                  <span className="material-symbols-outlined text-slate-400 group-hover/exp:text-slate-600">
-                    expand_more
-                  </span>
-                </button>
 
-                <div className="px-4 pb-4 pt-0 text-sm text-slate-600">
-                  <p className="mb-2">
-                    <strong>Đáp án đúng: B</strong>
-                  </p>
-                  <p>
-                    Trong đoạn hội thoại, nhân vật nam nói:{" "}
-                    <span className="font-chinese text-primary">
-                      今天天气真好，我们去公园散步吧。
-                    </span>{" "}
-                    (Hôm nay thời tiết thật tốt, chúng ta đi công viên đi dạo
-                    nhé).
-                  </p>
-                  <p className="mt-2 text-xs text-slate-500 italic">
-                    Từ khóa: <span className="font-chinese">天气</span>,{" "}
-                    <span className="font-chinese">公园</span>,{" "}
-                    <span className="font-chinese">散步</span>.
-                  </p>
+                  <div className="p-5">
+                    {/* Audio */}
+                    {q.audio && <AudioMini/>}
+
+                    {/* Content */}
+                    <p className="text-sm font-semibold text-slate-800 mb-4 leading-relaxed">{q.content}</p>
+
+                    {/* Answers */}
+                    <div className="space-y-2 mb-4">
+                      {/* User answer */}
+                      {q.correct !== null && (
+                        <div className={`flex items-center gap-3 p-3 rounded-xl border-2 ${
+                          q.correct ? "border-emerald-400 bg-emerald-50" : "border-red-400 bg-red-50"
+                        }`}>
+                          <div className={`w-6 h-6 rounded-lg text-xs font-bold flex items-center justify-center flex-shrink-0 text-white ${
+                            q.correct ? "bg-emerald-500" : "bg-red-500"
+                          }`}>{q.userAns}</div>
+                          <span className={`text-sm font-semibold flex-1 ${q.correct?"text-emerald-700":"text-red-700"}`}>
+                            {q.userAns === q.correctAns ? "Đáp án của bạn" : "Bạn đã chọn (Sai)"}
+                          </span>
+                          <span className={`material-symbols-outlined text-base ${q.correct?"text-emerald-500":"text-red-500"}`}>
+                            {q.correct?"check_circle":"close"}
+                          </span>
+                        </div>
+                      )}
+                      {/* Correct answer (if wrong) */}
+                      {q.correct===false && (
+                        <div className="flex items-center gap-3 p-3 rounded-xl border-2 border-emerald-400 bg-emerald-50">
+                          <div className="w-6 h-6 rounded-lg text-xs font-bold flex items-center justify-center flex-shrink-0 text-white bg-emerald-500">{q.correctAns}</div>
+                          <span className="text-sm font-semibold text-emerald-700 flex-1">Đáp án đúng</span>
+                          <span className="material-symbols-outlined text-base text-emerald-500">check_circle</span>
+                        </div>
+                      )}
+                      {/* Pending */}
+                      {q.correct===null && (
+                        <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-xl border border-amber-200 text-sm text-amber-700">
+                          <span className="material-symbols-outlined text-base">schedule</span>
+                          Bài viết đang chờ giáo viên chấm
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Explanation toggle */}
+                    <button onClick={()=>setExpanded(e=>({...e,[q.id]:!isExp}))}
+                      className="w-full flex items-center justify-between p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl hover:bg-amber-50 transition text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-amber-500 text-base">lightbulb</span>
+                        <span className="text-xs font-bold text-slate-700">Giải thích chi tiết</span>
+                      </div>
+                      <span className={`material-symbols-outlined text-slate-400 text-base transition-transform ${isExp?"rotate-180":""}`}>expand_more</span>
+                    </button>
+                    {isExp && (
+                      <div className="mt-2 px-4 py-3 bg-amber-50/50 rounded-xl border border-amber-200/40 text-sm text-slate-700 leading-relaxed">
+                        {q.explanation}
+                      </div>
+                    )}
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+
+          {/* RIGHT: Sticky stats */}
+          <div className="lg:col-span-4 space-y-4 sticky top-20">
+
+            {/* Score chart */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-5">
+              <h3 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-base">bar_chart</span>
+                Biểu đồ năng lực
+              </h3>
+              <div className="flex items-end gap-3 h-28 px-2 mb-3">
+                {r.sections.map((sec,i)=>{
+                  const c = SECTION_COLORS[sec.id];
+                  const pct = Math.round(sec.score/sec.max*100);
+                  return (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                      <span className="text-xs font-bold text-slate-600">{sec.score}</span>
+                      <div className="w-full rounded-t-lg overflow-hidden bg-slate-100 flex items-end" style={{height:"80%"}}>
+                        <div className={`w-full ${c.bar} rounded-t-lg transition-all duration-700`} style={{height:`${pct}%`}}/>
+                      </div>
+                      <span className="text-[10px] text-slate-500 font-medium">{sec.label.split(" ")[0]}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="text-center pt-3 border-t border-slate-100">
+                <p className="text-xs text-slate-500">Đánh giá chung: <span className="font-bold text-primary">Khá Tốt</span></p>
               </div>
             </div>
-          </div>
-          {/* Question 2: Reading (Incorrect) */}
-      <div
-        className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"
-        id="q2"
-      >
-        {/* Header */}
-        <div className="bg-slate-50 px-6 py-3 border-b border-slate-100 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <span className="bg-primary/10 text-primary font-bold px-2.5 py-1 rounded text-sm">
-              Câu 2
-            </span>
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-              Đọc hiểu - Phần 1
-            </span>
-          </div>
-          <span className="material-symbols-outlined text-red-500">
-            cancel
-          </span>
-        </div>
 
-        {/* Content */}
-        <div className="p-6">
-          {/* Question Text */}
-          <div className="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <p className="font-chinese text-lg leading-loose text-slate-800">
-              经理，我这几天的身体不太舒服，想请两天假，去医院看一看。
-            </p>
-            <p className="text-sm text-slate-500 mt-2 italic font-serif">
-              "Giám đốc, mấy hôm nay sức khỏe tôi không tốt lắm, muốn xin nghỉ hai
-              ngày để đi bệnh viện khám."
-            </p>
-          </div>
-
-          <p className="mb-4 text-slate-800 font-medium">
-            Chọn từ điền vào chỗ trống tương ứng với nội dung trên:
-          </p>
-
-          {/* Answers */}
-          <div className="grid grid-cols-1 gap-3">
-            {/* Wrong Selected */}
-            <label className="relative flex items-center gap-3 p-3 rounded-lg border-2 border-red-500 bg-red-50 cursor-pointer">
-              <div className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-0.5 shadow-sm">
-                <span className="material-symbols-outlined text-[16px]">
-                  close
-                </span>
+            {/* Question grid */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-slate-800 text-sm">Danh sách câu hỏi</h3>
+                <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg">{r.questions.length} câu</span>
               </div>
-
-              <div className="size-5 rounded-full bg-red-500 border border-red-500 flex items-center justify-center text-[10px] font-bold text-white">
-                A
+              <div className="flex gap-3 text-[10px] text-slate-500 mb-3 font-semibold">
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-emerald-500"/>Đúng</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-red-500"/>Sai</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-amber-400"/>Chờ chấm</span>
               </div>
-
-              <div className="flex-1">
-                <div className="text-base font-chinese font-bold text-slate-800">
-                  生病
-                </div>
-                <div className="text-xs text-slate-500">
-                  shēng bìng (bị ốm)
-                </div>
+              <div className="grid grid-cols-5 gap-1.5">
+                {r.questions.map(q=>(
+                  <a key={q.id} href={`#q${q.id}`}
+                    className={`h-9 rounded-lg text-xs font-bold flex items-center justify-center border transition ${
+                      q.correct===true  ? "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200"
+                    : q.correct===false ? "bg-red-100 text-red-700 border-red-200 hover:bg-red-200"
+                    :                     "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200"
+                    }`}>
+                    {q.id}
+                  </a>
+                ))}
               </div>
+            </div>
 
-              <span className="text-xs font-bold text-red-600">
-                Bạn đã chọn
-              </span>
-            </label>
-
-            {/* Correct Answer */}
-            <label className="relative flex items-center gap-3 p-3 rounded-lg border-2 border-green-500 bg-green-50 cursor-pointer">
-              <div className="size-5 rounded-full bg-green-500 border border-green-500 flex items-center justify-center text-[10px] font-bold text-white">
-                B
+            {/* Suggestion */}
+            <div className="bg-primary rounded-2xl p-5 text-white relative overflow-hidden">
+              <div className="absolute -right-3 -top-3 opacity-10">
+                <span className="material-symbols-outlined text-8xl">school</span>
               </div>
-
-              <div className="flex-1">
-                <div className="text-base font-chinese font-bold text-slate-800">
-                  请假
-                </div>
-                <div className="text-xs text-slate-500">
-                  qǐng jià (xin nghỉ phép)
-                </div>
-              </div>
-
-              <span className="text-xs font-bold text-green-600">
-                Đáp án đúng
-              </span>
-            </label>
-
-            {/* Normal */}
-            <label className="relative flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50">
-              <div className="size-5 rounded-full border border-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-400">
-                C
-              </div>
-
-              <div className="flex-1">
-                <div className="text-base font-chinese font-bold text-slate-800">
-                  医院
-                </div>
-                <div className="text-xs text-slate-500">
-                  yī yuàn (bệnh viện)
-                </div>
-              </div>
-            </label>
-          </div>
-
-          {/* Explanation (Auto Expanded) */}
-          <div className="mt-6 bg-yellow-50/50 rounded-lg border border-accent/20 overflow-hidden">
-            <div className="p-4 text-sm text-slate-600">
-              <div className="flex items-center gap-2 mb-3 text-primary-dark">
-                <span className="material-symbols-outlined text-accent">
-                  lightbulb
-                </span>
-                <span className="font-bold">Tại sao bạn sai?</span>
-              </div>
-
-              <p className="mb-2">
-                <strong>Đáp án đúng: B (请假)</strong>
+              <h4 className="font-bold text-base mb-1.5 relative z-10">Luyện tiếp {r.hsk}?</h4>
+              <p className="text-xs text-white/70 mb-4 leading-relaxed relative z-10">
+                Bạn yếu phần <strong className="text-secondary">Viết</strong>. Hãy xem khóa học HSK chuyên sâu của TOXI.
               </p>
-
-              <p className="mb-2">
-                Mặc dù câu có nhắc đến việc cơ thể không thoải mái (giống ý nghĩa
-                "Sinh bệnh" - A) và đi bệnh viện (C), nhưng hành động chính mà
-                người nói đang thực hiện với "Giám đốc" là{" "}
-                <strong>xin nghỉ phép</strong>.
-              </p>
-
-              <p>
-                Câu{" "}
-                <span className="font-chinese">
-                  想请两天假
-                </span>{" "}
-                chứa trực tiếp từ khóa{" "}
-                <span className="font-chinese font-bold text-primary">
-                  请假
-                </span>
-                .
-              </p>
+              <Link to="/course" className="block w-full py-2.5 bg-secondary text-primary font-bold text-sm rounded-xl text-center hover:bg-secondary/90 transition relative z-10">
+                Xem khóa học
+              </Link>
             </div>
           </div>
         </div>
       </div>
-        </div>
-         {/* Right: Navigator & Sticky Sidebar */}
-      <div className="lg:col-span-4 flex flex-col gap-6 sticky top-[70px]">
-        {/* Performance Summary Mini-Chart */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-          <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">
-              bar_chart
-            </span>
-            Biểu đồ năng lực
-          </h3>
-
-          <div className="grid grid-cols-3 gap-4 items-end h-32 px-2">
-            {/* Listening */}
-            <div className="flex flex-col items-center gap-2 h-full justify-end group cursor-help relative">
-              <div className="text-xs font-bold text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity absolute -mt-6">
-                85
-              </div>
-              <div className="w-full bg-blue-100 rounded-t-md relative h-full flex items-end overflow-hidden">
-                <div className="w-full bg-primary transition-all duration-1000 ease-out h-[85%] rounded-t-md" />
-              </div>
-              <span className="text-xs font-medium text-slate-500">Nghe</span>
-            </div>
-
-            {/* Reading */}
-            <div className="flex flex-col items-center gap-2 h-full justify-end group cursor-help relative">
-              <div className="text-xs font-bold text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity absolute -mt-6">
-                90
-              </div>
-              <div className="w-full bg-purple-100 rounded-t-md relative h-full flex items-end overflow-hidden">
-                <div className="w-full bg-purple-500 transition-all duration-1000 ease-out h-[90%] rounded-t-md" />
-              </div>
-              <span className="text-xs font-medium text-slate-500">Đọc</span>
-            </div>
-
-            {/* Writing */}
-            <div className="flex flex-col items-center gap-2 h-full justify-end group cursor-help relative">
-              <div className="text-xs font-bold text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity absolute -mt-6">
-                70
-              </div>
-              <div className="w-full bg-orange-100 rounded-t-md relative h-full flex items-end overflow-hidden">
-                <div className="w-full bg-orange-500 transition-all duration-1000 ease-out h-[70%] rounded-t-md" />
-              </div>
-              <span className="text-xs font-medium text-slate-500">Viết</span>
-            </div>
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-slate-100 text-center">
-            <p className="text-sm text-slate-600">
-              Đánh giá chung:{" "}
-              <span className="font-bold text-primary">Khá Tốt</span>
-            </p>
-          </div>
-        </div>
-
-        {/* Question Grid */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-          <h3 className="font-bold text-slate-800 mb-4 flex items-center justify-between">
-            <span>Danh sách câu hỏi</span>
-            <span className="text-xs font-normal bg-slate-100 px-2 py-1 rounded text-slate-500">
-              40 câu
-            </span>
-          </h3>
-
-          <div className="mb-4 text-xs flex gap-3 text-slate-500">
-            <div className="flex items-center gap-1">
-              <span className="size-2 rounded-full bg-green-500" /> Đúng
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="size-2 rounded-full bg-red-500" /> Sai
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="size-2 rounded-full bg-slate-200" /> Chưa làm
-            </div>
-          </div>
-
-          <div className="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-5 gap-2">
-            {/* Example items */}
-            <a
-              href="#q1"
-              className="aspect-square flex items-center justify-center rounded bg-green-100 text-green-700 hover:bg-green-200 text-xs font-medium transition-colors border border-green-200"
-            >
-              1
-            </a>
-
-            <a
-              href="#q2"
-              className="aspect-square flex items-center justify-center rounded bg-red-100 text-red-700 hover:bg-red-200 text-xs font-medium transition-colors border border-red-200 ring-2 ring-red-500 ring-offset-1"
-            >
-              2
-            </a>
-
-            <a className="aspect-square flex items-center justify-center rounded bg-green-100 text-green-700 hover:bg-green-200 text-xs font-medium transition-colors border border-green-200">
-              3
-            </a>
-            <a className="aspect-square flex items-center justify-center rounded bg-green-100 text-green-700 hover:bg-green-200 text-xs font-medium transition-colors border border-green-200">
-              4
-            </a>
-            <a className="aspect-square flex items-center justify-center rounded bg-green-100 text-green-700 hover:bg-green-200 text-xs font-medium transition-colors border border-green-200">
-              5
-            </a>
-
-            <div className="col-span-full mt-2 pt-2 border-t border-slate-100 text-center text-xs text-slate-400">
-              ...
-            </div>
-          </div>
-        </div>
-
-        {/* Promo Card */}
-        <div className="bg-gradient-to-br from-primary to-blue-600 rounded-xl shadow-lg p-6 text-white relative overflow-hidden group">
-          <div className="absolute -right-4 -top-4 text-white/10 group-hover:text-white/20 transition-colors">
-            <span className="material-symbols-outlined text-[120px]">
-              school
-            </span>
-          </div>
-
-          <h4 className="font-bold text-lg mb-2 relative z-10">
-            Luyện thi HSK 5?
-          </h4>
-          <p className="text-sm text-white/80 mb-4 relative z-10">
-            Nâng cao trình độ với khóa học HSK 5 chuyên sâu của TOXI.
-          </p>
-
-          <button className="w-full py-2 bg-accent hover:bg-yellow-400 text-primary-dark font-bold text-sm rounded shadow-lg transition-colors relative z-10">
-            Xem khóa học
-          </button>
-        </div>
-      </div>
-      </div>
-        </div>
-    </main>
-        </>
-    )
-};
+    </div>
+  );
+}

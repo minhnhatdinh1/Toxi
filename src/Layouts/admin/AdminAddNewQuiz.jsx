@@ -1,416 +1,251 @@
-import react from "react";
-
-import {usestate} from "react";
-import { Link } from "react-router-dom";
-
+import { useState } from "react";
+import { Link, useNavigate , useSearchParams } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
+
+const inputCls = "border border-slate-200 rounded-xl px-3 py-2.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition bg-white";
+
 export default function AdminAddNewQuiz() {
-    return (
-        <>
+  const navigate = useNavigate();
+const [searchParams] = useSearchParams();
+const initStep = Number(searchParams.get("step")) || 1;
 
-            <div className="flex h-screen overflow-hidden ">
-                <AdminSidebar />
-                {/* Main Content */}
-  <main className="flex-1 flex flex-col bg-background-light dark:bg-background-dark/50 overflow-y-auto">
-  
-  {/* Header (đã đổi thành div) */}
-  <div className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 sticky top-0 z-40">
-    
-    {/* Breadcrumb */}
-    <div className="flex items-center gap-2 text-sm text-slate-500">
-      <span className="material-symbols-outlined text-primary text-lg">
-        spa
-      </span>
+const [step, setStep] = useState(initStep);// 1=BasicInfo 2=AddQuestions 3=Settings
+  const [form, setForm]   = useState({
+    name:"", hsk:"HSK 1", type:"Tổng hợp", time:45, pass:60, desc:"", status:"draft", randomize:true, showPinyin:true,
+  });
+  const [saved, setSaved] = useState(false);
+  const sf = v => setForm(f=>({...f,...v}));
 
-      <a
-        className="hover:text-primary transition-colors"
-        href="#"
-      >
-        Quản lý đề thi
-      </a>
+  function handleCreate() {
+    if (!form.name.trim()) { alert("Vui lòng nhập tên đề thi!"); return; }
+    setSaved(true);
+    setTimeout(()=>{ setSaved(false); navigate("/adminQuiz"); }, 1500);
+  }
 
-      <span className="material-symbols-outlined text-xs">
-        chevron_right
-      </span>
+  const steps = [
+    {n:1, label:"Thông tin cơ bản", ico:"info"},
+    {n:2, label:"Thêm câu hỏi",    ico:"add_circle"},
+    {n:3, label:"Cài đặt",         ico:"settings"},
+  ];
 
-      <span className="text-slate-900 dark:text-white font-medium">
-        Thêm mới đề thi
-      </span>
-    </div>
+  return (
+    <div className="flex h-screen overflow-hidden bg-slate-100">
+      <AdminSidebar />
 
-    {/* Right section */}
-    <div className="flex items-center gap-4">
-      
-      {/* Notification */}
-      <button className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors relative">
-        <span className="material-symbols-outlined">
-          notifications
-        </span>
-        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-      </button>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Topbar */}
+        <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-3 flex-shrink-0">
+          <button onClick={()=>navigate("/adminQuiz")} className="p-2 hover:bg-slate-100 rounded-lg transition">
+            <span className="material-symbols-outlined text-slate-500">arrow_back</span>
+          </button>
+          <div className="flex-1">
+            <p className="text-[11px] text-slate-400 mb-0.5">
+              <Link to="/adminQuiz" className="hover:text-primary">Quản lí đề thi</Link>
+              <span className="mx-1">›</span>
+              <span className="text-slate-700">Tạo đề thi mới</span>
+            </p>
+            <h1 className="text-base font-bold text-slate-900">Tạo đề thi mới</h1>
+          </div>
+          <Link to="/adminQuiz" className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">Huỷ</Link>
+          <button onClick={handleCreate}
+            className={`px-5 py-2 rounded-xl text-sm font-bold transition shadow-md ${saved?"bg-emerald-600 shadow-emerald-200":"bg-primary shadow-primary/20 hover:bg-primary/90"} text-white`}>
+            {saved ? "✓ Đã tạo! Đang chuyển..." : "Tạo đề thi"}
+          </button>
+        </header>
 
-      <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-700 mx-2"></div>
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-3xl mx-auto space-y-5">
 
-      {/* User info */}
-      <div className="flex items-center gap-3">
-        
-        <div className="text-right hidden sm:block">
-          <p className="text-xs font-semibold text-slate-900 dark:text-white leading-none">
-            Admin User
-          </p>
-          <p className="text-[10px] text-slate-500 mt-1">
-            Quản trị viên
-          </p>
-        </div>
-
-        <div className="w-10 h-10 rounded-full bg-slate-200 border-2 border-primary/20 overflow-hidden">
-          <img
-            alt="Profile"
-            className="w-full h-full object-cover"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0dTn8JaQ4mz1AgpTLkQfA9Q0SJQEsbDu_221B28qBVL9KblvedGwCTrbyQ3BDJ-2QA-8olyQa4I29y_tyiCPoqanlBuu7QJyhGNCeipKFRY_1hB-TdiW-KaiyTevD8HTwImxECeVFZBJxV5jan4_5Fuvn_27eiyO_DBu9weBqpzbIFOSOECzKuUcz3L_2nt7mPuEgKOAThZ7voOjVk-j7NuHX7b0ilhDNMR_AGeshhiLcPZpXPAhBWogNgeE7i64CYHcK_9pOgrc"
-          />
-        </div>
-
-      </div>
-    </div>
-
-  </div>
-{/* Page Body */}
-<div className="p-8 w-full">
-  
-  <div className="flex items-center justify-between mb-8">
-    
-    {/* Left */}
-    <div>
-      <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-        Tạo đề thi mới
-        <span className="material-symbols-outlined text-primary/40 text-2xl">
-          edit_note
-        </span>
-      </h2>
-
-      <p className="text-slate-500 mt-1">
-        Thiết lập thông tin cơ bản cho bài kiểm tra đánh giá năng lực.
-      </p>
-    </div>
-
-    {/* Right buttons */}
-    <div className="flex items-center gap-3">
-      
-      <button
-        type="button"
-        className="px-6 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
-      >
-        Hủy bỏ
-      </button>
-
-      <button
-        type="button"
-        className="px-6 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 shadow-lg shadow-primary/25 transition-all flex items-center gap-2"
-      >
-        <span className="material-symbols-outlined text-sm">
-          save
-        </span>
-        Lưu đề thi
-      </button>
-
-    </div>
-
-  </div>
-<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-  
-  {/* Main Form Section */}
-  <div className="lg:col-span-2 space-y-6">
-    
-    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 relative overflow-hidden">
-      
-      <div className="absolute top-0 right-0 p-4 opacity-5">
-        <span className="material-symbols-outlined text-6xl">
-          quiz
-        </span>
-      </div>
-
-      <h3 className="text-lg font-bold mb-6 flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
-        <span className="w-1 h-5 bg-primary rounded-full"></span>
-        Thông tin chung
-      </h3>
-
-      <div className="space-y-5">
-        
-        {/* Quiz Title */}
-        <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-            Tiêu đề đề thi (Quiz Title) <span className="text-primary">*</span>
-          </label>
-          <input
-            type="text"
-            placeholder="Ví dụ: Kiểm tra cuối khóa HSK 3"
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
-          />
-        </div>
-
-        {/* Quiz Type + Time */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Loại đề thi (Quiz Type)
-            </label>
-            <div className="relative">
-              <select className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 appearance-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none">
-                <option value="MULTIPLE_CHOICE">Trắc nghiệm (Multiple Choice)</option>
-                <option value="ESSAY">Tự luận (Essay)</option>
-                <option value="LISTENING">Kỹ năng nghe (Listening)</option>
-                <option value="MIXED">Hỗn hợp (Mixed)</option>
-              </select>
-              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                expand_more
-              </span>
+            {/* Steps */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-4">
+              <div className="flex items-center">
+                {steps.map((s,i)=>(
+                  <div key={s.n} className="flex items-center flex-1">
+                    <button onClick={()=>setStep(s.n)} className="flex flex-col items-center gap-1 group">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center transition ${step===s.n?"bg-primary text-white":step>s.n?"bg-emerald-500 text-white":"bg-slate-100 text-slate-400 group-hover:bg-slate-200"}`}>
+                        {step>s.n ? <span className="material-symbols-outlined text-base">check</span>
+                          : <span className="material-symbols-outlined text-base">{s.ico}</span>}
+                      </div>
+                      <span className={`text-xs font-semibold whitespace-nowrap ${step===s.n?"text-primary":step>s.n?"text-emerald-600":"text-slate-400"}`}>{s.label}</span>
+                    </button>
+                    {i<steps.length-1 && <div className={`flex-1 h-0.5 mx-3 mb-4 transition ${step>s.n?"bg-emerald-400":"bg-slate-200"}`}/>}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Thời gian làm bài (Phút)
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                defaultValue={60}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none pl-12"
-              />
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                timer
-              </span>
-            </div>
-          </div>
-        </div>
+            {/* Step 1: Basic Info */}
+            {step===1 && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+                <h2 className="text-base font-bold text-slate-800">Thông tin cơ bản</h2>
 
-        {/* Pass Score + Max Attempts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
-          
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Điểm đạt (%)
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                defaultValue={80}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none pl-12"
-              />
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                check_circle
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Số lần thi tối đa
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                defaultValue={3}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none pl-12"
-              />
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                replay
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Max Pause */}
-        <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-            Số lần tạm dừng tối đa
-          </label>
-          <div className="relative w-1/2">
-            <input
-              type="number"
-              defaultValue={0}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none pl-12"
-            />
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-              pause_circle
-            </span>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    {/* Tip Box */}
-    <div className="bg-primary/5 border border-primary/10 rounded-xl p-6 flex items-start gap-4">
-      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0">
-        <span className="material-symbols-outlined">
-          lightbulb
-        </span>
-      </div>
-
-      <div>
-        <h4 className="font-bold text-slate-900 dark:text-white mb-1">
-          Mẹo nhỏ
-        </h4>
-        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-          Bạn có thể cấu hình thêm các câu hỏi sau khi nhấn nút "Lưu đề thi".
-          Đừng quên thiết lập điểm số cho từng câu hỏi để hệ thống tự động tính toán kết quả.
-        </p>
-      </div>
-    </div>
-
-  </div>
-  {/* Sidebar Settings */}
-<div className="space-y-6">
-  
-  {/* Status */}
-  <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
-    
-    <h3 className="text-md font-bold mb-4 flex items-center gap-2">
-      <span className="material-symbols-outlined text-primary text-lg">
-        flag
-      </span>
-      Trạng thái
-    </h3>
-
-    <div className="space-y-3">
-      
-      {/* Draft */}
-      <label className="flex items-center gap-3 p-3 rounded-lg border border-primary bg-primary/5 cursor-pointer">
-        <input
-          type="radio"
-          name="status"
-          defaultChecked
-          className="text-primary focus:ring-primary"
-        />
-        <div className="flex-1">
-          <p className="text-sm font-bold text-slate-900 dark:text-white">
-            Bản nháp
-          </p>
-          <p className="text-[10px] text-slate-500">
-            Lưu lại để chỉnh sửa sau
-          </p>
-        </div>
-      </label>
-
-      {/* Public */}
-      <label className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-colors cursor-pointer">
-        <input
-          type="radio"
-          name="status"
-          className="text-primary focus:ring-primary"
-        />
-        <div className="flex-1">
-          <p className="text-sm font-bold text-slate-900 dark:text-white">
-            Công khai
-          </p>
-          <p className="text-[10px] text-slate-500">
-            Hiển thị cho học viên ngay
-          </p>
-        </div>
-      </label>
-
-    </div>
-  </div>
-
-  {/* Display Settings */}
-  <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
-    
-    <h3 className="text-md font-bold mb-4 flex items-center gap-2">
-      <span className="material-symbols-outlined text-primary text-lg">
-        settings_suggest
-      </span>
-      Cài đặt hiển thị
-    </h3>
-
-    <div className="space-y-4">
-      
-      {/* Shuffle Questions */}
-      <label className="flex items-center justify-between cursor-pointer group">
-        <span className="text-sm font-medium text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
-          Trộn câu hỏi
-        </span>
-        <div className="relative inline-flex items-center">
-          <input type="checkbox" defaultChecked className="sr-only peer" />
-          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 
-            peer-checked:after:translate-x-full peer-checked:after:border-white 
-            after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
-            after:bg-white after:border after:rounded-full after:h-5 after:w-5 
-            after:transition-all dark:border-gray-600 peer-checked:bg-primary">
-          </div>
-        </div>
-      </label>
-
-      {/* Show Answer Immediately */}
-      <label className="flex items-center justify-between cursor-pointer group">
-        <span className="text-sm font-medium text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
-          Xem đáp án ngay
-        </span>
-        <div className="relative inline-flex items-center">
-          <input type="checkbox" className="sr-only peer" />
-          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 
-            peer-checked:after:translate-x-full peer-checked:after:border-white 
-            after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
-            after:bg-white after:border after:rounded-full after:h-5 after:w-5 
-            after:transition-all dark:border-gray-600 peer-checked:bg-primary">
-          </div>
-        </div>
-      </label>
-
-      {/* Certificate */}
-      <label className="flex items-center justify-between cursor-pointer group">
-        <span className="text-sm font-medium text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
-          Chứng chỉ hoàn thành
-        </span>
-        <div className="relative inline-flex items-center">
-          <input type="checkbox" defaultChecked className="sr-only peer" />
-          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 
-            peer-checked:after:translate-x-full peer-checked:after:border-white 
-            after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
-            after:bg-white after:border after:rounded-full after:h-5 after:w-5 
-            after:transition-all dark:border-gray-600 peer-checked:bg-primary">
-          </div>
-        </div>
-      </label>
-
-    </div>
-  </div>
-
-  {/* AI Generator Card */}
-  <div className="bg-slate-900 dark:bg-slate-800 rounded-xl p-6 text-white overflow-hidden relative group">
-    
-    <div className="pattern-bg absolute inset-0"></div>
-
-    <div className="relative z-10">
-      <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-        <span className="material-symbols-outlined text-primary">
-          auto_awesome
-        </span>
-      </div>
-
-      <h4 className="font-bold mb-2">
-        Trình tạo câu hỏi AI
-      </h4>
-
-      <p className="text-xs text-slate-400 leading-relaxed mb-4">
-        Sử dụng AI của TOXI để tạo đề thi từ văn bản có sẵn trong vài giây.
-      </p>
-
-      <button className="w-full py-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-bold transition-all border border-white/10">
-        Thử nghiệm ngay
-      </button>
-    </div>
-
-  </div>
-
-</div>
-</div>
-</div>
-</main>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Tên đề thi *</label>
+                  <input className={inputCls} value={form.name} onChange={e=>sf({name:e.target.value})} placeholder="VD: Đề thi HSK1 - Mã đề 201"/>
                 </div>
-        </>
-    )
-};
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Cấp độ HSK</label>
+                    <select className={inputCls} value={form.hsk} onChange={e=>sf({hsk:e.target.value})}>
+                      {["HSK 1","HSK 2","HSK 3","HSK 4","HSK 5","HSK 6"].map(h=><option key={h}>{h}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Dạng đề</label>
+                    <select className={inputCls} value={form.type} onChange={e=>sf({type:e.target.value})}>
+                      {["Tổng hợp","Nghe","Đọc","Viết","Mock test"].map(t=><option key={t}>{t}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Thời gian (phút)</label>
+                    <input type="number" className={inputCls} value={form.time} onChange={e=>sf({time:+e.target.value})}/>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Điểm đạt (%)</label>
+                    <input type="number" className={inputCls} value={form.pass} onChange={e=>sf({pass:+e.target.value})}/>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Mô tả</label>
+                  <textarea className={inputCls+" resize-none"} rows={3} value={form.desc} onChange={e=>sf({desc:e.target.value})} placeholder="Mô tả nội dung đề thi..."/>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button onClick={()=>setStep(2)} className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition">
+                    Tiếp theo — Thêm câu hỏi <span className="material-symbols-outlined text-base">arrow_forward</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Add questions */}
+            {step===2 && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                  <h2 className="text-base font-bold text-slate-800 mb-1">Thêm câu hỏi</h2>
+                  <p className="text-sm text-slate-500 mb-4">Chọn cách thêm câu hỏi vào đề thi</p>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <Link to="/listenQuiz"
+                      className="group flex flex-col items-center gap-3 p-6 border-2 border-dashed border-slate-200 rounded-2xl hover:border-primary hover:bg-blue-50 transition cursor-pointer">
+                      <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center group-hover:bg-blue-200 transition">
+                        <span className="material-symbols-outlined text-blue-600 text-2xl">hearing</span>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-bold text-slate-700 text-sm">Câu hỏi Nghe</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Đúng/Sai, ABC ảnh, Gộp câu, ABCD</p>
+                      </div>
+                    </Link>
+
+                    <Link to="/readQuiz"
+                      className="group flex flex-col items-center gap-3 p-6 border-2 border-dashed border-slate-200 rounded-2xl hover:border-primary hover:bg-emerald-50 transition cursor-pointer">
+                      <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center group-hover:bg-emerald-200 transition">
+                        <span className="material-symbols-outlined text-emerald-600 text-2xl">menu_book</span>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-bold text-slate-700 text-sm">Câu hỏi Đọc</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Đúng/Sai, Gộp câu, ABCD, Điền từ</p>
+                      </div>
+                    </Link>
+
+                    <Link to="/writtingQuiz"
+                      className="group flex flex-col items-center gap-3 p-6 border-2 border-dashed border-slate-200 rounded-2xl hover:border-primary hover:bg-orange-50 transition cursor-pointer">
+                      <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center group-hover:bg-orange-200 transition">
+                        <span className="material-symbols-outlined text-orange-600 text-2xl">edit_note</span>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-bold text-slate-700 text-sm">Câu hỏi Viết</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Sắp xếp từ, Viết đoạn văn</p>
+                      </div>
+                    </Link>
+
+                    <div className="group flex flex-col items-center gap-3 p-6 border-2 border-dashed border-slate-200 rounded-2xl hover:border-violet-400 hover:bg-violet-50 transition cursor-pointer"
+                      onClick={()=>{}}>
+                      <div className="w-12 h-12 bg-violet-100 rounded-2xl flex items-center justify-center group-hover:bg-violet-200 transition">
+                        <span className="material-symbols-outlined text-violet-600 text-2xl">library_add</span>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-bold text-slate-700 text-sm">Thêm từ ngân hàng</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Chọn câu hỏi đã có sẵn</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between pt-2">
+                  <button onClick={()=>setStep(1)} className="flex items-center gap-2 px-5 py-2.5 border border-slate-200 bg-white rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
+                    <span className="material-symbols-outlined text-base">arrow_back</span>Quay lại
+                  </button>
+                  <button onClick={()=>setStep(3)} className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition">
+                    Tiếp theo — Cài đặt <span className="material-symbols-outlined text-base">arrow_forward</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Settings */}
+            {step===3 && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+                  <h2 className="text-base font-bold text-slate-800">Cài đặt đề thi</h2>
+
+                  {/* Toggles */}
+                  {[
+                    {key:"randomize",label:"Xáo trộn câu hỏi",desc:"Mỗi học viên nhận thứ tự câu hỏi khác nhau"},
+                    {key:"showPinyin",label:"Hiển thị Pinyin",desc:"Hiện phiên âm dưới chữ Hán"},
+                  ].map(t=>(
+                    <div key={t.key} className="flex items-center justify-between py-3 border-b border-slate-100">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-700">{t.label}</p>
+                        <p className="text-xs text-slate-400">{t.desc}</p>
+                      </div>
+                      <button onClick={()=>sf({[t.key]:!form[t.key]})}
+                        className={`w-11 h-6 rounded-full relative transition-colors ${form[t.key]?"bg-primary":"bg-slate-300"}`}>
+                        <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${form[t.key]?"left-5":"left-0.5"}`}/>
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Status */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Trạng thái xuất bản</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        {v:"active",label:"Công khai",ico:"public",desc:"Học viên thấy ngay"},
+                        {v:"draft", label:"Nháp",     ico:"edit",  desc:"Chỉ admin thấy"},
+                        {v:"hidden",label:"Ẩn",       ico:"visibility_off",desc:"Tạm thời ẩn"},
+                      ].map(o=>(
+                        <button key={o.v} onClick={()=>sf({status:o.v})}
+                          className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition ${form.status===o.v?"border-primary bg-blue-50":"border-slate-200 hover:border-slate-300"}`}>
+                          <span className={`material-symbols-outlined ${form.status===o.v?"text-primary":"text-slate-400"}`}>{o.ico}</span>
+                          <span className={`text-xs font-bold ${form.status===o.v?"text-primary":"text-slate-600"}`}>{o.label}</span>
+                          <span className="text-[10px] text-slate-400">{o.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between pt-2">
+                  <button onClick={()=>setStep(2)} className="flex items-center gap-2 px-5 py-2.5 border border-slate-200 bg-white rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
+                    <span className="material-symbols-outlined text-base">arrow_back</span>Quay lại
+                  </button>
+                  <button onClick={handleCreate}
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition shadow-md ${saved?"bg-emerald-600 shadow-emerald-200":"bg-primary shadow-primary/20 hover:bg-primary/90"} text-white`}>
+                    <span className="material-symbols-outlined text-base">{saved?"check":"publish"}</span>
+                    {saved?"Đã tạo! Đang chuyển...":"Tạo đề thi"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

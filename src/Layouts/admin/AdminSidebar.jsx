@@ -13,9 +13,9 @@ export default function AdminSidebar() {
     { name: "Quản lý Store (Sách)", path: "/adminProduct", icon: "shopping_bag" },
 
  { name: "Ngân hàng đề thi HSK", path: "/adminQuiz", icon: "quiz" },
-    { name: "Tạo Tài Liệu thi ", path: "/adminExam", icon: "quiz" },
+    { name: "Ngân hàng câu hỏi ", path: "/adminExam", icon: "quiz" },
 
-    { name: "Tạo phiếu bài tập", path: "#", icon: "quiz" },
+   
 
     { name: "Bài viết Blog", path: "/AdminBlog", icon: "article" },
     { name: "Báo cáo tài chính", path: "/adminFinance", icon: "payments" },
