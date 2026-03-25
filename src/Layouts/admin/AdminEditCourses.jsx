@@ -2,6 +2,7 @@ import react from "react";
 import { useState, useRef } from "react";
 import AdminSidebar from "./AdminSidebar";
 import { useNavigate } from "react-router-dom";
+import { uploadImage } from "./api/apiFile";
 export default function AdminEditCourses() {
   const navigate = useNavigate();
 
@@ -12,6 +13,7 @@ export default function AdminEditCourses() {
     type: "HSK Preparation",
     price: 49.99,
     discountPrice: 39.99,
+    introVideoUrl: "",
 
   };
 
@@ -21,6 +23,23 @@ export default function AdminEditCourses() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
+  const [introVideoFile, setIntroVideoFile] = useState(null);
+  const [introVideoName, setIntroVideoName] = useState("");
+  const introVideoInputRef = useRef(null);
+
+  const resolveUploadedPath = (uploaded) => {
+    if (!uploaded) return "";
+    if (typeof uploaded === "string") return uploaded;
+    return (
+      uploaded.url ||
+      uploaded.path ||
+      uploaded.fileUrl ||
+      uploaded.downloadUrl ||
+      uploaded.data?.url ||
+      uploaded.data?.path ||
+      ""
+    );
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -61,8 +80,20 @@ export default function AdminEditCourses() {
 
     setSaving(true);
     try {
+      let introVideoUrl = formData.introVideoUrl?.trim() || "";
+      if (!introVideoUrl && introVideoFile) {
+        const uploadedVideo = await uploadImage(introVideoFile);
+        introVideoUrl = resolveUploadedPath(uploadedVideo);
+      }
+
+      const updatedFormData = {
+        ...formData,
+        introVideoUrl,
+      };
+
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      setOriginalFormData(formData);
+      setFormData(updatedFormData);
+      setOriginalFormData(updatedFormData);
       setHasChanges(false);
       setSuccessMessage("Cập nhật khóa học thành công ");
       setTimeout(() => setSuccessMessage(""), 3000);
@@ -117,6 +148,21 @@ const handleFileChange = (e) => {
 
   const previewUrl = URL.createObjectURL(file);
   setThumbnail(previewUrl);
+};
+const handleChangeIntroVideo = () => {
+  introVideoInputRef.current?.click();
+};
+
+const handleIntroVideoFileChange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  setIntroVideoFile(file);
+  setIntroVideoName(file.name);
+
+  const updatedData = { ...formData, introVideoUrl: "" };
+  setFormData(updatedData);
+  setHasChanges(JSON.stringify(updatedData) !== JSON.stringify(originalFormData));
 };
  const [courseId] = useState("TOXI-HSK1-001");
   const [status, setStatus] = useState("Drafting");
@@ -457,8 +503,91 @@ const handleFileChange = (e) => {
           <p className="text-xs text-slate-500 italic">
             Recommended size: 1280x720px. Max size 2MB. Supports JPG, PNG, WEBP.
           </p>
+    </div>
+
+      </div>
+    </div>
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+      <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+        <span className="material-symbols-outlined text-primary">
+          video_file
+        </span>
+        Intro Video
+      </h3>
+
+      <div className="grid grid-cols-2 gap-6">
+        <div className="aspect-video rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center relative overflow-hidden group">
+          {formData.introVideoUrl ? (
+            <video
+              controls
+              preload="metadata"
+              className="absolute inset-0 w-full h-full object-cover"
+              src={formData.introVideoUrl}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center text-slate-400 px-6 text-center">
+              <span className="material-symbols-outlined text-5xl mb-3">smart_display</span>
+              <p className="text-sm font-medium">Chưa có video giới thiệu</p>
+            </div>
+          )}
+
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+            <button
+              type="button"
+              onClick={handleChangeIntroVideo}
+              className="bg-white text-slate-900 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined">
+                file_upload
+              </span>
+              Change Video
+            </button>
+          </div>
+
+          <input
+            type="file"
+            accept="video/*"
+            ref={introVideoInputRef}
+            onChange={handleIntroVideoFileChange}
+            className="hidden"
+          />
         </div>
 
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">
+              Intro Video URL
+            </label>
+
+            <input
+              type="text"
+              name="introVideoUrl"
+              value={formData.introVideoUrl}
+              onChange={handleChange}
+              placeholder="https://example.com/intro-video.mp4"
+              className="w-full rounded-lg border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2.5 text-sm focus:ring-primary focus:border-primary"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleChangeIntroVideo}
+            className="px-4 py-2 rounded-lg border border-primary/20 text-primary font-semibold hover:bg-primary/10 transition-colors flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined">upload_file</span>
+            Upload Intro Video
+          </button>
+
+          {introVideoName && (
+            <p className="text-sm text-slate-500">
+              File đã chọn: <span className="font-semibold text-primary">{introVideoName}</span>
+            </p>
+          )}
+
+          <p className="text-xs text-slate-500 italic">
+            Bạn có thể nhập URL video trực tiếp hoặc chọn file video để upload khi bấm Update Course.
+          </p>
+        </div>
       </div>
     </div>
           </div>

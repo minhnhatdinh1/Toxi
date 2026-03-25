@@ -1,444 +1,255 @@
-import react from "react";
-import {usestate} from "react";
-import { Link } from "react-router-dom";
+
+import { useState } from "react";
+import { Link, useNavigate , useSearchParams } from "react-router-dom";
+
 import AdminSidebar from "./AdminSidebar";
+
+const inputCls = "border border-slate-200 rounded-xl px-3 py-2.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition bg-white";
+
 export default function AdminAddNewQuiz() {
-    return (
-        <>
-  <div class="flex h-screen overflow-hidden">
-            <AdminSidebar />
-           {/* Main Content */}
-<main className="flex-1 flex flex-col h-screen overflow-y-auto">
 
-  {/* Header */}
-  <header className="sticky top-0 z-10 flex items-center justify-between px-8 py-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+  const navigate = useNavigate();
+const [searchParams] = useSearchParams();
+const initStep = Number(searchParams.get("step")) || 1;
 
-    <div className="flex items-center gap-4">
-
-      <div className="flex items-center gap-2 text-slate-500 text-sm">
-
-        <a className="hover:text-primary transition-colors" href="#">
-          Exams
-        </a>
-
-        <span className="material-symbols-outlined text-xs">
-          chevron_right
-        </span>
-
-        <span className="text-slate-900 dark:text-slate-100 font-semibold">
-          Create New Exam
-        </span>
-
-      </div>
-
-    </div>
+const [step, setStep] = useState(initStep);// 1=BasicInfo 2=AddQuestions 3=Settings
+  const [form, setForm]   = useState({
+    name:"", hsk:"HSK 1", type:"Tổng hợp", time:45, pass:60, desc:"", status:"draft", randomize:true, showPinyin:true,
+  });
+  const [saved, setSaved] = useState(false);
+  const sf = v => setForm(f=>({...f,...v}));
 
 
-    <div className="flex items-center gap-3">
-{/* Publish Button */}
-<Link
-  to="/listenquiz"
-  className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg font-bold text-sm transition-all"
->
-  <span className="material-symbols-outlined text-sm">
-    save
-  </span>
+  function handleCreate() {
+    if (!form.name.trim()) { alert("Vui lòng nhập tên đề thi!"); return; }
+    setSaved(true);
+    setTimeout(()=>{ setSaved(false); navigate("/adminQuiz"); }, 1500);
+  }
 
-  Tạo câu hỏi mới
-</Link>
+  const steps = [
+    {n:1, label:"Thông tin cơ bản", ico:"info"},
+    {n:2, label:"Thêm câu hỏi",    ico:"add_circle"},
+    {n:3, label:"Cài đặt",         ico:"settings"},
+  ];
 
-    </div>
+  return (
+    <div className="flex h-screen overflow-hidden bg-slate-100">
+      <AdminSidebar />
 
-  </header>
-
-
-  {/* Form Content */}
-  <div className="p-8 mx-auto w-full">
-
-    <div className="mb-8">
-
-      <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-        Create New HSK Exam
-      </h1>
-
-      <p className="text-slate-500 dark:text-slate-400 mt-2">
-        Configure exam content, scoring logic, and availability windows for candidates.
-      </p>
-
-    </div>
-
-
-    <form className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-      {/* Left Column */}
-      <div className="lg:col-span-2 space-y-6">
-
-        <section className="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-
-          <div className="flex items-center gap-2 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-
-            <span className="material-symbols-outlined text-primary">
-              edit_note
-            </span>
-
-            <h2 className="text-lg font-bold">
-              General Information
-            </h2>
-
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Topbar */}
+        <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-3 flex-shrink-0">
+          <button onClick={()=>navigate("/adminQuiz")} className="p-2 hover:bg-slate-100 rounded-lg transition">
+            <span className="material-symbols-outlined text-slate-500">arrow_back</span>
+          </button>
+          <div className="flex-1">
+            <p className="text-[11px] text-slate-400 mb-0.5">
+              <Link to="/adminQuiz" className="hover:text-primary">Quản lí đề thi</Link>
+              <span className="mx-1">›</span>
+              <span className="text-slate-700">Tạo đề thi mới</span>
+            </p>
+            <h1 className="text-base font-bold text-slate-900">Tạo đề thi mới</h1>
           </div>
+          <Link to="/adminQuiz" className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">Huỷ</Link>
+          <button onClick={handleCreate}
+            className={`px-5 py-2 rounded-xl text-sm font-bold transition shadow-md ${saved?"bg-emerald-600 shadow-emerald-200":"bg-primary shadow-primary/20 hover:bg-primary/90"} text-white`}>
+            {saved ? "✓ Đã tạo! Đang chuyển..." : "Tạo đề thi"}
+          </button>
+        </header>
 
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-3xl mx-auto space-y-5">
 
-          <div className="space-y-4">
-
-            {/* Exam Title */}
-            <div>
-
-              <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-                Exam Title
-              </label>
-
-              <input
-                type="text"
-                placeholder="e.g. HSK Level 4 Spring 2024 Final"
-                className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-              />
-
+            {/* Steps */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-4">
+              <div className="flex items-center">
+                {steps.map((s,i)=>(
+                  <div key={s.n} className="flex items-center flex-1">
+                    <button onClick={()=>setStep(s.n)} className="flex flex-col items-center gap-1 group">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center transition ${step===s.n?"bg-primary text-white":step>s.n?"bg-emerald-500 text-white":"bg-slate-100 text-slate-400 group-hover:bg-slate-200"}`}>
+                        {step>s.n ? <span className="material-symbols-outlined text-base">check</span>
+                          : <span className="material-symbols-outlined text-base">{s.ico}</span>}
+                      </div>
+                      <span className={`text-xs font-semibold whitespace-nowrap ${step===s.n?"text-primary":step>s.n?"text-emerald-600":"text-slate-400"}`}>{s.label}</span>
+                    </button>
+                    {i<steps.length-1 && <div className={`flex-1 h-0.5 mx-3 mb-4 transition ${step>s.n?"bg-emerald-400":"bg-slate-200"}`}/>}
+                  </div>
+                ))}
+              </div>
             </div>
 
+            {/* Step 1: Basic Info */}
+            {step===1 && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+                <h2 className="text-base font-bold text-slate-800">Thông tin cơ bản</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-              {/* HSK Level */}
-              <div>
-
-                <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-                  HSK Level
-                </label>
-
-                <select
-                  defaultValue="4"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-primary/20 outline-none"
-                >
-
-                  <option value="1">Level 1 (Entry)</option>
-                  <option value="2">Level 2</option>
-                  <option value="3">Level 3</option>
-                  <option value="4">Level 4</option>
-                  <option value="5">Level 5</option>
-                  <option value="6">Level 6 (Advanced)</option>
-
-                </select>
-
-              </div>
-
-
-              {/* Duration */}
-              <div>
-
-                <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-                  Duration (Minutes)
-                </label>
-
-                <div className="relative">
-
-                  <input
-                    type="number"
-                    defaultValue="120"
-                    className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-primary/20 outline-none"
-                  />
-
-                  <span className="absolute right-3 top-3 text-slate-400 text-sm">
-                    min
-                  </span>
-
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Tên đề thi *</label>
+                  <input className={inputCls} value={form.name} onChange={e=>sf({name:e.target.value})} placeholder="VD: Đề thi HSK1 - Mã đề 201"/>
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Cấp độ HSK</label>
+                    <select className={inputCls} value={form.hsk} onChange={e=>sf({hsk:e.target.value})}>
+                      {["HSK 1","HSK 2","HSK 3","HSK 4","HSK 5","HSK 6"].map(h=><option key={h}>{h}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Dạng đề</label>
+                    <select className={inputCls} value={form.type} onChange={e=>sf({type:e.target.value})}>
+                      {["Tổng hợp","Nghe","Đọc","Viết","Mock test"].map(t=><option key={t}>{t}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Thời gian (phút)</label>
+                    <input type="number" className={inputCls} value={form.time} onChange={e=>sf({time:+e.target.value})}/>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Điểm đạt (%)</label>
+                    <input type="number" className={inputCls} value={form.pass} onChange={e=>sf({pass:+e.target.value})}/>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Mô tả</label>
+                  <textarea className={inputCls+" resize-none"} rows={3} value={form.desc} onChange={e=>sf({desc:e.target.value})} placeholder="Mô tả nội dung đề thi..."/>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button onClick={()=>setStep(2)} className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition">
+                    Tiếp theo — Thêm câu hỏi <span className="material-symbols-outlined text-base">arrow_forward</span>
+                  </button>
+                </div>
               </div>
+            )}
 
-            </div>
+            {/* Step 2: Add questions */}
+            {step===2 && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                  <h2 className="text-base font-bold text-slate-800 mb-1">Thêm câu hỏi</h2>
+                  <p className="text-sm text-slate-500 mb-4">Chọn cách thêm câu hỏi vào đề thi</p>
 
+                  <div className="grid grid-cols-2 gap-4">
+                    <Link to="/listenQuiz"
+                      className="group flex flex-col items-center gap-3 p-6 border-2 border-dashed border-slate-200 rounded-2xl hover:border-primary hover:bg-blue-50 transition cursor-pointer">
+                      <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center group-hover:bg-blue-200 transition">
+                        <span className="material-symbols-outlined text-blue-600 text-2xl">hearing</span>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-bold text-slate-700 text-sm">Câu hỏi Nghe</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Đúng/Sai, ABC ảnh, Gộp câu, ABCD</p>
+                      </div>
+                    </Link>
+
+                    <Link to="/readQuiz"
+                      className="group flex flex-col items-center gap-3 p-6 border-2 border-dashed border-slate-200 rounded-2xl hover:border-primary hover:bg-emerald-50 transition cursor-pointer">
+                      <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center group-hover:bg-emerald-200 transition">
+                        <span className="material-symbols-outlined text-emerald-600 text-2xl">menu_book</span>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-bold text-slate-700 text-sm">Câu hỏi Đọc</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Đúng/Sai, Gộp câu, ABCD, Điền từ</p>
+                      </div>
+                    </Link>
+
+                    <Link to="/writtingQuiz"
+                      className="group flex flex-col items-center gap-3 p-6 border-2 border-dashed border-slate-200 rounded-2xl hover:border-primary hover:bg-orange-50 transition cursor-pointer">
+                      <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center group-hover:bg-orange-200 transition">
+                        <span className="material-symbols-outlined text-orange-600 text-2xl">edit_note</span>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-bold text-slate-700 text-sm">Câu hỏi Viết</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Sắp xếp từ, Viết đoạn văn</p>
+                      </div>
+                    </Link>
+
+                    <div className="group flex flex-col items-center gap-3 p-6 border-2 border-dashed border-slate-200 rounded-2xl hover:border-violet-400 hover:bg-violet-50 transition cursor-pointer"
+                      onClick={()=>{}}>
+                      <div className="w-12 h-12 bg-violet-100 rounded-2xl flex items-center justify-center group-hover:bg-violet-200 transition">
+                        <span className="material-symbols-outlined text-violet-600 text-2xl">library_add</span>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-bold text-slate-700 text-sm">Thêm từ ngân hàng</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Chọn câu hỏi đã có sẵn</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between pt-2">
+                  <button onClick={()=>setStep(1)} className="flex items-center gap-2 px-5 py-2.5 border border-slate-200 bg-white rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
+                    <span className="material-symbols-outlined text-base">arrow_back</span>Quay lại
+                  </button>
+                  <button onClick={()=>setStep(3)} className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition">
+                    Tiếp theo — Cài đặt <span className="material-symbols-outlined text-base">arrow_forward</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Settings */}
+            {step===3 && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+                  <h2 className="text-base font-bold text-slate-800">Cài đặt đề thi</h2>
+
+                  {/* Toggles */}
+                  {[
+                    {key:"randomize",label:"Xáo trộn câu hỏi",desc:"Mỗi học viên nhận thứ tự câu hỏi khác nhau"},
+                    {key:"showPinyin",label:"Hiển thị Pinyin",desc:"Hiện phiên âm dưới chữ Hán"},
+                  ].map(t=>(
+                    <div key={t.key} className="flex items-center justify-between py-3 border-b border-slate-100">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-700">{t.label}</p>
+                        <p className="text-xs text-slate-400">{t.desc}</p>
+                      </div>
+                      <button onClick={()=>sf({[t.key]:!form[t.key]})}
+                        className={`w-11 h-6 rounded-full relative transition-colors ${form[t.key]?"bg-primary":"bg-slate-300"}`}>
+                        <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${form[t.key]?"left-5":"left-0.5"}`}/>
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Status */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Trạng thái xuất bản</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        {v:"active",label:"Công khai",ico:"public",desc:"Học viên thấy ngay"},
+                        {v:"draft", label:"Nháp",     ico:"edit",  desc:"Chỉ admin thấy"},
+                        {v:"hidden",label:"Ẩn",       ico:"visibility_off",desc:"Tạm thời ẩn"},
+                      ].map(o=>(
+                        <button key={o.v} onClick={()=>sf({status:o.v})}
+                          className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition ${form.status===o.v?"border-primary bg-blue-50":"border-slate-200 hover:border-slate-300"}`}>
+                          <span className={`material-symbols-outlined ${form.status===o.v?"text-primary":"text-slate-400"}`}>{o.ico}</span>
+                          <span className={`text-xs font-bold ${form.status===o.v?"text-primary":"text-slate-600"}`}>{o.label}</span>
+                          <span className="text-[10px] text-slate-400">{o.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between pt-2">
+                  <button onClick={()=>setStep(2)} className="flex items-center gap-2 px-5 py-2.5 border border-slate-200 bg-white rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
+                    <span className="material-symbols-outlined text-base">arrow_back</span>Quay lại
+                  </button>
+                  <button onClick={handleCreate}
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition shadow-md ${saved?"bg-emerald-600 shadow-emerald-200":"bg-primary shadow-primary/20 hover:bg-primary/90"} text-white`}>
+                    <span className="material-symbols-outlined text-base">{saved?"check":"publish"}</span>
+                    {saved?"Đã tạo! Đang chuyển...":"Tạo đề thi"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-
-        </section>
-<section className="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-
-  <div className="flex items-center gap-2 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-
-    <span className="material-symbols-outlined text-primary">
-      rule
-    </span>
-
-    <h2 className="text-lg font-bold">
-      Scoring & Retakes
-    </h2>
-
-  </div>
-
-
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-    {/* Passing Score */}
-    <div>
-
-      <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-        Passing Score (%)
-      </label>
-
-      <div className="flex items-center gap-4">
-
-        <input
-          type="range"
-          min="0"
-          max="100"
-          defaultValue="60"
-          className="flex-1 accent-primary h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-        />
-
-        <span className="bg-primary/10 text-primary px-3 py-1 rounded font-bold">
-          60%
-        </span>
-
-      </div>
-
-    </div>
-
-
-    {/* Max Attempts */}
-    <div>
-
-      <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-        Max Attempts
-      </label>
-
-      <select
-        defaultValue="2"
-        className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-primary/20 outline-none"
-      >
-
-        <option value="1">1 Attempt Only</option>
-        <option value="2">2 Attempts</option>
-        <option value="3">3 Attempts</option>
-        <option value="unlimited">Unlimited</option>
-
-      </select>
-
-    </div>
-
-  </div>
-
-</section>
-  {/* Chinese Accent Banner */}
-  <div className="bg-hsk-blue text-white p-6 rounded-xl flex items-center justify-between relative overflow-hidden group">
-
-    <div className="relative z-10">
-
-      <h3 className="font-bold text-lg mb-1">
-        Chinese Cultural Accent
-      </h3>
-
-      <p className="text-slate-400 text-sm max-w-xs">
-        Enhance your exam papers with traditional calligraphy watermark backgrounds.
-      </p>
-
-      <button
-        type="button"
-        className="mt-4 text-hsk-gold font-bold text-sm flex items-center gap-2 hover:underline"
-      >
-
-        Configure Design
-
-        <span className="material-symbols-outlined text-sm">
-          arrow_forward
-        </span>
-
-      </button>
-
-    </div>
-</div>
-
-    <div className="absolute -right-4 -bottom-4 opacity-20 group-hover:scale-110 transition-transform duration-500">
-
-      <img
-        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAz52iIXOpLgQxiTjkBBkITqRFfAMW0nz90HbYH_Y1-iWyEu0_Mg2PQnd26W8Iulmd5yCnUD6Tf5bmzSFA29nx5Wm4IkAkj-vl-rCEFL_bDTo7wiRxxZY781i3zZbB540Tre0zGAjK1_GT6MT2TKl3TWuFc34Ri-z6-4FSX-Vob2UxkH1mkCL54_FNBiPTlqFdFkVdjkMD6u2hInaLTxnbIdXwkv8UjxXX7SEcgcsykah74Cxjwy1_1zEj_4D8Qaxxq9IIJGkoJg3M"
-        alt="Abstract Chinese Pattern"
-        className="size-48 object-cover rounded-full"
-      />
-
-    </div>
-
-  </div>
-
-
-  {/* Right Column */}
-  <div className="space-y-6">
-
-    <section className="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-
-      <div className="flex items-center gap-2 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-
-        <span className="material-symbols-outlined text-primary">
-          settings_suggest
-        </span>
-
-        <h2 className="text-lg font-bold">
-          Exam Settings
-        </h2>
-
-      </div>
-
-
-      <div className="space-y-6">
-
-        {/* Date */}
-        <div>
-
-          <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-            Drip Release Date
-          </label>
-
-          <div className="relative">
-
-            <span className="material-symbols-outlined absolute left-3 top-3 text-slate-400">
-              calendar_today
-            </span>
-
-            <input
-              type="date"
-              className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg p-3 pl-10 focus:ring-2 focus:ring-primary/20 outline-none"
-            />
-
-          </div>
-
-          <p className="text-xs text-slate-500 mt-2">
-            When students will first be able to access the exam.
-          </p>
-
         </div>
-
-
-        {/* Visibility */}
-        <div>
-
-          <label className="block text-sm font-semibold mb-3 text-slate-700 dark:text-slate-300">
-            Visibility Status
-          </label>
-
-          <div className="space-y-3">
-
-            {/* Public */}
-            <label className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 cursor-pointer hover:border-primary/50 transition-colors">
-
-              <input
-                type="radio"
-                name="visibility"
-                defaultChecked
-                className="text-primary focus:ring-primary"
-              />
-
-              <div>
-
-                <p className="text-sm font-bold">
-                  Public
-                </p>
-
-                <p className="text-[10px] text-slate-500">
-                  Visible to all registered students
-                </p>
-
-              </div>
-
-            </label>
-
-
-            {/* Draft */}
-            <label className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 cursor-pointer hover:border-primary/50 transition-colors">
-
-              <input
-                type="radio"
-                name="visibility"
-                className="text-primary focus:ring-primary"
-              />
-
-              <div>
-
-                <p className="text-sm font-bold">
-                  Draft
-                </p>
-
-                <p className="text-[10px] text-slate-500">
-                  Only visible to administrators
-                </p>
-
-              </div>
-
-            </label>
-
-
-            {/* Private */}
-            <label className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 cursor-pointer hover:border-primary/50 transition-colors">
-
-              <input
-                type="radio"
-                name="visibility"
-                className="text-primary focus:ring-primary"
-              />
-
-              <div>
-
-                <p className="text-sm font-bold">
-                  Private / Invited
-                </p>
-
-                <p className="text-[10px] text-slate-500">
-                  Access only via specific invitation links
-                </p>
-
-              </div>
-
-            </label>
-
-          </div>
-
-        </div>
-
       </div>
-
-    </section>
-<section className="bg-primary/5 dark:bg-primary/10 border-2 border-dashed border-primary/20 p-6 rounded-xl">
-  <div className="flex flex-col items-center text-center gap-3">
-
-    <div className="size-12 rounded-full bg-primary/20 text-primary flex items-center justify-center">
-      <span className="material-symbols-outlined">
-        upload_file
-      </span>
     </div>
-
-    <div>
-      <h3 className="font-bold text-slate-800 dark:text-slate-200">
-        Import Questions
-      </h3>
-
-      <p className="text-xs text-slate-500 mt-1">
-        Bulk upload questions via CSV or Excel templates.
-      </p>
-    </div>
-
-    <button
-      type="button"
-      className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-2 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors"
-    >
-      Choose File
-    </button>
-
-  </div>
-</section>
-  </div>
-</form>
-
-  </div>
-
-</main>
-            </div>
-        </>
-    )
+  );
 }

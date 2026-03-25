@@ -1,11 +1,14 @@
-import React ,{ useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React ,{ useEffect, useState, useMemo } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useCart } from "../../../context/CartContext";
 import logo from '../../../assets/image/LOGO (1).png';
+import axios from "axios";
 export default function CheckOutMain() {
     const navigate = useNavigate();
+    const { courseId } = useParams();
  
 const { cartItems, clearCart } = useCart();
+  const [directCourse, setDirectCourse] = useState(null);
   const [form, setForm] = useState({
     fullName: "",
     phone: "",
@@ -16,14 +19,51 @@ const { cartItems, clearCart } = useCart();
     address: "",
   });
 
-  const shipping = 30000;
+  useEffect(() => {
+    const fetchDirectCourse = async () => {
+      if (!courseId || cartItems.length > 0) {
+        setDirectCourse(null);
+        return;
+      }
+
+      try {
+        const res = await axios.get(`http://localhost:8080/api/courses/${courseId}`);
+        const course = res.data;
+        const price = Number(course?.discountPrice && course.discountPrice < course.price
+          ? course.discountPrice
+          : course?.price || 0);
+
+        setDirectCourse({
+          cartItemId: `course-${course.courseId}`,
+          itemId: course.courseId,
+          itemType: "COURSE",
+          quantity: 1,
+          price,
+          title: course.title,
+          imageUrl: course.thumbnailUrl || "/placeholder.png",
+        });
+      } catch (error) {
+        console.error("Load checkout course error:", error);
+        setDirectCourse(null);
+      }
+    };
+
+    fetchDirectCourse();
+  }, [courseId, cartItems]);
+
+  const checkoutItems = useMemo(() => {
+    if (cartItems.length > 0) return cartItems;
+    return directCourse ? [directCourse] : [];
+  }, [cartItems, directCourse]);
+
+  const shipping = directCourse && cartItems.length === 0 ? 0 : 30000;
 
   const total = useMemo(() => {
-    return cartItems.reduce(
+    return checkoutItems.reduce(
       (sum, item) => sum + Number(item.price) * item.quantity,
       0
     );
-  }, [cartItems]);
+  }, [checkoutItems]);
 
   const finalTotal = total + shipping;
 
@@ -31,6 +71,10 @@ const { cartItems, clearCart } = useCart();
     setForm({ ...form, [e.target.name]: e.target.value });
   };
   const handleSubmit = async () => {
+  if (checkoutItems.length === 0) {
+    alert("Chưa có sản phẩm nào để thanh toán");
+    return;
+  }
   if (!form.fullName || !form.phone || !form.email) {
     alert("Vui lòng nhập đầy đủ thông tin");
     return;
@@ -51,7 +95,7 @@ const { cartItems, clearCart } = useCart();
   }
   const payload = {
     ...form,
-    items: cartItems.map((item) => ({
+    items: checkoutItems.map((item) => ({
       itemId: item.itemId,
       itemType: item.itemType,
       price: item.price,
@@ -72,7 +116,9 @@ const { cartItems, clearCart } = useCart();
     const data = await res.json();
 
     if (res.ok) {
-        await clearCart();
+        if (cartItems.length > 0) {
+          await clearCart();
+        }
       navigate("/payment/qr", {
       state: {
   order: {                     // bọc trong "order"
@@ -351,7 +397,11 @@ const { cartItems, clearCart } = useCart();
     </div>
 
  <div className="p-6 max-h-[300px] overflow-y-auto space-y-4">
-  {cartItems.map((item) => (
+  {checkoutItems.length === 0 ? (
+    <div className="text-sm text-slate-500">
+      Chưa có sản phẩm nào để thanh toán.
+    </div>
+  ) : checkoutItems.map((item) => (
     <div key={item.cartItemId} className="flex gap-3">
       <div className="w-16 h-16 rounded-lg overflow-hidden border">
         <img

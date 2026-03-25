@@ -188,7 +188,7 @@ export default function AdminEditProduct() {
       });
 
       alert("Cập nhật thành công!");
-      navigate(`/adminStore?page=${currentPage}`, {
+      navigate(`/adminProduct?page=${currentPage}`, {
         state: { scrollToTable: true },
       });
     } catch (err) {

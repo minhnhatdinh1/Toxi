@@ -1,11 +1,12 @@
 import React, { useState,useEffect   } from 'react';
 import AdminSidebar from "./AdminSidebar";
 import { Link } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 export default function AdminCourse() {
 
 
 
-  
+    const navigate = useNavigate();
  const [courses, setCourses] = useState([]);
   const token = localStorage.getItem("token");
   const fetchCourses = () => {
@@ -201,6 +202,19 @@ const paginated = courses.slice(
          <Link to={`/editCourse/${course.courseId}`} className="p-2 text-gray-400 hover:text-primary">
                             <span className="material-symbols-outlined">edit</span>
                           </Link>
+                           {/* ── Course Content button ── */}
+   <button
+        onClick={() => navigate(`/adminAddNewVideo/${course.courseId}`, { state: { course } })}
+        className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
+      >
+        <span className="material-symbols-outlined text-xl">add</span>
+      </button>
+       <button
+        onClick={() => navigate(`/admincoursecontent/${course.courseId}`, { state: { course } })}
+        className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
+      >
+        <span className="material-symbols-outlined text-xl">menu_book</span>
+      </button>
         
           <button  onClick={() => handleDelete(course.courseId)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
             <span className="material-symbols-outlined text-xl">

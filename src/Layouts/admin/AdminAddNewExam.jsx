@@ -1,279 +1,194 @@
-
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "../common/ToastContext";
-import LoadingSpinner from "../common/LoadingSpinner";
-import { useApi } from "../service/useApi";
-import { createExam } from "./api/apiExam";
 
-export default function AdminAddNewExam() {
-  const [formData, setFormData] = useState({
-  title: "",
-  course: "",
-  type: "",
-  search: "",
-  description: "",
-  file: null,
-  active: true
-});
-
-const handleChange = (e) => {
-  const { name, value, type, checked, files } = e.target;
-
-  setFormData({
-    ...formData,
-    [name]:
-      type === "checkbox"
-        ? checked
-        : type === "file"
-        ? files[0]
-        : value
-  });
+const SKILL_TYPES = {
+  nghe: {
+    label: "Nghe (听)", color: "blue",
+    icon: "hearing",
+    bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-700",
+    activeBg: "bg-blue-600", activeText: "text-white",
+    types: [
+      { value:"dung-sai",    label:"Đúng / Sai",       desc:"1 audio + 1 câu trần thuật đánh giá Đúng/Sai",   route:"/listenQuiz",  hsk:["HSK 1","HSK 2"] },
+      { value:"abc-anh",     label:"A B C ảnh",         desc:"1 audio + chọn 1 trong 3 ảnh đúng",              route:"/listenQuiz",  hsk:["HSK 1","HSK 2","HSK 3"] },
+      { value:"gop-cau",     label:"Gộp câu",           desc:"5 ảnh + 5 audio riêng, ghép ảnh với audio",      route:"/listenQuiz",  hsk:["HSK 1","HSK 2"] },
+      { value:"abcd-vanban", label:"A B C D văn bản",   desc:"1 audio + 4 lựa chọn văn bản",                   route:"/listenQuiz",  hsk:["HSK 2","HSK 3","HSK 4"] },
+    ]
+  },
+  doc: {
+    label: "Đọc (读)", color: "emerald",
+    icon: "menu_book",
+    bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700",
+    activeBg: "bg-emerald-600", activeText: "text-white",
+    types: [
+      { value:"dung-sai-anh", label:"Đúng sai + ảnh",  desc:"1 ảnh + 1 câu trần thuật, đánh giá Đúng/Sai",   route:"/readQuiz",    hsk:["HSK 1"] },
+      { value:"gop-anh",      label:"Gộp câu ảnh",     desc:"5 ảnh ↔ 5 câu văn bản, ghép đôi",               route:"/readQuiz",    hsk:["HSK 1","HSK 2"] },
+      { value:"gop-van",      label:"Gộp câu văn",     desc:"5 câu ↔ 5 câu, ghép đôi ý nghĩa",               route:"/readQuiz",    hsk:["HSK 1","HSK 2"] },
+      { value:"abcd-doan",    label:"A B C D đoạn văn",desc:"Đoạn văn + câu hỏi + 4 lựa chọn",               route:"/readQuiz",    hsk:["HSK 2","HSK 3","HSK 4","HSK 5","HSK 6"] },
+      { value:"sap-xep",      label:"Sắp xếp từ",      desc:"Sắp xếp các từ thành câu hoàn chỉnh (HSK4)",     route:"/readQuiz",    hsk:["HSK 4"] },
+      { value:"dien-tu",      label:"Điền từ",          desc:"Đoạn văn có chỗ trống + gợi ý từ (HSK6)",        route:"/readQuiz",    hsk:["HSK 5","HSK 6"] },
+    ]
+  },
+  viet: {
+    label: "Viết (写)", color: "orange",
+    icon: "edit_note",
+    bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-700",
+    activeBg: "bg-orange-600", activeText: "text-white",
+    types: [
+      { value:"sap-xep-viet", label:"Sắp xếp từ",      desc:"Viết câu đúng từ các từ cho sẵn (HSK3)",         route:"/writtingQuiz", hsk:["HSK 3"] },
+      { value:"viet-doan",    label:"Viết đoạn văn",   desc:"Viết đoạn văn dựa trên ảnh + gợi ý (HSK4)",     route:"/writtingQuiz", hsk:["HSK 4"] },
+    ]
+  },
 };
 
-  const handleSubmit = () => {
-    console.log("Dữ liệu tài liệu:", formData);
-  };
-  
-    return (
-        <>
-         <div class="flex h-screen overflow-hidden">
-                    <AdminSidebar />
- <main className="flex-1 min-h-screen bg-background-light dark:bg-background-dark chinese-pattern overflow-y-auto ">
+const HSK_BADGE = { "HSK 1":"bg-emerald-100 text-emerald-800","HSK 2":"bg-blue-100 text-blue-800","HSK 3":"bg-violet-100 text-violet-800","HSK 4":"bg-orange-100 text-orange-800","HSK 5":"bg-red-100 text-red-800","HSK 6":"bg-slate-800 text-slate-100" };
 
-      {/* Header */}
-      <header className="h-16 flex items-center justify-between px-8 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
+export default function AdminAddNewExam() {
+  const navigate = useNavigate();
+  const [activeSkill, setActiveSkill] = useState("nghe");
+  const [activeType, setActiveType]   = useState(null);
+  const skill = SKILL_TYPES[activeSkill];
 
-        <div className="flex items-center gap-2">
-          <span className="text-slate-400 text-sm">Quizzes</span>
-          <span className="material-symbols-outlined text-slate-400 text-xs">
-            chevron_right
-          </span>
-          <span className="text-toxi-blue font-semibold text-sm">
-            Add New Document
-          </span>
-        </div>
+  function handleContinue() {
+    if (!activeType) return;
+    navigate(activeType.route);
+  }
 
-        <div className="flex items-center gap-4">
+  return (
+    <div className="flex h-screen overflow-hidden bg-slate-100">
+      <AdminSidebar />
 
-          {/* Search */}
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">
-              search
-            </span>
+      <div className="flex-1 flex flex-col overflow-hidden">
 
-            <input
-              name="search"
-              value={formData.search}
-              onChange={handleChange}
-              className="pl-10 pr-4 py-1.5 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm w-64 focus:ring-2 focus:ring-primary/50"
-              placeholder="Tìm kiếm hệ thống..."
-            />
-          </div>
-
-          <button className="size-9 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-            <span className="material-symbols-outlined text-xl">
-              notifications
-            </span>
+        {/* Topbar */}
+        <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-3 flex-shrink-0">
+          <button onClick={()=>navigate("/adminExam")} className="p-2 hover:bg-slate-100 rounded-lg transition">
+            <span className="material-symbols-outlined text-slate-500">arrow_back</span>
           </button>
-
-        </div>
-      </header>
-
-      <div className="p-8  mx-auto">
-
-        {/* Title */}
-        <div className="mb-8 flex items-end justify-between">
-
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-toxi-gold">
-                description
-              </span>
-              <h2 className="text-3xl font-bold text-toxi-blue dark:text-white">
-                Thêm mới tài liệu
-              </h2>
-            </div>
-
-            <p className="text-slate-500 dark:text-slate-400">
-              Tạo bộ đề thi đánh giá năng lực HSK/HSKK cho học viên
+          <div className="flex-1">
+            <p className="text-[11px] text-slate-400 mb-0.5">
+              <Link to="/adminExam" className="hover:text-primary">Ngân hàng câu hỏi</Link>
+              <span className="mx-1">›</span>
+              <span className="text-slate-700">Thêm câu hỏi mới</span>
             </p>
+            <h1 className="text-base font-bold text-slate-900">Thêm câu hỏi mới</h1>
           </div>
+          <Link to="/adminExam" className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">Huỷ</Link>
+          <button onClick={handleContinue} disabled={!activeType}
+            className="flex items-center gap-2 px-5 py-2 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition shadow-md shadow-primary/20 disabled:opacity-40 disabled:cursor-not-allowed">
+            <span className="material-symbols-outlined text-base">arrow_forward</span>
+            Tiếp tục tạo câu hỏi
+          </button>
+        </header>
 
-          <div className="flex gap-3">
-            <button className="px-6 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-              Hủy bỏ
-            </button>
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-4xl mx-auto space-y-6">
 
-            <button
-              onClick={handleSubmit}
-             className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-semibold text-sm shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-colors flex items-center gap-2"
-            >
-              <span className="material-symbols-outlined text-lg">save</span>
-              Lưu tài liệu
-            </button>
-          </div>
-
-        </div>
-
-        {/* Form */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-
-          <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">
-              article
-            </span>
-            <h3 className="font-bold text-toxi-blue dark:text-white">
-              Thông tin cơ bản
-            </h3>
-          </div>
-
-          <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-
-            {/* Title */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                Tiêu đề tài liệu
-              </label>
-
-              <input
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                type="text"
-                placeholder="Ví dụ: Giáo trình HSK 4 - Tập 1"
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-toxi-gold focus:ring-2 focus:ring-toxi-gold/20 outline-none transition-all"
-              />
+            {/* Step indicator */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">1</div>
+                <span className="text-sm font-semibold text-primary">Chọn kỹ năng & dạng câu hỏi</span>
+              </div>
+              <div className="flex-1 h-px bg-slate-200"/>
+              <div className="flex items-center gap-2 opacity-50">
+                <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-500 text-xs font-bold flex items-center justify-center">2</div>
+                <span className="text-sm font-semibold text-slate-500">Điền nội dung câu hỏi</span>
+              </div>
+              <div className="flex-1 h-px bg-slate-200"/>
+              <div className="flex items-center gap-2 opacity-50">
+                <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-500 text-xs font-bold flex items-center justify-center">3</div>
+                <span className="text-sm font-semibold text-slate-500">Lưu & gắn vào đề thi</span>
+              </div>
             </div>
 
-            {/* Course */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                Khóa học liên quan
-              </label>
-
-              <select
-                name="course"
-                value={formData.course}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800"
-              >
-                <option value="">Chọn khóa học</option>
-                <option value="HSK4">Khóa học HSK 4 Cấp tốc</option>
-                <option value="HSK5">Luyện thi HSK 5</option>
-              </select>
+            {/* Skill selector */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-6">
+              <h2 className="text-sm font-bold text-slate-700 mb-4">Chọn kỹ năng</h2>
+              <div className="grid grid-cols-3 gap-4">
+                {Object.entries(SKILL_TYPES).map(([sk, cfg])=>(
+                  <button key={sk} onClick={()=>{setActiveSkill(sk);setActiveType(null);}}
+                    className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition ${activeSkill===sk?`border-primary bg-primary/5`:"border-slate-200 hover:border-slate-300 bg-white"}`}>
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${activeSkill===sk?"bg-primary":"bg-slate-100"} transition`}>
+                      <span className={`material-symbols-outlined text-2xl ${activeSkill===sk?"text-white":"text-slate-500"}`}>{cfg.icon}</span>
+                    </div>
+                    <div className="text-center">
+                      <p className={`font-bold text-sm ${activeSkill===sk?"text-primary":"text-slate-700"}`}>{cfg.label}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{SKILL_TYPES[sk].types.length} dạng câu hỏi</p>
+                    </div>
+                    {activeSkill===sk && (
+                      <span className="w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center">✓</span>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Type */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                Loại tài liệu
-              </label>
-
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800"
-              >
-                <option value="pdf">PDF</option>
-                <option value="slide">Slide bài giảng</option>
-                <option value="exercise">Bài tập bổ trợ</option>
-              </select>
+            {/* Type selector */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-6">
+              <h2 className="text-sm font-bold text-slate-700 mb-4">
+                Chọn dạng câu hỏi — <span className={skill.text}>{skill.label}</span>
+              </h2>
+              <div className="grid grid-cols-2 gap-3">
+                {skill.types.map(t=>{
+                  const isActive = activeType?.value===t.value;
+                  return (
+                    <button key={t.value} onClick={()=>setActiveType(t)}
+                      className={`text-left p-4 rounded-2xl border-2 transition ${isActive?"border-primary bg-primary/5":"border-slate-200 hover:border-slate-300 bg-white"}`}>
+                      <div className="flex items-start justify-between mb-2">
+                        <p className={`font-bold text-sm ${isActive?"text-primary":"text-slate-800"}`}>{t.label}</p>
+                        {isActive && <span className="w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center flex-shrink-0">✓</span>}
+                      </div>
+                      <p className="text-xs text-slate-500 leading-relaxed mb-2">{t.desc}</p>
+                      <div className="flex gap-1 flex-wrap">
+                        {t.hsk.map(h=>(
+                          <span key={h} className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${HSK_BADGE[h]}`}>{h}</span>
+                        ))}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
- {/* Description */}
-      <div className="md:col-span-2">
-        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-          Mô tả tài liệu
-        </label>
 
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          rows="4"
-          placeholder="Nhập mô tả ngắn về nội dung tài liệu này..."
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-toxi-gold focus:ring-2 focus:ring-toxi-gold/20 outline-none transition-all resize-none"
-        />
-      </div>
+            {/* Summary + action */}
+            {activeType && (
+              <div className="bg-primary/5 border-2 border-primary/20 rounded-2xl p-5 flex items-center gap-4">
+                <div className={`w-12 h-12 bg-primary rounded-2xl flex items-center justify-center flex-shrink-0`}>
+                  <span className="material-symbols-outlined text-white text-xl">{skill.icon}</span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-primary text-sm">Đã chọn: {skill.label} — {activeType.label}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{activeType.desc}</p>
+                  <div className="flex gap-1 mt-1.5">
+                    {activeType.hsk.map(h=>(
+                      <span key={h} className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${HSK_BADGE[h]}`}>{h}</span>
+                    ))}
+                  </div>
+                </div>
+                <button onClick={handleContinue}
+                  className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition shadow-md shadow-primary/20">
+                  <span className="material-symbols-outlined">arrow_forward</span>
+                  Tiếp tục
+                </button>
+              </div>
+            )}
 
-      {/* Upload File */}
-      <div className="md:col-span-2">
-        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-          Tải lên tệp (PDF)
-        </label>
+            {/* Info box */}
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex gap-3">
+              <span className="material-symbols-outlined text-blue-500 flex-shrink-0">info</span>
+              <div>
+                <p className="text-xs font-semibold text-blue-700 mb-1">Lưu ý về ngân hàng câu hỏi</p>
+                <p className="text-xs text-blue-600 leading-relaxed">
+                  Câu hỏi được lưu vào ngân hàng chung. Bạn có thể <strong>gắn vào nhiều đề thi</strong> khác nhau mà không cần tạo lại.
+                  Sau khi tạo xong, vào trang <strong>Quản lí đề thi</strong> → chọn đề → <strong>Thêm từ ngân hàng</strong>.
+                </p>
+              </div>
+            </div>
 
-        <label className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-8 flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-800/30 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all cursor-pointer">
-
-          <span className="material-symbols-outlined text-4xl text-slate-400 mb-2">
-            upload_file
-          </span>
-
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-            Kéo và thả tệp vào đây hoặc{" "}
-            <span className="text-primary">chọn từ máy tính</span>
-          </p>
-
-          <p className="text-xs text-slate-400 mt-1">
-            Chấp nhận định dạng .pdf (Tối đa 20MB)
-          </p>
-
-          <input
-            type="file"
-            name="file"
-            accept=".pdf"
-            onChange={handleChange}
-            className="hidden"
-          />
-
-        </label>
-
-        {formData.file && (
-          <p className="text-sm text-green-600 mt-2">
-            File đã chọn: {formData.file.name}
-          </p>
-        )}
-      </div>
-
-      {/* Active Status */}
-      <div className="md:col-span-2 flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
-
-        <div>
-          <p className="font-semibold text-toxi-blue dark:text-white">
-            Trạng thái hoạt động
-          </p>
-          <p className="text-xs text-slate-500">
-            Cho phép học viên truy cập và tải xuống tài liệu này
-          </p>
-        </div>
-
-        <label className="relative inline-flex items-center cursor-pointer">
-
-          <input
-            type="checkbox"
-            name="active"
-            checked={formData.active}
-            onChange={handleChange}
-            className="sr-only peer"
-          />
-
-          <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 
-          peer-checked:after:translate-x-full peer-checked:after:border-white 
-          after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
-          after:bg-white after:border-gray-300 after:border after:rounded-full 
-          after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
-
-        </label>
-
-      </div>
           </div>
-
         </div>
-
       </div>
-    </main>
     </div>
-    </>
-  )
+  );
 }

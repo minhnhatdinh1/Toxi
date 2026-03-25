@@ -24,6 +24,7 @@ const formatCurrency = (value) => {
   if (!value) return "";
   return Number(value).toLocaleString("vi-VN");
 };
+
 const parseCurrency = (value) => {
   return value.replace(/\./g, "").replace(/[^\d]/g, "");
 };
@@ -123,6 +124,20 @@ export default function Product() {
 const { cartCount } = useCart();
 const [menuOpen, setMenuOpen] = useState(false);
 const menuRef = useRef(null);
+const [avatarUrl, setAvatarUrl] = useState(
+  localStorage.getItem("avatarUrl") || null
+);
+useEffect(() => {
+  const handleAvatarUpdated = (e) => {
+    setAvatarUrl(e.detail);
+  };
+``
+  window.addEventListener("avatarUpdated", handleAvatarUpdated);
+
+  return () => {
+    window.removeEventListener("avatarUpdated", handleAvatarUpdated);
+  };
+}, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -314,16 +329,23 @@ const menuRef = useRef(null);
             onClick={() => setMenuOpen(!menuOpen)}
             className="flex items-center gap-2 hover:bg-white/10 rounded-full px-2 py-1 transition-all"
           >
-            <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-primary font-bold text-sm shadow-md">
-              {(localStorage.getItem("userName") || "U").charAt(0).toUpperCase()}
-            </div>
-            <span className="hidden sm:block text-sm font-semibold max-w-[100px] truncate">
-              {localStorage.getItem("userName") || "User"}
-            </span>
-            <span className="material-symbols-outlined text-white/60 text-[18px]">
-              {menuOpen ? "expand_less" : "expand_more"}
-            </span>
-          </button>
+             {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt="avatar"
+          className="w-9 h-9 rounded-full object-cover"
+        />
+      ) : (
+        <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-primary font-bold text-sm shadow-md">
+          {(localStorage.getItem("userName") || "U").charAt(0).toUpperCase()}
+        </div>
+      )}
+
+      <span className="hidden sm:block text-sm font-semibold max-w-[100px] truncate">
+        {localStorage.getItem("userName") || "User"}
+      </span>
+
+    </button>
 
           {/* Dropdown Menu */}
           {menuOpen && (

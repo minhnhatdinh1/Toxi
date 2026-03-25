@@ -1,7 +1,7 @@
 import react, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export default function FlashcardMain() {
+export default function PracticeMain() {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedLevel, setSelectedLevel] = useState('');
@@ -97,14 +97,11 @@ export default function FlashcardMain() {
             if (sortBy === 'rating') return b.rating - a.rating;
             return 0;
         });
-
-    // Hàm xử lý click card
-    const handleCardClick = (exam) => {
-        // Lưu dữ liệu exam vào sessionStorage để truyền sang trang ExamPage
-        sessionStorage.setItem('selectedExam', JSON.stringify(exam));
-        navigate('/Exam');
+  const goToDetail = (id) => {
+        navigate(`/quiz/${id}`);
     };
-
+    // Hàm xử lý click card
+ 
     return(
         <>
         <section className="relative px-8 pt-20 pb-24 overflow-hidden">
@@ -208,7 +205,7 @@ export default function FlashcardMain() {
           filteredExams.map((exam) => (
             <div 
               key={exam.id}
-              onClick={() => handleCardClick(exam)}
+                       onClick={() => goToDetail(exam.id)}
               className="chinese-border-card bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl group flex flex-col cursor-pointer transition-all duration-300"
             >
               <div className="h-44 overflow-hidden relative">
@@ -263,9 +260,9 @@ export default function FlashcardMain() {
                   </div>
                 </div>
 
-                <button className="w-full py-4 gradient-btn text-primary font-black rounded-2xl text-sm tracking-widest flex items-center justify-center gap-3 group-hover:shadow-lg transition-shadow">
-                  LÀM BÀI NGAY
-                  <span className="material-symbols-outlined text-lg">
+                <button className="w-full py-4 gradient-btn text-primary font-black rounded-2xl text-sm tracking-widest flex items-center justify-center gap-3 group-hover:shadow-lg transition-shadow" >
+            
+Xem chi tiết                  <span className="material-symbols-outlined text-lg">
                     arrow_right_alt
                   </span>
                 </button>
