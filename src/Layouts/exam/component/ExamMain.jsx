@@ -1,461 +1,923 @@
-import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import toxiLogo from "../../../assets/image/LOGO (1).png";
 
-// ── Mock exam data ──
 const EXAM_INFO = {
-  title: "Đề thi HSK 4 — Mã đề 101",
-  hsk: "HSK 4",
-  totalTime: 105 * 60, // giây
+  title: "De thi HSK",
+  hsk: "HSK",
+  totalTime: 105 * 60,
   sections: [
-    { id: "nghe",  label: "Nghe (听)", icon: "hearing",   color: "blue",   range: [1, 4] },
-    { id: "doc",   label: "Đọc (读)",  icon: "menu_book", color: "violet", range: [5, 8] },
-    { id: "viet",  label: "Viết (写)", icon: "edit_note", color: "orange", range: [9, 10] },
+    { id: "nghe", label: "Nghe (听)", icon: "hearing" },
+    { id: "doc", label: "Doc (读)", icon: "menu_book" },
+    { id: "viet", label: "Viet (写)", icon: "edit_note" },
   ],
 };
 
-const QUESTIONS = [
-  // ── NGHE ──
-  {
-    id: 1, section: "nghe", type: "dung-sai",
-    sectionLabel: "Nghe hiểu — Phần 1",
-    audio: null,
-    content: "他想去北京旅游。",
-    pinyin: "Tā xiǎng qù Běijīng lǚyóu.",
-    answers: ["ĐÚNG (对)", "SAI (错)"],
-  },
-  {
-    id: 2, section: "nghe", type: "abc-anh",
-    sectionLabel: "Nghe hiểu — Phần 2",
-    audio: null,
-    content: "请选择与录音内容一致的图片。",
-    images: [
-      "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=300&h=200&fit=crop",
-      "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=200&fit=crop",
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop",
-    ],
-    answers: ["A", "B", "C"],
-  },
-  {
-    id: 3, section: "nghe", type: "abcd",
-    sectionLabel: "Nghe hiểu — Phần 3",
-    audio: null,
-    content: '"经理，这份材料我已经翻译好了。" 问：说话人做了什么？',
-    answers: ["A. 他们正在开会", "B. 材料已经写完了", "C. 翻译工作完成了", "D. 经理还没回来"],
-    correct: 2,
-  },
-  {
-    id: 4, section: "nghe", type: "abcd",
-    sectionLabel: "Nghe hiểu — Phần 3",
-    audio: null,
-    content: "女的觉得这次旅行怎么样？",
-    answers: ["A. 很开心", "B. 很累", "C. 一般般", "D. 不想去"],
-    correct: 0,
-  },
-  // ── ĐỌC ──
-  {
-    id: 5, section: "doc", type: "dung-sai-anh",
-    sectionLabel: "Đọc hiểu — Phần 1",
-    image: "https://images.unsplash.com/photo-1524055988636-436cfa46e59e?w=400&h=250&fit=crop",
-    content: "图片中的人正在跑步。",
-    pinyin: "Túpiàn zhōng de rén zhèngzài pǎobù.",
-    answers: ["ĐÚNG (对)", "SAI (错)"],
-  },
-  {
-    id: 6, section: "doc", type: "sap-xep",
-    sectionLabel: "Đọc hiểu — Phần 2",
-    content: "Sắp xếp các từ sau thành câu hoàn chỉnh:",
-    words: ["我", "把", "书", "放在", "桌子", "上"],
-    correctOrder: "我把书放在桌子上",
-    pinyin: "Wǒ bǎ shū fàng zài zhuōzi shàng.",
-    answers: ["A. 我把桌子放在书上", "B. 我把书放在桌子上", "C. 书把我放在桌子上", "D. 桌子把书放在我上"],
-    correct: 1,
-  },
-  {
-    id: 7, section: "doc", type: "abcd-doan",
-    sectionLabel: "Đọc hiểu — Phần 3",
-    passage: "王明是一位非常勤奋的学生，他每天早上六点就起床，先去操场跑步，然后回来吃早饭，再去上课。他的成绩一直很好，老师和同学都很喜欢他。",
-    content: "根据短文，下面哪个说法是正确的？",
-    answers: [
-      "A. 王明每天七点起床",
-      "B. 王明先吃早饭再去跑步",
-      "C. 王明的成绩非常好",
-      "D. 老师不喜欢王明",
-    ],
-    correct: 2,
-  },
-  {
-    id: 8, section: "doc", type: "dien-tu",
-    sectionLabel: "Đọc hiểu — Phần 4",
-    content: "他___去过北京，所以对那里的景点非常熟悉。",
-    hints: ["从来没有", "已经", "还没", "正在"],
-    answers: ["A. 从来没有", "B. 已经", "C. 还没", "D. 正在"],
-    correct: 1,
-  },
-  // ── VIẾT ──
-  {
-    id: 9, section: "viet", type: "sap-xep-viet",
-    sectionLabel: "Viết — Phần 1",
-    content: "Sắp xếp các từ sau để tạo thành câu đúng:",
-    words: ["她", "非常", "喜欢", "唱歌", "和", "跳舞"],
-    answers: [
-      "A. 她非常喜欢唱歌和跳舞",
-      "B. 唱歌她非常喜欢和跳舞",
-      "C. 她喜欢非常唱歌和跳舞",
-      "D. 非常她喜欢唱歌和跳舞",
-    ],
-    correct: 0,
-  },
-  {
-    id: 10, section: "viet", type: "viet-doan",
-    sectionLabel: "Viết — Phần 2",
-    image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=400&h=250&fit=crop",
-    content: "根据图片，写一篇80字左右的短文描述图片内容。",
-    isTextInput: true,
-  },
-];
-
 const SECTION_STYLES = {
-  nghe:  { bg: "bg-blue-50",   border: "border-blue-200",  badge: "bg-blue-100 text-blue-800",   dot: "bg-blue-500",   header: "bg-blue-600" },
-  doc:   { bg: "bg-violet-50", border: "border-violet-200",badge: "bg-violet-100 text-violet-800",dot: "bg-violet-500", header: "bg-violet-600" },
-  viet:  { bg: "bg-orange-50", border: "border-orange-200",badge: "bg-orange-100 text-orange-800",dot: "bg-orange-500", header: "bg-orange-600" },
+  nghe: {
+    bg: "bg-blue-50",
+    border: "border-blue-200",
+    badge: "bg-blue-100 text-blue-800",
+    dot: "bg-blue-500",
+    header: "bg-blue-600",
+  },
+  doc: {
+    bg: "bg-violet-50",
+    border: "border-violet-200",
+    badge: "bg-violet-100 text-violet-800",
+    dot: "bg-violet-500",
+    header: "bg-violet-600",
+  },
+  viet: {
+    bg: "bg-orange-50",
+    border: "border-orange-200",
+    badge: "bg-orange-100 text-orange-800",
+    dot: "bg-orange-500",
+    header: "bg-orange-600",
+  },
 };
 
-// ── Audio player mock ──
-function AudioBar() {
-  const [playing, setPlaying] = useState(false);
+function buildFileUrl(path) {
+  if (!path) return null;
+  if (path.startsWith("http")) return path;
+  return `http://localhost:8080/api/files/${encodeURIComponent(path)}`;
+}
+
+function sectionLabel(skill) {
+  if (skill === "nghe") return "Nghe (听)";
+  if (skill === "doc") return "Doc (读)";
+  if (skill === "viet") return "Viet (写)";
+  return skill;
+}
+
+function mapQuestion(raw, index) {
+  const questionType = raw.questionType || "abcd-doan";
+  const quizOptions = raw.quizOptions || [];
+  const subQuestions = raw.subQuestions || [];
+  const correctOption = quizOptions.find((option) => option.isCorrect);
+
+  return {
+    id: raw.quizQuestionId,
+    order: index + 1,
+    type: questionType,
+    content: raw.content || "",
+    pinyin: raw.pinyin || "",
+    section: raw.skill?.toLowerCase() || "doc",
+    sectionLabel: sectionLabel(raw.skill?.toLowerCase()),
+    passage: raw.passage || "",
+    image: buildFileUrl(raw.imageUrl),
+    audio: buildFileUrl(raw.audioUrl),
+    meaning: raw.meaning || "",
+    explanation: raw.explanation || "",
+    correctOrder: raw.correctOrder || "",
+    hints: questionType === "dien-tu" ? quizOptions.map((option) => option.content).filter(Boolean) : [],
+    words:
+      questionType === "sap-xep" || questionType === "sap-xep-viet"
+        ? quizOptions.map((option) => option.content).filter(Boolean)
+        : [],
+    answers: quizOptions.map((option, optionIndex) => ({
+      id: option.quizOptionId ?? `${raw.quizQuestionId}-${optionIndex}`,
+      content: option.content || "",
+      imageUrl: buildFileUrl(option.imageUrl),
+      isCorrect: !!option.isCorrect,
+      optionOrder: option.optionOrder ?? optionIndex + 1,
+      letter: String.fromCharCode(65 + optionIndex),
+    })),
+    subQuestions: subQuestions.map((item, subIndex) => ({
+      id: item.subQuestionId ?? `${raw.quizQuestionId}-sub-${subIndex}`,
+      content: item.content || "",
+      audioUrl: buildFileUrl(item.audioUrl),
+      correctAnswer: item.correctAnswer || "",
+      questionOrder: item.questionOrder ?? subIndex + 1,
+    })),
+    fillAnswer: correctOption?.content || "",
+  };
+}
+
+function getQuestionSpan(question) {
+  if (question.type === "gop-anh" || question.type === "gop-cau" || question.type === "gop-van") {
+    return question.subQuestions?.length || 1;
+  }
+  return 1;
+}
+
+function getQuestionAnsweredCount(question, answers, textAnswers) {
+  if (question.type === "gop-anh" || question.type === "gop-cau" || question.type === "gop-van") {
+    const selectedMap = answers[question.id];
+    if (!selectedMap || typeof selectedMap !== "object") return 0;
+    return question.subQuestions.filter((item) => selectedMap[item.id]).length;
+  }
+
+  if (textAnswers[question.id]?.trim()) return 1;
+  if (answers[question.id] !== undefined) return 1;
+  return 0;
+}
+
+function buildQuestionNavItems(question) {
+  const span = getQuestionSpan(question);
+  return Array.from({ length: span }, (_, index) => ({
+    id: `${question.id}-${index}`,
+    questionId: question.id,
+    number: (question.displayStart || question.order) + index,
+  }));
+}
+
+function AudioBar({ src }) {
+  if (!src) return null;
   return (
-    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 mb-4">
-      <button onClick={() => setPlaying(!playing)}
-        className="w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary/90 transition flex-shrink-0 shadow-sm">
-        <span className="material-symbols-outlined text-lg">{playing ? "pause" : "play_arrow"}</span>
-      </button>
-      <div className="flex-1">
-        <div className="flex items-center gap-1.5 mb-1">
-          {Array.from({length:20},(_,i)=>(
-            <div key={i} className={`rounded-full transition-all ${i<(playing?8:5)?"bg-primary":"bg-slate-200"}`}
-              style={{width:3,height:`${[4,6,8,5,9,7,4,8,6,9,5,7,8,4,6,9,5,7,4,6][i]}px`}}/>
-          ))}
-        </div>
-        <div className="flex justify-between text-[10px] text-slate-400 font-mono">
-          <span>0:12</span><span>0:45</span>
-        </div>
-      </div>
-      <span className="material-symbols-outlined text-slate-400 text-base cursor-pointer hover:text-slate-600">volume_up</span>
+    <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+      <audio controls className="w-full">
+        <source src={src} />
+      </audio>
     </div>
   );
 }
 
-// ── Answer option ──
 function AnswerOpt({ label, text, selected, onClick, isImage, imageSrc }) {
   return (
-    <button onClick={onClick}
+    <button
+      onClick={onClick}
       className={`w-full text-left flex items-center gap-3 p-3 rounded-xl border-2 transition group ${
         selected ? "border-primary bg-primary/5" : "border-slate-200 hover:border-primary/40 hover:bg-slate-50"
-      }`}>
-      <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 transition ${
-        selected ? "bg-primary text-white" : "bg-slate-100 text-slate-600 group-hover:bg-primary/10"
-      }`}>{label}</div>
+      }`}
+    >
+      <div
+        className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 transition ${
+          selected ? "bg-primary text-white" : "bg-slate-100 text-slate-600 group-hover:bg-primary/10"
+        }`}
+      >
+        {label}
+      </div>
       {isImage ? (
-        <div className={`flex-1 overflow-hidden rounded-lg border ${selected?"border-primary/30":"border-slate-200"}`}>
-          <img src={imageSrc} alt={label} className="w-full h-24 object-cover"/>
+        <div className={`flex-1 overflow-hidden rounded-lg border ${selected ? "border-primary/30" : "border-slate-200"}`}>
+          <img src={imageSrc} alt={label} className="w-full h-28 object-cover" />
         </div>
       ) : (
-        <span className={`text-sm ${selected?"text-primary font-semibold":"text-slate-700"}`}>{text}</span>
+        <div className="flex-1">
+          <span className={`text-sm ${selected ? "text-primary font-semibold" : "text-slate-700"}`}>{text}</span>
+        </div>
       )}
       {selected && <span className="material-symbols-outlined text-primary text-base ml-auto flex-shrink-0">check_circle</span>}
     </button>
   );
 }
 
-// ── True/False ──
-function TrueFalse({ selected, onSelect }) {
+function MatchingBlock({ question, answers, value, onChange }) {
   return (
-    <div className="flex gap-3">
-      {[{v:"true",l:"ĐÚNG (对)",ico:"check_circle",active:"border-emerald-400 bg-emerald-50 text-emerald-700"},
-        {v:"false",l:"SAI (错)",ico:"cancel",active:"border-red-400 bg-red-50 text-red-700"}].map(o=>(
-        <button key={o.v} onClick={()=>onSelect(o.v)}
-          className={`flex-1 py-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 transition ${
-            selected===o.v ? o.active : "border-slate-200 text-slate-500 hover:bg-slate-50"
-          }`}>
-          <span className="material-symbols-outlined">{o.ico}</span>{o.l}
-        </button>
-      ))}
+    <div className="rounded-xl border border-slate-200 p-4 bg-slate-50">
+      <p className="text-sm font-semibold text-slate-800 mb-3">{question.content}</p>
+      {question.audioUrl && <AudioBar src={question.audioUrl} />}
+      <div className="grid grid-cols-5 gap-2">
+        {answers.map((answer) => (
+          <button
+            key={answer.id}
+            onClick={() => onChange(answer.letter)}
+            className={`rounded-lg border px-3 py-2 text-sm font-bold transition ${
+              value === answer.letter
+                ? "border-primary bg-primary text-white"
+                : "border-slate-200 bg-white text-slate-600 hover:border-primary/40"
+            }`}
+          >
+            {answer.letter}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
 
+function ReadTrueFalseCard({ question, answerValue, setAnswer }) {
+  const imageAnswer = question.answers.find((answer) => answer.isCorrect || answer.imageUrl) || question.answers[0];
+
+  return (
+    <div className="rounded-[28px] border border-slate-200 bg-white p-4 md:p-5">
+      <div className="grid gap-4 md:grid-cols-[320px_minmax(0,1fr)] md:items-center">
+        <div className="overflow-hidden rounded-[26px] border border-slate-200 bg-slate-50">
+          {question.image || imageAnswer?.imageUrl ? (
+            <img
+              src={question.image || imageAnswer?.imageUrl}
+              alt="question"
+              className="h-[220px] w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-[220px] items-center justify-center text-sm text-slate-400">Khong co anh</div>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <div className="rounded-[24px] bg-slate-50 px-5 py-4">
+            <p className="text-base font-semibold leading-relaxed text-slate-900">{question.content}</p>
+            {question.pinyin && <p className="mt-1 text-sm italic text-slate-400">{question.pinyin}</p>}
+          </div>
+
+          <div className="grid gap-3">
+            {question.answers.map((answer, index) => {
+              const isSelected = answerValue === answer.id;
+              const isTrue = index === 0;
+              return (
+                <button
+                  key={answer.id}
+                  onClick={() => setAnswer(question.id, answer.id)}
+                  className={`flex items-center justify-between rounded-[20px] border px-5 py-4 text-left transition ${
+                    isSelected
+                      ? isTrue
+                        ? "border-emerald-400 bg-emerald-50 text-emerald-700"
+                        : "border-red-400 bg-red-50 text-red-700"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl text-xl ${
+                        isSelected ? "bg-white/80" : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      {isTrue ? "✓" : "✕"}
+                    </span>
+                    <div>
+                      <p className="text-base font-bold">{answer.content}</p>
+                    </div>
+                  </div>
+                  {isSelected && <span className="material-symbols-outlined">check_circle</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SortWritingCard({ question, textAnswer, setTextAnswer }) {
+  const selectedWords = (textAnswer || "")
+    .split("|||")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  function addWord(word, index) {
+    const nextWords = [...selectedWords, `${word}__IDX__${index}`];
+    setTextAnswer(question.id, nextWords.join("|||"));
+  }
+
+  function removeWord(indexToRemove) {
+    const nextWords = selectedWords.filter((_, index) => index !== indexToRemove);
+    setTextAnswer(question.id, nextWords.join("|||"));
+  }
+
+  function resetWords() {
+    setTextAnswer(question.id, "");
+  }
+
+  const usedIndexes = selectedWords
+    .map((item) => {
+      const parts = item.split("__IDX__");
+      return Number(parts[1]);
+    })
+    .filter((value) => !Number.isNaN(value));
+
+  const selectedLabels = selectedWords.map((item) => item.split("__IDX__")[0]);
+  const previewSentence = selectedLabels.join(" ");
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-bold text-slate-800">Sap xep cac tu thanh cau dung</p>
+            <p className="text-xs text-slate-500">Bam vao tung tu de ghep cau, bam vao tu da chon de xoa.</p>
+          </div>
+          <button
+            type="button"
+            onClick={resetWords}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition hover:border-primary/30 hover:text-primary"
+          >
+            Lam lai
+          </button>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {question.words.map((word, index) => {
+            const disabled = usedIndexes.includes(index);
+            return (
+              <button
+                key={`${word}-${index}`}
+                type="button"
+                disabled={disabled}
+                onClick={() => addWord(word, index)}
+                className={`rounded-2xl border px-4 py-2 text-sm font-bold transition ${
+                  disabled
+                    ? "cursor-not-allowed border-slate-100 bg-slate-100 text-slate-300"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-primary/40 hover:text-primary"
+                }`}
+              >
+                {word}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="rounded-[24px] border border-dashed border-primary/30 bg-white p-4">
+        <div className="mb-3 flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary">edit_note</span>
+          <p className="text-sm font-bold text-slate-800">Cau ban dang ghep</p>
+        </div>
+
+        {selectedLabels.length > 0 ? (
+          <>
+            <div className="mb-3 flex flex-wrap gap-2">
+              {selectedLabels.map((word, index) => (
+                <button
+                  key={`${word}-${index}`}
+                  type="button"
+                  onClick={() => removeWord(index)}
+                  className="rounded-2xl bg-primary px-4 py-2 text-sm font-bold text-white transition hover:bg-primary/90"
+                >
+                  {word}
+                </button>
+              ))}
+            </div>
+            <div className="rounded-2xl bg-slate-50 px-4 py-3 text-base font-semibold text-slate-800">{previewSentence}</div>
+          </>
+        ) : (
+          <div className="rounded-2xl bg-slate-50 px-4 py-6 text-sm text-slate-400">Chua co tu nao duoc chon.</div>
+        )}
+      </div>
+
+    </div>
+  );
+}
+
+function ReadImageMatching({ question, answerValue, setAnswer }) {
+  const selectedMap = answerValue || {};
+
+  return (
+    <div className="space-y-5">
+      <div className="rounded-[28px] border border-slate-200 bg-white p-4 md:p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <p className="text-lg font-bold text-slate-900">Cau {question.order}</p>
+            <p className="text-sm text-slate-500">Chon anh phu hop voi tung cau ben duoi</p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-5">
+          {question.answers.map((answer) => (
+            <div key={answer.id} className="rounded-[22px] border border-slate-200 bg-white p-3 shadow-sm">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-sm font-bold text-slate-700">
+                  {answer.letter}
+                </span>
+              </div>
+              <div className="overflow-hidden rounded-2xl bg-slate-50">
+                {answer.imageUrl ? (
+                  <img src={answer.imageUrl} alt={answer.letter} className="h-36 w-full object-cover" />
+                ) : (
+                  <div className="flex h-36 items-center justify-center text-sm text-slate-400">Khong co anh</div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-[28px] border border-slate-200 bg-white p-4 md:p-5">
+        <div className="space-y-3">
+          {question.subQuestions.map((item, index) => (
+            <div
+              key={item.id}
+              className="grid gap-3 rounded-[22px] border border-slate-200 p-4 md:grid-cols-[52px_minmax(0,1fr)_320px] md:items-center"
+            >
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-sm font-black text-white">
+                {index + 1}
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-base font-medium leading-relaxed text-slate-900">{item.content}</p>
+                {item.audioUrl && <div className="mt-2"><AudioBar src={item.audioUrl} /></div>}
+              </div>
+
+              <div className="grid grid-cols-5 gap-2">
+                {question.answers.map((answer) => {
+                  const isSelected = selectedMap[item.id] === answer.letter;
+                  return (
+                    <button
+                      key={`${item.id}-${answer.letter}`}
+                      onClick={() => setAnswer(question.id, { ...selectedMap, [item.id]: answer.letter })}
+                      className={`h-12 rounded-2xl text-base font-black transition ${
+                        isSelected
+                          ? "bg-primary text-white shadow-md"
+                          : "border border-slate-200 bg-slate-50 text-slate-700 hover:border-primary/40 hover:bg-white"
+                      }`}
+                    >
+                      {answer.letter}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MatchingExamBlock({ question, answerValue, setAnswer, title }) {
+  const selectedMap = answerValue || {};
+  const hasImageAnswers = question.answers.some((answer) => answer.imageUrl);
+
+  return (
+    <div className="rounded-[28px] border border-slate-200 bg-white p-4 md:p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <p className="text-xl font-bold text-slate-900">{title}</p>
+          <p className="text-sm text-slate-500">Chon dap an A-E cho tung cau ben duoi</p>
+        </div>
+      </div>
+
+      <div className="mb-5 rounded-[24px] border border-slate-100 bg-slate-50/70 px-4 py-4">
+        {hasImageAnswers ? (
+          <div className="grid gap-4 md:grid-cols-5">
+            {question.answers.map((answer) => (
+              <div key={answer.id} className="rounded-[22px] border border-slate-200 bg-white p-3 shadow-sm">
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-sm font-bold text-slate-700">
+                    {answer.letter}
+                  </span>
+                </div>
+                <div className="overflow-hidden rounded-2xl bg-slate-50">
+                  {answer.imageUrl ? (
+                    <img src={answer.imageUrl} alt={answer.letter} className="h-36 w-full object-cover" />
+                  ) : (
+                    <div className="flex h-36 items-center justify-center text-sm text-slate-400">Khong co anh</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-5">
+            {question.answers.map((answer) => (
+              <div key={answer.id} className="rounded-[20px] border border-slate-200 bg-white px-4 py-4">
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-sm font-bold text-slate-700">
+                    {answer.letter}
+                  </span>
+                </div>
+                <p className="text-sm leading-relaxed text-slate-800">{answer.content}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        {question.subQuestions.map((item, index) => (
+          <div
+            key={item.id}
+            className="grid gap-3 rounded-[20px] border border-slate-200 px-4 py-3 md:grid-cols-[minmax(0,1fr)_280px] md:items-center"
+          >
+            <div className="min-w-0">
+              <p className="text-base leading-relaxed text-slate-900">
+                <span className="mr-2 font-black text-slate-700">{(question.displayStart || question.order) + index}.</span>
+                {item.content}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-5 gap-2">
+              {question.answers.map((answer) => {
+                const isSelected = selectedMap[item.id] === answer.letter;
+                return (
+                  <button
+                    key={`${item.id}-${answer.letter}`}
+                    onClick={() => setAnswer(question.id, { ...selectedMap, [item.id]: answer.letter })}
+                    className={`h-12 rounded-2xl text-base font-black transition ${
+                      isSelected
+                        ? "bg-primary text-white shadow-md"
+                        : "bg-slate-100 text-slate-800 hover:bg-slate-200"
+                    }`}
+                  >
+                    {answer.letter}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function renderQuestionBody(question, answerValue, setAnswer, textAnswer, setTextAnswer) {
+  const hasImageAnswers = question.answers.some((answer) => answer.imageUrl);
+
+  if (question.type === "dung-sai-anh") {
+    return <ReadTrueFalseCard question={question} answerValue={answerValue} setAnswer={setAnswer} />;
+  }
+
+  if (question.type === "gop-anh") {
+    return (
+      <MatchingExamBlock
+        question={question}
+        answerValue={answerValue}
+        setAnswer={setAnswer}
+        title={`Cau ${question.displayStart || question.order} - ${question.displayEnd || question.order}`}
+      />
+    );
+  }
+
+  if (question.type === "gop-cau") {
+    return (
+      <MatchingExamBlock
+        question={question}
+        answerValue={answerValue}
+        setAnswer={setAnswer}
+        title={`Cau ${question.displayStart || question.order} - ${question.displayEnd || question.order}`}
+      />
+    );
+  }
+
+  if (question.type === "gop-van") {
+    return (
+      <MatchingExamBlock
+        question={question}
+        answerValue={answerValue}
+        setAnswer={setAnswer}
+        title={`Cau ${question.displayStart || question.order} - ${question.displayEnd || question.order}`}
+      />
+    );
+  }
+
+  if (question.type === "viet-doan") {
+    return (
+      <div>
+        <textarea
+          value={textAnswer || ""}
+          onChange={(e) => setTextAnswer(question.id, e.target.value)}
+          placeholder="Viet cau tra loi cua ban tai day..."
+          rows={5}
+          className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none"
+        />
+      </div>
+    );
+  }
+
+  if (question.type === "sap-xep-viet" || question.type === "sap-xep") {
+    return <SortWritingCard question={question} textAnswer={textAnswer} setTextAnswer={setTextAnswer} />;
+  }
+
+  if (question.answers.length > 0) {
+    return (
+      <div className={`space-y-2 ${hasImageAnswers ? "grid grid-cols-1 md:grid-cols-3 gap-3" : ""}`}>
+        {question.answers.map((answer) => (
+          <AnswerOpt
+            key={answer.id}
+            label={answer.letter}
+            text={answer.content}
+            isImage={!!answer.imageUrl}
+            imageSrc={answer.imageUrl}
+            selected={answerValue === answer.id}
+            onClick={() => setAnswer(question.id, answer.id)}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return <p className="text-sm text-slate-500">Dang cau hoi nay chua du du lieu de hien thi dap an.</p>;
+}
+
 export default function ExamMain() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const questionRefs = useRef({});
   const [answers, setAnswers] = useState({});
   const [textAnswers, setTextAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState(EXAM_INFO.totalTime);
   const [showConfirm, setShowConfirm] = useState(false);
   const [activeSection, setActiveSection] = useState("nghe");
-  const questionRefs = useRef({});
+  const [quizMeta, setQuizMeta] = useState({ title: EXAM_INFO.title, hsk: EXAM_INFO.hsk, timeLimit: 105 });
+  const [questions, setQuestions] = useState([]);
 
-  // Timer
   useEffect(() => {
-    const t = setInterval(() => setTimeLeft(s => s > 0 ? s - 1 : 0), 1000);
-    return () => clearInterval(t);
+    fetch(`http://localhost:8080/api/quizzes/${id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("API loi");
+        return res.json();
+      })
+      .then((data) => {
+        const source = data.data || {};
+        const rawQuestions = source.questions || [];
+        const mappedQuestions = rawQuestions.map(mapQuestion);
+        let runningNumber = 1;
+        const numberedQuestions = mappedQuestions.map((question) => {
+          const span = getQuestionSpan(question);
+          const displayStart = runningNumber;
+          const displayEnd = runningNumber + span - 1;
+          runningNumber += span;
+
+          return {
+            ...question,
+            displayStart,
+            displayEnd,
+          };
+        });
+
+        setQuizMeta({
+          title: source.title || EXAM_INFO.title,
+          hsk: source.hsklevel ? `HSK ${source.hsklevel}` : EXAM_INFO.hsk,
+          timeLimit: source.timeLimit || 105,
+        });
+        setTimeLeft((source.timeLimit || 105) * 60);
+        setQuestions(numberedQuestions);
+      })
+      .catch((err) => console.error(err));
+  }, [id]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setTimeLeft((seconds) => (seconds > 0 ? seconds - 1 : 0)), 1000);
+    return () => clearInterval(timer);
   }, []);
 
-  const fmtTime = s => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+  const answered = useMemo(
+    () => questions.reduce((sum, question) => sum + getQuestionAnsweredCount(question, answers, textAnswers), 0),
+    [questions, answers, textAnswers]
+  );
+  const total = useMemo(() => questions.reduce((sum, question) => sum + getQuestionSpan(question), 0), [questions]);
+  const fmtTime = (seconds) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
   const timeColor = timeLeft < 300 ? "text-red-500" : timeLeft < 600 ? "text-amber-500" : "text-primary";
 
-  function setAnswer(qid, val) { setAnswers(a => ({...a,[qid]:val})); }
-  function scrollTo(qid) {
-    questionRefs.current[qid]?.scrollIntoView({behavior:"smooth", block:"center"});
+  const questionsBySection = useMemo(
+    () =>
+      EXAM_INFO.sections.map((section) => ({
+        ...section,
+        questions: questions.filter((question) => question.section === section.id),
+      })),
+    [questions]
+  );
+
+  function setAnswer(questionId, value) {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
   }
 
-  const answered = Object.keys(answers).length + Object.keys(textAnswers).filter(k=>textAnswers[k]?.trim()).length;
-  const total    = QUESTIONS.length;
+  function setTextAnswer(questionId, value) {
+    setTextAnswers((prev) => ({ ...prev, [questionId]: value }));
+  }
 
-  // Track active section on scroll
+  function scrollTo(questionId) {
+    questionRefs.current[questionId]?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
   useEffect(() => {
     const observer = new IntersectionObserver(
-      entries => entries.forEach(e => { if(e.isIntersecting) { const q = QUESTIONS.find(q=>q.id===+e.target.dataset.qid); if(q) setActiveSection(q.section); } }),
-      { threshold: 0.5 }
+      (entries) =>
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const question = questions.find((item) => item.id === Number(entry.target.dataset.qid));
+          if (question) setActiveSection(question.section);
+        }),
+      { threshold: 0.45 }
     );
-    Object.values(questionRefs.current).forEach(el => el && observer.observe(el));
+
+    Object.values(questionRefs.current).forEach((element) => element && observer.observe(element));
     return () => observer.disconnect();
-  }, []);
+  }, [questions]);
+
+  async function handleSubmit() {
+    try {
+      const token = localStorage.getItem("token");
+      const payload = {
+        quizId: Number(id),
+        answers: Object.entries(answers)
+          .filter(([, value]) => typeof value !== "object")
+          .map(([questionId, selectedOptionId]) => ({
+            quizQuestionId: Number(questionId),
+            selectedOptionId,
+          })),
+        timeSpent: Math.max(0, quizMeta.timeLimit * 60 - timeLeft),
+      };
+
+      const res = await fetch("http://localhost:8080/api/exam/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("API ERROR:", text);
+        throw new Error("Submit loi");
+      }
+
+      const data = await res.json();
+      alert("Nop bai thanh cong!");
+      navigate(`/result/${data.data.quizResultsId}`);
+    } catch (err) {
+      console.error(err);
+      alert("Nop bai that bai!");
+    }
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
-
-      {/* ── STICKY HEADER ── */}
       <header className="sticky top-0 z-50 bg-primary text-white shadow-xl flex-shrink-0">
         <div className="max-w-screen-2xl mx-auto px-4 md:px-6 h-14 flex items-center gap-4">
-          {/* Logo */}
           <Link to="/home" className="flex items-center gap-2.5 flex-shrink-0">
-            <img src={toxiLogo} alt="TOXI" className="h-9 w-9 rounded-xl"/>
+            <img src={toxiLogo} alt="TOXI" className="h-9 w-9 rounded-xl" />
             <div>
               <p className="text-sm font-black tracking-tight leading-none">TOXI</p>
               <p className="text-[8px] text-secondary uppercase tracking-widest leading-none">学以致用</p>
             </div>
           </Link>
 
-          <div className="h-5 w-px bg-white/20"/>
+          <div className="h-5 w-px bg-white/20" />
 
-          {/* Exam title */}
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-white/80 truncate">{EXAM_INFO.title}</p>
+            <p className="text-xs font-bold text-white/80 truncate">{quizMeta.title}</p>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-[10px] font-bold px-2 py-0.5 bg-secondary/30 text-secondary rounded-md">{EXAM_INFO.hsk}</span>
-              <span className="text-[10px] text-white/60">{total} câu hỏi</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 bg-secondary/30 text-secondary rounded-md">{quizMeta.hsk}</span>
+              <span className="text-[10px] text-white/60">{total} cau hoi</span>
             </div>
           </div>
 
-          {/* Progress */}
           <div className="hidden md:flex items-center gap-3 flex-shrink-0">
             <div className="text-right">
-              <p className="text-[10px] text-white/60">Tiến độ</p>
-              <p className="text-xs font-bold">{answered}/{total} câu</p>
+              <p className="text-[10px] text-white/60">Tien do</p>
+              <p className="text-xs font-bold">
+                {answered}/{total} cau
+              </p>
             </div>
             <div className="w-28 h-1.5 bg-white/20 rounded-full overflow-hidden">
-              <div className="h-full bg-secondary rounded-full transition-all" style={{width:`${Math.round(answered/total*100)}%`}}/>
+              <div className="h-full bg-secondary rounded-full transition-all" style={{ width: total ? `${Math.round((answered / total) * 100)}%` : "0%" }} />
             </div>
-            <span className="text-xs font-bold text-secondary">{Math.round(answered/total*100)}%</span>
           </div>
 
-          {/* Timer */}
           <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-1.5 flex-shrink-0">
             <span className="material-symbols-outlined text-base text-secondary">timer</span>
-            <span className={`font-mono font-black text-lg ${timeLeft<300?"text-red-300":timeLeft<600?"text-amber-300":"text-white"}`}>{fmtTime(timeLeft)}</span>
+            <span className={`font-mono font-black text-lg ${timeLeft < 300 ? "text-red-300" : timeLeft < 600 ? "text-amber-300" : "text-white"}`}>
+              {fmtTime(timeLeft)}
+            </span>
           </div>
 
-          {/* Submit */}
-          <button onClick={()=>setShowConfirm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-secondary text-primary font-black text-sm rounded-xl hover:bg-secondary/90 transition shadow-lg flex-shrink-0">
-            <span className="material-symbols-outlined text-base">send</span>Nộp bài
+          <button
+            onClick={() => setShowConfirm(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-secondary text-primary font-black text-sm rounded-xl hover:bg-secondary/90 transition shadow-lg flex-shrink-0"
+          >
+            <span className="material-symbols-outlined text-base">send</span>Nop bai
           </button>
 
-          {/* Exit */}
-          <button onClick={()=>navigate("/Practice")}
-            className="p-2 rounded-xl hover:bg-white/10 transition text-white/70 hover:text-white flex-shrink-0">
+          <button onClick={() => navigate("/Practice")} className="p-2 rounded-xl hover:bg-white/10 transition text-white/70 hover:text-white flex-shrink-0">
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
       </header>
 
-      {/* ── SECTION NAV ── */}
       <div className="sticky top-14 z-40 bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-screen-2xl mx-auto px-4 md:px-6">
           <div className="flex items-center gap-0">
-            {EXAM_INFO.sections.map(sec=>{
-              const cnt = QUESTIONS.filter(q=>q.section===sec.id).length;
-              const ans = QUESTIONS.filter(q=>q.section===sec.id && (answers[q.id]!==undefined || textAnswers[q.id]?.trim())).length;
-              const isActive = activeSection===sec.id;
-              const s = SECTION_STYLES[sec.id];
+            {questionsBySection.map((section) => {
+              const count = section.questions.reduce((sum, question) => sum + getQuestionSpan(question), 0);
+              const done = section.questions.reduce((sum, question) => sum + getQuestionAnsweredCount(question, answers, textAnswers), 0);
+              const isActive = activeSection === section.id;
+
               return (
-                <button key={sec.id}
-                  onClick={()=>{ setActiveSection(sec.id); scrollTo(QUESTIONS.find(q=>q.section===sec.id)?.id); }}
-                  className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition ${isActive?`border-primary text-primary`:"border-transparent text-slate-500 hover:text-slate-700"}`}>
-                  <span className={`material-symbols-outlined text-base ${isActive?"text-primary":`text-${sec.color}-500`}`}>{sec.icon}</span>
-                  {sec.label}
-                  <span className={`text-xs px-1.5 py-0.5 rounded-md font-bold ${isActive?"bg-primary/10 text-primary":"bg-slate-100 text-slate-500"}`}>{ans}/{cnt}</span>
+                <button
+                  key={section.id}
+                  onClick={() => {
+                    setActiveSection(section.id);
+                    scrollTo(section.questions[0]?.id);
+                  }}
+                  className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition ${
+                    isActive ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  <span className={`material-symbols-outlined text-base ${isActive ? "text-primary" : ""}`}>{section.icon}</span>
+                  {section.label}
+                  <span className={`text-xs px-1.5 py-0.5 rounded-md font-bold ${isActive ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-500"}`}>
+                    {done}/{count}
+                  </span>
                 </button>
               );
             })}
-            <div className="flex-1"/>
-            <span className="text-xs text-slate-400 px-4">Cuộn xuống để xem tất cả câu hỏi</span>
+            <div className="flex-1" />
+            <span className="text-xs text-slate-400 px-4">Cuon xuong de xem tat ca cau hoi</span>
           </div>
         </div>
       </div>
 
-      {/* ── MAIN LAYOUT ── */}
       <div className="flex-1 max-w-screen-2xl mx-auto w-full px-4 md:px-6 py-5 grid grid-cols-12 gap-5 items-start">
-
-        {/* LEFT: All questions scrollable */}
         <div className="col-span-12 lg:col-span-8 space-y-4">
+          {questionsBySection.map((section) => {
+            const styles = SECTION_STYLES[section.id];
+            const doneCount = section.questions.reduce((sum, question) => sum + getQuestionAnsweredCount(question, answers, textAnswers), 0);
+            const sectionTotal = section.questions.reduce((sum, question) => sum + getQuestionSpan(question), 0);
 
-          {EXAM_INFO.sections.map(sec => {
-            const sqs = QUESTIONS.filter(q => q.section===sec.id);
-            const s = SECTION_STYLES[sec.id];
             return (
-              <div key={sec.id}>
-                {/* Section header */}
-                <div className={`flex items-center gap-3 px-5 py-3 ${s.bg} border ${s.border} rounded-2xl mb-3`}>
-                  <div className={`w-8 h-8 ${s.header} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                    <span className="material-symbols-outlined text-white text-base">{sec.icon}</span>
+              <div key={section.id}>
+                <div className={`flex items-center gap-3 px-5 py-3 ${styles.bg} border ${styles.border} rounded-2xl mb-3`}>
+                  <div className={`w-8 h-8 ${styles.header} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                    <span className="material-symbols-outlined text-white text-base">{section.icon}</span>
                   </div>
                   <div>
-                    <p className="font-bold text-slate-800 text-sm">{sec.label}</p>
-                    <p className="text-xs text-slate-500">{sqs.length} câu hỏi</p>
+                    <p className="font-bold text-slate-800 text-sm">{section.label}</p>
+                    <p className="text-xs text-slate-500">{sectionTotal} cau hoi</p>
                   </div>
                   <div className="ml-auto flex items-center gap-2">
-                    <span className="text-xs text-slate-500">{QUESTIONS.filter(q=>q.section===sec.id&&answers[q.id]!==undefined).length}/{sqs.length} đã làm</span>
+                    <span className="text-xs text-slate-500">
+                      {doneCount}/{sectionTotal} da lam
+                    </span>
                     <div className="w-20 h-1.5 bg-white/60 rounded-full overflow-hidden">
-                      <div className={`h-full ${s.dot} rounded-full transition-all`}
-                        style={{width:`${Math.round(QUESTIONS.filter(q=>q.section===sec.id&&answers[q.id]!==undefined).length/sqs.length*100)}%`}}/>
+                      <div
+                        className={`h-full ${styles.dot} rounded-full transition-all`}
+                        style={{ width: sectionTotal ? `${Math.round((doneCount / sectionTotal) * 100)}%` : "0%" }}
+                      />
                     </div>
                   </div>
                 </div>
 
-                {/* Questions in this section */}
                 <div className="space-y-4">
-                  {sqs.map(q => {
-                    const ans = answers[q.id];
-                    const isDone = ans !== undefined || textAnswers[q.id]?.trim();
-                    return (
-                      <div key={q.id} data-qid={q.id} ref={el=>questionRefs.current[q.id]=el}
-                        className={`bg-white rounded-2xl border-2 overflow-hidden transition ${isDone?`${s.border}`:"border-slate-200"}`}>
+                  {section.questions.map((question) => {
+                    const answerValue = answers[question.id];
+                    const isDone = getQuestionAnsweredCount(question, answers, textAnswers) >= getQuestionSpan(question);
 
-                        {/* Question header */}
-                        <div className={`flex items-center justify-between px-5 py-3 ${isDone?s.bg:"bg-slate-50"} border-b ${isDone?s.border:"border-slate-200"}`}>
+                    return (
+                      <div
+                        key={question.id}
+                        data-qid={question.id}
+                        ref={(element) => {
+                          questionRefs.current[question.id] = element;
+                        }}
+                        className={`bg-white rounded-2xl border-2 overflow-hidden transition ${isDone ? styles.border : "border-slate-200"}`}
+                      >
+                        <div className={`flex items-center justify-between px-5 py-3 ${isDone ? styles.bg : "bg-slate-50"} border-b ${isDone ? styles.border : "border-slate-200"}`}>
                           <div className="flex items-center gap-2.5">
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0 ${isDone?`${s.header} text-white`:"bg-slate-200 text-slate-600"}`}>
-                              {q.id}
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0 ${isDone ? `${styles.header} text-white` : "bg-slate-200 text-slate-600"}`}>
+                              {question.displayStart || question.order}
                             </div>
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${s.badge}`}>{q.sectionLabel}</span>
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${styles.badge}`}>{question.sectionLabel}</span>
+                            <span className="px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-500">{question.type}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            {isDone && <span className={`material-symbols-outlined text-base ${s.dot.replace("bg-","text-")}`}>check_circle</span>}
-                            {!isDone && <span className="text-xs text-slate-400">Chưa làm</span>}
+                            {isDone ? <span className={`material-symbols-outlined text-base ${styles.dot.replace("bg-", "text-")}`}>check_circle</span> : <span className="text-xs text-slate-400">Chua lam</span>}
                           </div>
                         </div>
 
-                        {/* Question body */}
                         <div className="p-5">
+                          {question.audio && <AudioBar src={question.audio} />}
 
-                          {/* Audio (nghe) */}
-                          {q.section==="nghe" && <AudioBar/>}
-
-                          {/* Passage (đoạn văn) */}
-                          {q.passage && (
+                          {question.passage && (
                             <div className="mb-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                              <p className="text-sm font-medium text-slate-800 leading-relaxed">{q.passage}</p>
+                              <p className="text-sm font-medium text-slate-800 leading-relaxed whitespace-pre-line">{question.passage}</p>
                             </div>
                           )}
 
-                          {/* Image */}
-                          {q.image && (
-                            <div className="mb-4 flex justify-center">
-                              <img src={q.image} alt="question" className="rounded-xl max-h-52 object-cover border border-slate-200"/>
-                            </div>
-                          )}
+                       {question.image && question.type !== "dung-sai-anh" && (
+  <div className="mb-4 flex justify-center">
+    <img
+      src={question.image}
+      alt="question"
+      className="rounded-xl max-h-60 object-cover border border-slate-200"
+    />
+  </div>
+)}
 
-                          {/* Words to arrange */}
-                          {q.words && (
+
+                          {question.words.length > 0 && question.type !== "sap-xep-viet" && question.type !== "sap-xep" && (
                             <div className="mb-4 flex flex-wrap gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                              {q.words.map((w,i)=>(
-                                <span key={i} className="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 shadow-sm">{w}</span>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Hints (điền từ) */}
-                          {q.hints && (
-                            <div className="mb-4 flex gap-2 flex-wrap">
-                              <span className="text-xs text-slate-500 font-semibold self-center">Gợi ý:</span>
-                              {q.hints.map((h,i)=>(
-                                <span key={i} className="px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-lg text-xs font-medium text-amber-800">{h}</span>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Question text */}
-                          <p className="text-sm font-semibold text-slate-800 mb-4 leading-relaxed">
-                            {q.content}
-                            {q.pinyin && <span className="block text-xs text-slate-400 font-normal italic mt-0.5">{q.pinyin}</span>}
-                          </p>
-
-                          {/* ── ANSWER TYPES ── */}
-
-                          {/* Đúng / Sai */}
-                          {(q.type==="dung-sai"||q.type==="dung-sai-anh") && (
-                            <TrueFalse selected={ans} onSelect={v=>setAnswer(q.id,v)}/>
-                          )}
-
-                          {/* A B C ảnh */}
-                          {q.type==="abc-anh" && (
-                            <div className="grid grid-cols-3 gap-3">
-                              {q.images.map((img,i)=>(
-                                <button key={i} onClick={()=>setAnswer(q.id,String(i))}
-                                  className={`rounded-xl overflow-hidden border-2 transition ${ans===String(i)?"border-primary":"border-slate-200 hover:border-primary/40"}`}>
-                                  <img src={img} alt={String.fromCharCode(65+i)} className="w-full h-28 object-cover"/>
-                                  <div className={`py-1.5 text-center text-xs font-bold transition ${ans===String(i)?"bg-primary text-white":"bg-slate-50 text-slate-600"}`}>
-                                    {String.fromCharCode(65+i)}
-                                    {ans===String(i) && " ✓"}
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* A B C D (text) */}
-                          {(q.type==="abcd"||q.type==="abcd-doan"||q.type==="sap-xep"||q.type==="sap-xep-viet"||q.type==="dien-tu") && (
-                            <div className="space-y-2">
-                              {q.answers.map((a,i)=>(
-                                <AnswerOpt key={i}
-                                  label={String.fromCharCode(65+i)}
-                                  text={a}
-                                  selected={ans===String(i)}
-                                  onClick={()=>setAnswer(q.id,String(i))}/>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Viết đoạn văn */}
-                          {q.type==="viet-doan" && (
-                            <div>
-                              <textarea
-                                value={textAnswers[q.id]||""}
-                                onChange={e=>setTextAnswers(t=>({...t,[q.id]:e.target.value}))}
-                                placeholder="Viết đoạn văn của bạn tại đây... (tối thiểu 80 từ)"
-                                rows={5}
-                                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none"
-                              />
-                              <div className="flex justify-between mt-1.5">
-                                <span className="text-xs text-slate-400">Tối thiểu 80 từ</span>
-                                <span className={`text-xs font-semibold ${(textAnswers[q.id]||"").split(/\s+/).filter(Boolean).length>=80?"text-emerald-600":"text-slate-400"}`}>
-                                  {(textAnswers[q.id]||"").split(/\s+/).filter(Boolean).length} từ
+                              {question.words.map((word, index) => (
+                                <span key={`${word}-${index}`} className="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 shadow-sm">
+                                  {word}
                                 </span>
-                              </div>
+                              ))}
                             </div>
                           )}
 
+                          {question.hints.length > 0 && (
+                            <div className="mb-4 flex gap-2 flex-wrap">
+                              <span className="text-xs text-slate-500 font-semibold self-center">Goi y:</span>
+                              {question.hints.map((hint, index) => (
+                                <span key={`${hint}-${index}`} className="px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-lg text-xs font-medium text-amber-800">
+                                  {hint}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {question.type !== "sap-xep-viet" && question.type !== "sap-xep" && (
+                            <p className="text-sm font-semibold text-slate-800 mb-4 leading-relaxed whitespace-pre-line">
+                              {question.content}
+                              {question.pinyin && <span className="block text-xs text-slate-400 font-normal italic mt-0.5">{question.pinyin}</span>}
+                              {question.meaning && <span className="block text-xs text-slate-500 font-normal mt-1">{question.meaning}</span>}
+                            </p>
+                          )}
+
+                          {renderQuestionBody(question, answerValue, setAnswer, textAnswers[question.id], setTextAnswer)}
                         </div>
                       </div>
                     );
@@ -465,69 +927,85 @@ export default function ExamMain() {
             );
           })}
 
-          {/* Submit button bottom */}
           <div className="bg-white rounded-2xl border border-slate-200 p-5 text-center">
-            <p className="text-sm text-slate-600 mb-1">Đã làm <strong className="text-primary">{answered}/{total}</strong> câu hỏi</p>
-            {answered < total && (
-              <p className="text-xs text-amber-600 mb-3">⚠ Còn {total - answered} câu chưa trả lời</p>
-            )}
-            <button onClick={()=>setShowConfirm(true)}
-              className="px-8 py-3 bg-secondary text-primary font-black text-base rounded-2xl hover:bg-secondary/90 transition shadow-lg shadow-secondary/20">
-              NỘP BÀI / 提交
+            <p className="text-sm text-slate-600 mb-1">
+              Da lam <strong className="text-primary">{answered}/{total}</strong> cau hoi
+            </p>
+            {answered < total && <p className="text-xs text-amber-600 mb-3">Con {total - answered} cau chua tra loi</p>}
+            <button onClick={() => setShowConfirm(true)} className="px-8 py-3 bg-secondary text-primary font-black text-base rounded-2xl hover:bg-secondary/90 transition shadow-lg shadow-secondary/20">
+              NOP BAI / 提交
             </button>
           </div>
         </div>
 
-        {/* RIGHT: Sticky sidebar */}
         <aside className="col-span-12 lg:col-span-4 sticky top-28 space-y-4">
-
-          {/* Timer card */}
           <div className="bg-white rounded-2xl border border-slate-200 p-4 text-center">
-            <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Thời gian còn lại</p>
+            <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Thoi gian con lai</p>
             <p className={`font-mono font-black text-4xl ${timeColor}`}>{fmtTime(timeLeft)}</p>
             <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-              <div className={`h-full rounded-full transition-all ${timeLeft<300?"bg-red-500":timeLeft<600?"bg-amber-500":"bg-emerald-500"}`}
-                style={{width:`${Math.round(timeLeft/EXAM_INFO.totalTime*100)}%`}}/>
+              <div
+                className={`h-full rounded-full transition-all ${timeLeft < 300 ? "bg-red-500" : timeLeft < 600 ? "bg-amber-500" : "bg-emerald-500"}`}
+                style={{ width: `${Math.round((timeLeft / (quizMeta.timeLimit * 60 || 1)) * 100)}%` }}
+              />
             </div>
           </div>
 
-          {/* Question palette */}
           <div className="bg-white rounded-2xl border border-slate-200 p-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Danh sách câu hỏi</p>
-              <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg font-semibold">{answered}/{total}</span>
+              <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Danh sach cau hoi</p>
+              <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg font-semibold">
+                {answered}/{total}
+              </span>
             </div>
 
-            {/* Legend */}
             <div className="flex gap-3 mb-3 text-[10px] text-slate-500 font-semibold">
-              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-primary inline-block"/>Đang xem</span>
-              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-500 inline-block"/>Đã làm</span>
-              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full border border-slate-300 inline-block"/>Chưa làm</span>
+              <span className="flex items-center gap-1">
+                <span className="w-3 h-3 rounded bg-primary inline-block" />
+                Dang xem
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-3 h-3 rounded bg-emerald-500 inline-block" />
+                Da lam
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-3 h-3 rounded-full border border-slate-300 inline-block" />
+                Chua lam
+              </span>
             </div>
 
-            {/* Sections + grid */}
-            {EXAM_INFO.sections.map(sec=>{
-              const sqs = QUESTIONS.filter(q=>q.section===sec.id);
-              const s = SECTION_STYLES[sec.id];
+            {questionsBySection.map((section) => {
+              const styles = SECTION_STYLES[section.id];
+              const doneCount = section.questions.reduce((sum, question) => sum + getQuestionAnsweredCount(question, answers, textAnswers), 0);
+              const sectionTotal = section.questions.reduce((sum, question) => sum + getQuestionSpan(question), 0);
+              const navItems = section.questions.flatMap(buildQuestionNavItems);
+
               return (
-                <div key={sec.id} className="mb-3">
+                <div key={section.id} className="mb-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className={`w-2 h-2 rounded-full ${s.dot}`}/>
-                    <p className="text-[11px] font-bold text-slate-600">{sec.label}</p>
+                    <span className={`w-2 h-2 rounded-full ${styles.dot}`} />
+                    <p className="text-[11px] font-bold text-slate-600">{section.label}</p>
                     <span className="text-[10px] text-slate-400 ml-auto">
-                      {sqs.filter(q=>answers[q.id]!==undefined||textAnswers[q.id]?.trim()).length}/{sqs.length}
+                      {doneCount}/{sectionTotal}
                     </span>
                   </div>
                   <div className="grid grid-cols-5 gap-1.5">
-                    {sqs.map(q=>{
-                      const isDone = answers[q.id]!==undefined || textAnswers[q.id]?.trim();
+                    {navItems.map((item) => {
+                      const parentQuestion = section.questions.find((question) => question.id === item.questionId);
+                      const span = getQuestionSpan(parentQuestion);
+                      const answeredCount = getQuestionAnsweredCount(parentQuestion, answers, textAnswers);
+                      const isDone =
+                        span === 1
+                          ? answeredCount >= 1
+                          : answeredCount >= item.number - (parentQuestion.displayStart || parentQuestion.order) + 1;
                       return (
-                        <button key={q.id} onClick={()=>scrollTo(q.id)}
+                        <button
+                          key={item.id}
+                          onClick={() => scrollTo(item.questionId)}
                           className={`h-9 rounded-lg text-xs font-bold transition border ${
-                            isDone ? "bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600"
-                                   : "border-slate-200 text-slate-500 hover:border-primary hover:text-primary"
-                          }`}>
-                          {q.id}
+                            isDone ? "bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600" : "border-slate-200 text-slate-500 hover:border-primary hover:text-primary"
+                          }`}
+                        >
+                          {item.number}
                         </button>
                       );
                     })}
@@ -537,19 +1015,17 @@ export default function ExamMain() {
             })}
           </div>
 
-          {/* Tip */}
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
             <div className="flex gap-2">
               <span className="material-symbols-outlined text-blue-500 flex-shrink-0 text-base">lightbulb</span>
               <p className="text-xs text-blue-700 leading-relaxed">
-                <strong>Mẹo:</strong> Cuộn xuống để xem tất cả câu hỏi. Bấm số câu ở bảng bên phải để nhảy đến câu muốn làm.
+                <strong>Meo:</strong> Cuon xuong de xem tat ca cau hoi. Bam so cau o bang ben phai de nhay den cau muon lam.
               </p>
             </div>
           </div>
         </aside>
       </div>
 
-      {/* ── CONFIRM SUBMIT MODAL ── */}
       {showConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-[pop_.18s_ease]">
@@ -557,26 +1033,30 @@ export default function ExamMain() {
               <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
                 <span className="material-symbols-outlined text-amber-600 text-2xl">send</span>
               </div>
-              <h3 className="text-base font-bold text-slate-900 mb-1">Xác nhận nộp bài</h3>
+              <h3 className="text-base font-bold text-slate-900 mb-1">Xac nhan nop bai</h3>
               <p className="text-sm text-slate-500 leading-relaxed">
-                Bạn đã hoàn thành <strong className="text-primary">{answered}/{total}</strong> câu hỏi.
+                Ban da hoan thanh <strong className="text-primary">{answered}/{total}</strong> cau hoi.
                 {answered < total && (
-                  <><br/><span className="text-amber-600 font-semibold">⚠ Còn {total-answered} câu chưa trả lời!</span></>
+                  <>
+                    <br />
+                    <span className="text-amber-600 font-semibold">Con {total - answered} cau chua tra loi!</span>
+                  </>
                 )}
               </p>
             </div>
             <div className="bg-slate-50 rounded-xl p-3 mb-5 text-center">
-              <p className="text-xs text-slate-500">Thời gian còn lại</p>
+              <p className="text-xs text-slate-500">Thoi gian con lai</p>
               <p className="font-mono font-black text-xl text-primary">{fmtTime(timeLeft)}</p>
             </div>
             <div className="flex gap-3">
-              <button onClick={()=>setShowConfirm(false)}
-                className="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
-                Làm tiếp
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+              >
+                Lam tiep
               </button>
-              <button onClick={()=>navigate("/ExamResult")}
-                className="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition">
-                Nộp bài
+              <button onClick={handleSubmit} className="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition">
+                Nop bai
               </button>
             </div>
           </div>

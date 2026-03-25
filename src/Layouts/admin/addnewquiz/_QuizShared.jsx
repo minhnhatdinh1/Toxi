@@ -30,9 +30,9 @@ export const QUESTION_TYPES = {
 };
 
 // ── Sidebar for question creation ──
-export function QuizSidebar({ activeType, skill }) {
+export function QuizSidebar({ activeType, skill,quizId }) {
   const types = QUESTION_TYPES[skill] || [];
-  const skillRoutes = { nghe:"/listenQuiz", doc:"/readQuiz", viet:"/writtingQuiz" };
+  const skillRoutes = { nghe:`/adminQuiz/${quizId}/add-question/listen`, doc:`/adminQuiz/${quizId}/add-question/read`, viet:`/adminQuiz/${quizId}/add-question/write`};
   const skillLabels = { nghe:"Nghe (听)", doc:"Đọc (读)", viet:"Viết (写)" };
   const skillColors = { nghe:"text-blue-400", doc:"text-emerald-400", viet:"text-orange-400" };
 
@@ -40,13 +40,13 @@ export function QuizSidebar({ activeType, skill }) {
     <aside className="w-60 bg-slate-900 flex-shrink-0 flex flex-col h-screen">
       {/* Back */}
       <div className="p-4 border-b border-white/10">
-        <Link to="/adminaddnewquiz" className="flex items-center gap-2 text-white/60 hover:text-white text-xs font-semibold transition">
+      <Link to={`/adminEditQuiz/${quizId}`} className="flex items-center gap-2 text-white/60 hover:text-white text-xs font-semibold transition">
           <span className="material-symbols-outlined text-sm">arrow_back</span>Quay lại tạo đề
         </Link>
       </div>
-
+      
       <div className="p-4 border-b border-white/10">
-        <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest mb-1">Kỹ năng đang chọn</p>
+        <p className="text-[10px] text-white/40 uppercase fonts-bold tracking-widest mb-1">Kỹ năng đang chọn</p>
         <span className={`text-sm font-bold text-white`}>{skillLabels[skill]}</span>
       </div>
 
@@ -61,7 +61,7 @@ export function QuizSidebar({ activeType, skill }) {
             </Link>
           ))}
         </div>
-
+ 
         <nav className="space-y-1">
           {types.map(t=>(
             <div key={t.value}
@@ -88,7 +88,8 @@ export function QuizSidebar({ activeType, skill }) {
 }
 
 // ── Top header for question pages ──
-export function QuizPageHeader({ title, isEdit=false, onSaveAndNext, onSaveAndClose }) {
+export function QuizPageHeader({ title, isEdit=false, onCancel, onSaveAndNext, onSaveAndClose }) {
+    
   return (
     <header className="bg-white border-b border-slate-200 px-6 py-3.5 flex items-center justify-between flex-shrink-0 sticky top-0 z-10">
       <div>
@@ -99,7 +100,11 @@ export function QuizPageHeader({ title, isEdit=false, onSaveAndNext, onSaveAndCl
         <p className="text-[11px] text-slate-400 mt-0.5">Cập nhật lần cuối: hôm nay</p>
       </div>
       <div className="flex items-center gap-2">
-        <Link to="/adminaddnewquiz" className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">Huỷ</Link>
+       <button
+  onClick={onCancel}
+  className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
+  Huỷ
+</button>
         <button onClick={onSaveAndNext} className="px-4 py-2 border border-slate-200 bg-white rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
           {isEdit ? "Lưu nháp" : "Lưu & tạo tiếp"}
         </button>
@@ -266,17 +271,53 @@ export function AudioUpload({ label="File audio", value, onChange }) {
     </div>
   );
 }
-
-// ── Image upload slot ──
 export function ImageSlot({ label, value, onChange }) {
+  const getSrc = () => {
+    if (!value) return null;
+
+    if (value instanceof File) {
+      return URL.createObjectURL(value);
+    }
+
+    if (typeof value === "object" && value.url) {
+      return value.url.startsWith("http")
+        ? value.url
+        : `http://localhost:8080/api/files/${encodeURIComponent(value.url)}`;
+    }
+
+    if (typeof value === "string") {
+      return `http://localhost:8080/api/files/${encodeURIComponent(value)}`;
+    }
+
+    return null;
+  };
+
+  const src = getSrc();
+
   return (
     <div className="flex flex-col gap-1.5">
-      {label && <span className="text-xs font-semibold text-slate-500 uppercase">{label}</span>}
-      {value ? (
+      {label && (
+        <span className="text-xs font-semibold text-slate-500 uppercase">{label}</span>
+      )}
+
+      {src ? (
         <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-200 group">
-          <img src={URL.createObjectURL(value)} alt="" className="w-full h-full object-cover"/>
-          <button onClick={()=>onChange(null)}
-            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+          <img
+            src={src}
+            alt=""
+            onError={(e) => {
+              if (!e.target.dataset.errorHandled) {
+                console.log("🔥 Image load error:", src);
+                e.target.dataset.errorHandled = true;
+                e.target.src = "/fallback.png"; // fallback ảnh mặc định
+              }
+            }}
+            className="w-full h-full object-cover"
+          />
+          <button
+            onClick={() => onChange(null)}
+            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+          >
             <span className="material-symbols-outlined text-white">edit</span>
           </button>
         </div>
@@ -284,7 +325,12 @@ export function ImageSlot({ label, value, onChange }) {
         <label className="aspect-[4/3] flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 hover:border-primary hover:bg-blue-50 transition cursor-pointer">
           <span className="material-symbols-outlined text-slate-400 text-2xl">image</span>
           <span className="text-xs text-slate-400">Tải ảnh lên</span>
-          <input type="file" accept="image/*" className="hidden" onChange={e=>onChange(e.target.files[0])}/>
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => onChange(e.target.files[0])}
+          />
         </label>
       )}
     </div>

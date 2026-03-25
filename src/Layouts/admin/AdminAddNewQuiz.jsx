@@ -1,26 +1,96 @@
 import { useState } from "react";
-import { Link, useNavigate , useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
+import { createQuiz } from "./api/apiquiz";
 
 const inputCls = "border border-slate-200 rounded-xl px-3 py-2.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition bg-white";
 
 export default function AdminAddNewQuiz() {
   const navigate = useNavigate();
-const [searchParams] = useSearchParams();
-const initStep = Number(searchParams.get("step")) || 1;
+  const [searchParams] = useSearchParams();
+  const initStep = Number(searchParams.get("step")) || 1;
 
-const [step, setStep] = useState(initStep);// 1=BasicInfo 2=AddQuestions 3=Settings
-  const [form, setForm]   = useState({
-    name:"", hsk:"HSK 1", type:"Tổng hợp", time:45, pass:60, desc:"", status:"draft", randomize:true, showPinyin:true,
+  const [step, setStep] = useState(initStep);
+  const [form, setForm] = useState({
+    title:"", hsk:"HSK 1", type:"Tổng hợp", time:45, pass:60, desc:"", status:"DRAFT", randomize:true, showPinyin:true,
   });
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
   const sf = v => setForm(f=>({...f,...v}));
 
-  function handleCreate() {
-    if (!form.name.trim()) { alert("Vui lòng nhập tên đề thi!"); return; }
-    setSaved(true);
-    setTimeout(()=>{ setSaved(false); navigate("/adminQuiz"); }, 1500);
+const convertForm = () => ({
+  title: form.title,
+  hsklevel: parseInt(form.hsk.split(" ")[1]),
+  quizType: form.type,
+  timeLimit: form.time,
+  passScore: form.pass,
+  description: form.desc,
+  status: "DRAFT",
+  showPinyin: form.showPinyin
+
+});
+const handleNext = async () => {
+  if (!form.title.trim()) {
+    alert("Vui lòng nhập tên đề thi!");
+    return;
   }
+
+  try {
+    setLoading(true);
+
+    const res = await createQuiz(convertForm());
+
+    console.log("CREATE QUIZ RESPONSE:", res);
+
+    const newId =
+      res.data?.data?.id ??
+      res.data?.data?.quizId ??
+      res.data?.id ??
+      res.data?.quizId;
+
+    if (!newId) {
+      console.error("Không tìm thấy quizId trong response");
+      return;
+    }
+
+    navigate(`/adminEditQuiz/${newId}?step=2`);
+
+  } catch (err) {
+    alert("Lỗi tạo đề: " + err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+  const handleCreate = async () => {
+    if (!form.title.trim()) { alert("Vui lòng nhập tên đề thi!"); return; }
+    
+    try {
+      setLoading(true);
+      
+      // Gọi API tạo đề thi
+      const response = await createQuiz({
+        title: form.title,
+        hsklevel: parseInt(form.hsk.split(" ")[1]),
+        quizType: form.type,
+        timeLimit: form.time,
+        passScore: form.pass,
+        description: form.desc,
+        status: form.status,
+        showPinyin: form.showPinyin
+      });
+
+      if (response.success) {
+        setSaved(true);
+        setTimeout(() => {
+          // Chuyển tới trang edit để thêm câu hỏi
+          navigate(`/adminEditQuiz/${response.data.quizId || response.data.id}`);
+        }, 1500);
+      }
+    } catch (err) {
+      alert("Lỗi tạo đề thi: " + err.message);
+      setLoading(false);
+    }
+  };
 
   const steps = [
     {n:1, label:"Thông tin cơ bản", ico:"info"},
@@ -47,9 +117,9 @@ const [step, setStep] = useState(initStep);// 1=BasicInfo 2=AddQuestions 3=Setti
             <h1 className="text-base font-bold text-slate-900">Tạo đề thi mới</h1>
           </div>
           <Link to="/adminQuiz" className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">Huỷ</Link>
-          <button onClick={handleCreate}
-            className={`px-5 py-2 rounded-xl text-sm font-bold transition shadow-md ${saved?"bg-emerald-600 shadow-emerald-200":"bg-primary shadow-primary/20 hover:bg-primary/90"} text-white`}>
-            {saved ? "✓ Đã tạo! Đang chuyển..." : "Tạo đề thi"}
+          <button onClick={handleCreate} disabled={loading}
+            className={`px-5 py-2 rounded-xl text-sm font-bold transition shadow-md disabled:opacity-50 ${saved?"bg-emerald-600 shadow-emerald-200":"bg-primary shadow-primary/20 hover:bg-primary/90"} text-white`}>
+            {saved ? "✓ Đã tạo! Đang chuyển..." : loading ? "Đang tạo..." : "Tạo đề thi"}
           </button>
         </header>
 
@@ -81,7 +151,7 @@ const [step, setStep] = useState(initStep);// 1=BasicInfo 2=AddQuestions 3=Setti
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Tên đề thi *</label>
-                  <input className={inputCls} value={form.name} onChange={e=>sf({name:e.target.value})} placeholder="VD: Đề thi HSK1 - Mã đề 201"/>
+                  <input className={inputCls} value={form.title} onChange={e=>sf({title:e.target.value})} placeholder="VD: Đề thi HSK1 - Mã đề 201"/>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -116,7 +186,7 @@ const [step, setStep] = useState(initStep);// 1=BasicInfo 2=AddQuestions 3=Setti
                 </div>
 
                 <div className="flex justify-end pt-2">
-                  <button onClick={()=>setStep(2)} className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition">
+                  <button  onClick={handleNext} className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition">
                     Tiếp theo — Thêm câu hỏi <span className="material-symbols-outlined text-base">arrow_forward</span>
                   </button>
                 </div>
@@ -216,9 +286,9 @@ const [step, setStep] = useState(initStep);// 1=BasicInfo 2=AddQuestions 3=Setti
                     <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Trạng thái xuất bản</label>
                     <div className="grid grid-cols-3 gap-3">
                       {[
-                        {v:"active",label:"Công khai",ico:"public",desc:"Học viên thấy ngay"},
-                        {v:"draft", label:"Nháp",     ico:"edit",  desc:"Chỉ admin thấy"},
-                        {v:"hidden",label:"Ẩn",       ico:"visibility_off",desc:"Tạm thời ẩn"},
+                        {v:"ACTIVE",label:"Công khai",ico:"public",desc:"Học viên thấy ngay"},
+                        {v:"DRAFT", label:"Nháp",     ico:"edit",  desc:"Chỉ admin thấy"},
+                        {v:"HIDDEN",label:"Ẩn",       ico:"visibility_off",desc:"Tạm thời ẩn"},
                       ].map(o=>(
                         <button key={o.v} onClick={()=>sf({status:o.v})}
                           className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition ${form.status===o.v?"border-primary bg-blue-50":"border-slate-200 hover:border-slate-300"}`}>
@@ -235,10 +305,10 @@ const [step, setStep] = useState(initStep);// 1=BasicInfo 2=AddQuestions 3=Setti
                   <button onClick={()=>setStep(2)} className="flex items-center gap-2 px-5 py-2.5 border border-slate-200 bg-white rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
                     <span className="material-symbols-outlined text-base">arrow_back</span>Quay lại
                   </button>
-                  <button onClick={handleCreate}
-                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition shadow-md ${saved?"bg-emerald-600 shadow-emerald-200":"bg-primary shadow-primary/20 hover:bg-primary/90"} text-white`}>
+                  <button onClick={handleCreate} disabled={loading}
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition shadow-md disabled:opacity-50 ${saved?"bg-emerald-600 shadow-emerald-200":"bg-primary shadow-primary/20 hover:bg-primary/90"} text-white`}>
                     <span className="material-symbols-outlined text-base">{saved?"check":"publish"}</span>
-                    {saved?"Đã tạo! Đang chuyển...":"Tạo đề thi"}
+                    {saved?"Đã tạo! Đang chuyển...":loading?"Đang tạo...":"Tạo đề thi"}
                   </button>
                 </div>
               </div>

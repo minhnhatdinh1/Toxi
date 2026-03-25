@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState ,useEffect} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   QuizSidebar, QuizPageHeader, QuizRightPanel,
   AnswerOptions, AudioUpload, ImageSlot,
   inputCls, labelCls,
 } from "./_QuizShared";
-
+import { fetchQuestionDetail } from "../api/apiquiz";
 // Mock data - trong thực tế fetch từ API theo id
 const MOCK = {
   type:"dung-sai", content:"他想去北京旅游。",
@@ -16,7 +16,8 @@ const MOCK = {
 };
 
 export default function EditListen() {
-  const { id } = useParams();
+const { quizId, questionId } = useParams();
+ 
   const navigate = useNavigate();
   const [activeType, setActiveType] = useState(MOCK.type);
   const [audio, setAudio]           = useState(null);
@@ -45,16 +46,38 @@ export default function EditListen() {
     setSaved(true);
     setTimeout(()=>{ setSaved(false); navigate(-1); }, 1500);
   }
+useEffect(() => {
+  if (!questionId) return;
 
+  fetchQuestionDetail(questionId).then(res => {
+    const q = res.data;
+
+    setActiveType(q.questionType);
+    setContent(q.content);
+    setPinyin(q.pinyin);
+    setExplanation(q.explanation);
+
+    if (q.questionType === "gop-cau") {
+      setImages(q.quizOptions.map(o => o.imageUrl));
+      setSubQ(q.subQuestions);
+    }
+  });
+}, [questionId]);
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
-      <QuizSidebar activeType={activeType} skill="nghe"/>
+      <QuizSidebar 
+  activeType={activeType} 
+  skill="nghe"
+  quizId={quizId}
+/>
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <QuizPageHeader
-          title={`Chỉnh sửa câu #${id||"??"} — ${TYPES.find(t=>t.value===activeType)?.label} (Nghe)`}
+        title={`Chỉnh sửa câu #${questionId || "??"} — ${
+  TYPES.find(t=>t.value===activeType)?.label
+} (Nghe)`}
           isEdit
-          onSaveAndNext={()=>navigate(-1)}
+    onCancel={() => navigate(`/adminEditQuiz/${quizId}`)}
           onSaveAndClose={handleSave}
         />
 

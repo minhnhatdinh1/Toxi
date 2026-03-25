@@ -1,21 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
-
-const INIT_QUIZZES = [
-  { id:1,  name:"Đề thi HSK1 - Mã đề 101", hsk:"HSK 1", type:"Tổng hợp", questions:40,  time:35,  pass:60, plays:1200, status:"active", date:"10/03/2025", desc:"Từ vựng cơ bản 150 từ" },
-  { id:2,  name:"Đề thi HSK1 - Mã đề 102", hsk:"HSK 1", type:"Nghe",     questions:40,  time:35,  pass:60, plays:980,  status:"active", date:"12/03/2025", desc:"" },
-  { id:3,  name:"HSK1 - Luyện tập nhanh",  hsk:"HSK 1", type:"Tổng hợp", questions:20,  time:15,  pass:70, plays:2100, status:"active", date:"15/03/2025", desc:"Bài tập ngắn 20 câu" },
-  { id:4,  name:"Đề thi HSK2 - Mã đề 201", hsk:"HSK 2", type:"Tổng hợp", questions:60,  time:55,  pass:60, plays:750,  status:"active", date:"01/02/2025", desc:"" },
-  { id:5,  name:"Đề thi HSK2 - Mã đề 202", hsk:"HSK 2", type:"Tổng hợp", questions:60,  time:55,  pass:60, plays:430,  status:"draft",  date:"05/02/2025", desc:"Đang hoàn thiện" },
-  { id:6,  name:"HSK2 - Ôn tập cuối kỳ",   hsk:"HSK 2", type:"Mock test",questions:80,  time:70,  pass:65, plays:320,  status:"active", date:"20/02/2025", desc:"" },
-  { id:7,  name:"Đề thi HSK3 - Mã đề 301", hsk:"HSK 3", type:"Tổng hợp", questions:100, time:90,  pass:60, plays:610,  status:"active", date:"10/01/2025", desc:"" },
-  { id:8,  name:"HSK3 - Chuyên sâu ngữ pháp",hsk:"HSK 3",type:"Viết",   questions:100, time:95,  pass:65, plays:280,  status:"draft",  date:"18/01/2025", desc:"Tập trung ngữ pháp" },
-  { id:9,  name:"Đề thi HSK4 - Mã đề 401", hsk:"HSK 4", type:"Tổng hợp", questions:100, time:105, pass:60, plays:380,  status:"active", date:"05/12/2024", desc:"" },
-  { id:10, name:"Đề thi HSK4 - Mã đề 402", hsk:"HSK 4", type:"Nghe",     questions:100, time:105, pass:60, plays:210,  status:"hidden", date:"10/12/2024", desc:"Tạm ẩn cập nhật" },
-  { id:11, name:"Đề thi HSK5 - Mã đề 501", hsk:"HSK 5", type:"Tổng hợp", questions:100, time:125, pass:60, plays:150,  status:"active", date:"01/11/2024", desc:"" },
-  { id:12, name:"Đề thi HSK6 - Mock test",  hsk:"HSK 6", type:"Mock test",questions:101, time:140, pass:60, plays:85,   status:"active", date:"01/10/2024", desc:"Thi thử toàn diện" },
-];
+import {
+  fetchQuizzes,
+  fetchQuizStatistics,
+  createQuiz,
+  updateQuiz,
+  deleteQuiz,
+  copyQuiz,
+  getErrorMessage,
+} from "./api/apiquiz";
 
 const HSK_BADGE = {
   "HSK 1":"bg-emerald-100 text-emerald-800","HSK 2":"bg-blue-100 text-blue-800",
@@ -26,9 +20,9 @@ const HSK_BAR_COLORS = ["#10b981","#3b82f6","#8b5cf6","#f97316","#ef4444","#4755
 const inputCls = "border border-slate-200 rounded-xl px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition bg-white";
 
 function StatusDot({ s }) {
-  const cfg = s==="active"
+  const cfg = s==="ACTIVE"
     ? {dot:"bg-emerald-500",text:"text-emerald-600",label:"Công khai"}
-    : s==="draft"
+    : s==="DRAFT"
     ? {dot:"bg-amber-500",text:"text-amber-600",label:"Nháp"}
     : {dot:"bg-slate-400",text:"text-slate-400",label:"Ẩn"};
   return <span className={`flex items-center gap-1.5 text-xs font-semibold ${cfg.text}`}><span className={`w-2 h-2 rounded-full inline-block ${cfg.dot}`}/>{cfg.label}</span>;
@@ -54,6 +48,7 @@ function Modal({ title, sub, onClose, children }) {
     </div>
   );
 }
+
 function FormBody({ form, sf, editItem, inputCls }) {
   return (
     <>
@@ -61,7 +56,6 @@ function FormBody({ form, sf, editItem, inputCls }) {
         <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">
           Tên đề thi *
         </label>
-
         <input
           className={inputCls}
           value={form.name || ""}
@@ -75,7 +69,6 @@ function FormBody({ form, sf, editItem, inputCls }) {
           <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">
             Cấp độ HSK
           </label>
-
           <select
             className={inputCls}
             value={form.hsk}
@@ -91,7 +84,6 @@ function FormBody({ form, sf, editItem, inputCls }) {
           <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">
             Dạng đề
           </label>
-
           <select
             className={inputCls}
             value={form.type}
@@ -109,7 +101,6 @@ function FormBody({ form, sf, editItem, inputCls }) {
           <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">
             Thời gian (phút)
           </label>
-
           <input
             type="number"
             className={inputCls}
@@ -122,7 +113,6 @@ function FormBody({ form, sf, editItem, inputCls }) {
           <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">
             Điểm đạt (%)
           </label>
-
           <input
             type="number"
             className={inputCls}
@@ -137,15 +127,14 @@ function FormBody({ form, sf, editItem, inputCls }) {
           <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">
             Trạng thái
           </label>
-
           <select
             className={inputCls}
             value={form.status}
             onChange={(e) => sf({ status: e.target.value })}
           >
-            <option value="active">Công khai</option>
-            <option value="draft">Nháp</option>
-            <option value="hidden">Ẩn</option>
+            <option value="ACTIVE">Công khai</option>
+            <option value="DRAFT">Nháp</option>
+            <option value="HIDDEN">Ẩn</option>
           </select>
         </div>
       )}
@@ -154,7 +143,6 @@ function FormBody({ form, sf, editItem, inputCls }) {
         <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">
           Mô tả
         </label>
-
         <textarea
           className={inputCls + " resize-none"}
           rows={3}
@@ -166,10 +154,16 @@ function FormBody({ form, sf, editItem, inputCls }) {
     </>
   );
 }
+
 export default function AdminQuiz() {
   const navigate = useNavigate();
-  const [data, setData]         = useState(INIT_QUIZZES);
+  const [data, setData]         = useState([]);
+  const [stats, setStats]       = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [searching, setSearching] = useState(false);
+  const [error, setError]       = useState(null);
   const [search, setSearch]     = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [activeLv, setActiveLv] = useState("Tất cả");
   const [activeSt, setActiveSt] = useState("Tất cả");
   const [sortVal, setSortVal]   = useState("newest");
@@ -177,64 +171,176 @@ export default function AdminQuiz() {
   const [showCreate, setShowCreate] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [delItem, setDelItem]   = useState(null);
-  const [form, setForm] = useState({ name:"",hsk:"HSK 1",type:"Tổng hợp",time:45,pass:60,desc:"",status:"draft" });
+  const [form, setForm] = useState({ name:"",hsk:"HSK 1",type:"Tổng hợp",time:45,pass:60,desc:"",status:"DRAFT" });
   const perPage = 8;
-  const maxPlays = Math.max(...data.map(d=>d.plays), 1);
 
   const sf = v => setForm(f=>({...f,...v}));
+  const loadStats = async () => {
+    try {
+      const response = await fetchQuizStatistics();
+      setStats(response.data || null);
+    } catch (err) {
+      console.error("Error loading stats:", err);
+    }
+  };
 
-  // filter + sort
-  let filtered = data.filter(d => {
-    const ml = activeLv==="Tất cả" || d.hsk===activeLv;
-    const ms = activeSt==="Tất cả"
-      || (activeSt==="Công khai"&&d.status==="active")
-      || (activeSt==="Nháp"&&d.status==="draft")
-      || (activeSt==="Ẩn"&&d.status==="hidden");
-    const mq = !search || d.name.toLowerCase().includes(search.toLowerCase());
-    return ml&&ms&&mq;
-  });
-  if (sortVal==="newest") filtered=[...filtered].sort((a,b)=>b.id-a.id);
-  if (sortVal==="oldest") filtered=[...filtered].sort((a,b)=>a.id-b.id);
-  if (sortVal==="most")   filtered=[...filtered].sort((a,b)=>b.questions-a.questions);
-  if (sortVal==="plays")  filtered=[...filtered].sort((a,b)=>b.plays-a.plays);
-  if (sortVal==="az")     filtered=[...filtered].sort((a,b)=>a.name.localeCompare(b.name));
+  // ================== LOAD DATA ==================
+  useEffect(() => {
+  const loadData = async () => {
+    try {
+      if (data.length === 0) setLoading(true);
+      else setSearching(true);
+      setError(null);
 
+      const response = await fetchQuizzes({
+        
+
+        search,
+        
+        status: activeSt !== "Tất cả"
+          ? activeSt === "Công khai" ? "ACTIVE"
+          : activeSt === "Nháp" ? "DRAFT"
+          : "HIDDEN"
+          : null,
+        hsk: activeLv !== "Tất cả"
+          ? parseInt(activeLv.split(" ")[1])
+          : null,
+        sortBy: sortVal
+      });
+console.log("API RESPONSE:", response.data);
+      setData(response.data.data || []);
+
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally { 
+      setLoading(false);
+      setSearching(false);
+    }
+  };
+
+  loadData();
+}, [ search,activeSt, activeLv, sortVal]);
+
+useEffect(() => {
+  loadStats();
+}, []);
+
+  // ================== FILTER & SORT ==================
+  const maxPlays = Math.max(...data.map(d=>d.playCount || 0), 1);
+  const hskCounts = ["HSK 1","HSK 2","HSK 3","HSK 4","HSK 5","HSK 6"].map(l=>({
+    l,
+    c: data.filter(d=>d.hsklevel === parseInt(l.split(" ")[1])).length
+  }));
+  const maxHsk = Math.max(...hskCounts.map(h=>h.c),1);
+
+  const filtered = data.slice();
   const total = filtered.length;
   const pages = Math.ceil(total/perPage);
   const rows  = filtered.slice((page-1)*perPage, page*perPage);
 
-  const hskCounts = ["HSK 1","HSK 2","HSK 3","HSK 4","HSK 5","HSK 6"].map(l=>({l,c:data.filter(d=>d.hsk===l).length}));
-  const maxHsk = Math.max(...hskCounts.map(h=>h.c),1);
+  // ================== CREATE ==================
+  const confirmCreate = async () => {
+    if (!form.name.trim()) { alert("Vui lòng nhập tên đề thi!"); return; }
+    
+    try {
+      const response = await createQuiz({
+        title: form.name,
+        hsklevel: parseInt(form.hsk.split(" ")[1]),
+        quizType: form.type,
+        timeLimit: form.time,
+        passScore: form.pass,
+        description: form.desc,
+        status: form.status,
+        showPinyin: true
+      });
 
-  function openCreate() {
-    setForm({name:"",hsk:"HSK 1",type:"Tổng hợp",time:45,pass:60,desc:"",status:"draft"});
-    setShowCreate(true);
-  }
-  function confirmCreate() {
-    if (!form.name.trim()) return;
-    const now = new Date();
-    setData([{...form,id:Math.max(...data.map(d=>d.id))+1,questions:0,plays:0,
-      date:`${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`},...data]);
-    setShowCreate(false);
-  }
-  function openEdit(item) {
-    setForm({name:item.name,hsk:item.hsk,type:item.type,time:item.time,pass:item.pass,desc:item.desc||"",status:item.status});
+      if (response.success) {
+        setData([response.data, ...data]);
+        loadStats();
+        setShowCreate(false);
+        setForm({ name:"",hsk:"HSK 1",type:"Tổng hợp",time:45,pass:60,desc:"",status:"DRAFT" });
+        alert("Tạo đề thi thành công!");
+      }
+    } catch (err) {
+      alert("Lỗi tạo đề thi: " + getErrorMessage(err));
+    }
+  };
+
+  // ================== EDIT ==================
+  const confirmEdit = async () => {
+    try {
+      const response = await updateQuiz(editItem.quizId || editItem.id, {
+        title: form.name,
+        hsklevel: parseInt(form.hsk.split(" ")[1]),
+        quizType: form.type,
+        timeLimit: form.time,
+        passScore: form.pass,
+        description: form.desc,
+        status: form.status,
+        showPinyin: true
+      });
+
+      if (response.success) {
+        setData(data.map(d=>(d.quizId || d.id) === (editItem.quizId || editItem.id) ? response.data : d));
+        loadStats();
+        setEditItem(null);
+        alert("Cập nhật thành công!");
+      }
+    } catch (err) {
+      alert("Lỗi cập nhật: " + getErrorMessage(err));
+    }
+  };
+
+  // ================== DELETE ==================
+  const confirmDel = async () => {
+    try {
+      await deleteQuiz(delItem.quizId || delItem.id);
+      setData(data.filter(d=>(d.quizId || d.id) !== (delItem.quizId || delItem.id)));
+      loadStats();
+      setDelItem(null);
+      alert("Xóa thành công!");
+    } catch (err) {
+      alert("Lỗi xóa: " + getErrorMessage(err));
+    }
+  };
+
+  // ================== COPY ==================
+  const handleCopyQuiz = async (item) => {
+    try {
+      const response = await copyQuiz(item.quizId || item.id);
+      if (response.success) {
+        setData([response.data, ...data]);
+        loadStats();
+        alert("Nhân bản thành công!");
+      }
+    } catch (err) {
+      alert("Lỗi nhân bản: " + getErrorMessage(err));
+    }
+  };
+
+  const openEdit = (item) => {
+    const hskNum = item.hsklevel || parseInt(item.hsk.split(" ")[1]);
+    setForm({
+      name: item.title || item.name,
+      hsk: `HSK ${hskNum}`,
+      type: item.quizType || item.type,
+      time: item.timeLimit || item.time,
+      pass: item.passScore || item.pass,
+      desc: item.description || item.desc || "",
+      status: item.status
+    });
     setEditItem(item);
-  }
-  function confirmEdit() {
-    setData(data.map(d=>d.id===editItem.id?{...d,...form}:d));
-    setEditItem(null);
-  }
-  function confirmDel() {
-    setData(data.filter(d=>d.id!==delItem.id));
-    setDelItem(null);
-  }
-  function copyQuiz(item) {
-    const now = new Date();
-    setData([{...item,id:Math.max(...data.map(d=>d.id))+1,name:item.name+" (bản sao)",plays:0,status:"draft",
-      date:`${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`},...data]);
-  }
+  };
+useEffect(() => {
+  const delay = setTimeout(() => {
+    setSearch(searchInput);
+    setPage(1);
+  }, 500);
 
+  return () => clearTimeout(delay);
+}, [searchInput]);
+  if (loading) return <div className="flex h-screen items-center justify-center">Đang tải dữ liệu...</div>;
+  if (error) return <div className="flex h-screen items-center justify-center text-red-600 text-center max-w-md"><p>{error}</p></div>;
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-100">
@@ -260,10 +366,10 @@ export default function AdminQuiz() {
           {/* Stat cards */}
           <div className="grid grid-cols-4 gap-4">
             {[
-              {label:"Tổng đề thi",   val:data.length,                                   ico:"quiz",         bg:"bg-blue-50",    icoclr:"text-blue-500",   valclr:"text-slate-900"},
-              {label:"Công khai",      val:data.filter(d=>d.status==="active").length,     ico:"check_circle", bg:"bg-emerald-50", icoclr:"text-emerald-500",valclr:"text-emerald-600"},
-              {label:"Nháp / Ẩn",     val:data.filter(d=>d.status!=="active").length,     ico:"pending",      bg:"bg-amber-50",   icoclr:"text-amber-500",  valclr:"text-amber-600"},
-              {label:"Tổng lượt làm", val:data.reduce((a,d)=>a+d.plays,0).toLocaleString("vi-VN"),ico:"group",bg:"bg-violet-50",icoclr:"text-violet-500",valclr:"text-violet-600"},
+              {label:"Tổng đề thi",   val: stats?.totalQuizzes || 0,                  ico:"quiz",         bg:"bg-blue-50",    icoclr:"text-blue-500",   valclr:"text-slate-900"},
+              {label:"Công khai",      val: stats?.activeQuizzes || 0,                 ico:"check_circle", bg:"bg-emerald-50", icoclr:"text-emerald-500",valclr:"text-emerald-600"},
+              {label:"Nháp / Ẩn",     val: (stats?.draftQuizzes || 0) + (stats?.hiddenQuizzes || 0), ico:"pending",      bg:"bg-amber-50",   icoclr:"text-amber-500",  valclr:"text-amber-600"},
+              {label:"Tổng lượt làm", val: (stats?.totalPlays || 0).toLocaleString("vi-VN"),ico:"group",bg:"bg-violet-50",icoclr:"text-violet-500",valclr:"text-violet-600"},
             ].map((s,i)=>(
               <div key={i} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-4">
                 <div className={`w-10 h-10 ${s.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
@@ -306,9 +412,15 @@ export default function AdminQuiz() {
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
               <input
               
-              value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}}
+            value={searchInput}
+onChange={e => setSearchInput(e.target.value)}
                 placeholder="Tìm tên đề thi..."
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white transition"/>
+                className="w-full pl-9 pr-10 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white transition"/>
+              {searching && (
+                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 animate-spin text-base">
+                  progress_activity
+                </span>
+              )}
             </div>
             <div className="flex gap-2 flex-wrap">
               {["Tất cả","Công khai","Nháp","Ẩn"].map(s=>(
@@ -344,45 +456,41 @@ export default function AdminQuiz() {
                       <span className="text-slate-400 text-sm">Không tìm thấy đề thi nào</span>
                     </td></tr>
                   ) : rows.map(d=>(
-                    <tr key={d.id} className="hover:bg-slate-50 transition group">
+                    <tr key={d.quizId || d.id} className="hover:bg-slate-50 transition group">
                       <td className="px-4 py-3">
-                        <div className="font-semibold text-slate-800 text-sm leading-tight">{d.name}</div>
-                        {d.desc && <div className="text-xs text-slate-400 mt-0.5">{d.desc}</div>}
+                        <div className="font-semibold text-slate-800 text-sm leading-tight">{d.title || d.name}</div>
+                        {(d.description || d.desc) && <div className="text-xs text-slate-400 mt-0.5">{d.description || d.desc}</div>}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${HSK_BADGE[d.hsk]}`}>{d.hsk}</span>
+                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${HSK_BADGE[`HSK ${d.hsklevel || parseInt(d.hsk.split(" ")[1])}`]}`}>HSK {d.hsklevel || parseInt(d.hsk.split(" ")[1])}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 whitespace-nowrap">{d.type}</span>
+                        <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 whitespace-nowrap">{d.quizType || d.type}</span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{d.questions} câu</td>
-                      <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{d.time} phút</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{d.totalQuestions || 0} câu</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{d.timeLimit || d.time} phút</td>
                       <td className="px-4 py-3">
-                        <div className="text-sm text-slate-600">{d.plays.toLocaleString("vi-VN")}</div>
+                        <div className="text-sm text-slate-600">{(d.playCount || 0).toLocaleString("vi-VN")}</div>
                         <div className="w-16 h-1 bg-slate-100 rounded-full mt-1 overflow-hidden">
-                          <div className="h-full bg-blue-400 rounded-full" style={{width:`${Math.round(d.plays/maxPlays*100)}%`}}/>
+                          <div className="h-full bg-blue-400 rounded-full" style={{width:`${Math.round((d.playCount || 0)/maxPlays*100)}%`}}/>
                         </div>
                       </td>
                       <td className="px-4 py-3"><StatusDot s={d.status}/></td>
-                      <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">{d.date}</td>
+                      <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">{d.date || d.createdAt}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
-                          {/* Xem / sửa câu hỏi */}
-                          <button onClick={()=>navigate(`/adminEditQuiz/${d.id}`)}
+                          <button onClick={()=>navigate(`/adminEditQuiz/${d.quizId || d.id}`)}
                             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition whitespace-nowrap">
                             <span className="material-symbols-outlined text-sm">edit</span>Sửa
                           </button>
-                          {/* Sửa thông tin */}
                           <button onClick={()=>openEdit(d)} title="Sửa thông tin"
                             className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 transition">
                             <span className="material-symbols-outlined text-sm">tune</span>
                           </button>
-                          {/* Nhân bản */}
-                          <button onClick={()=>copyQuiz(d)} title="Nhân bản"
+                          <button onClick={()=>handleCopyQuiz(d)} title="Nhân bản"
                             className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 transition">
                             <span className="material-symbols-outlined text-sm">content_copy</span>
                           </button>
-                          {/* Xoá */}
                           <button onClick={()=>setDelItem(d)} title="Xoá"
                             className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition">
                             <span className="material-symbols-outlined text-sm">delete</span>
@@ -418,12 +526,7 @@ export default function AdminQuiz() {
       {/* CREATE MODAL */}
       {showCreate && (
         <Modal title="Tạo đề thi mới" sub="Điền thông tin cơ bản. Thêm câu hỏi sau khi tạo xong." onClose={()=>setShowCreate(false)}>
-      <FormBody
-  form={form}
-  sf={sf}
-  editItem={editItem}
-  inputCls={inputCls}
-/>
+          <FormBody form={form} sf={sf} editItem={editItem} inputCls={inputCls}/>
           <div className="flex gap-3 justify-end pt-3 border-t border-slate-100">
             <button onClick={()=>setShowCreate(false)} className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">Huỷ</button>
             <button onClick={confirmCreate} className="px-5 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition">Tạo đề thi</button>
@@ -434,12 +537,7 @@ export default function AdminQuiz() {
       {/* EDIT INFO MODAL */}
       {editItem && (
         <Modal title="Chỉnh sửa thông tin đề thi" sub="Cập nhật thông tin. Thay đổi có hiệu lực ngay sau khi lưu." onClose={()=>setEditItem(null)}>
-       <FormBody
-  form={form}
-  sf={sf}
-  editItem={editItem}
-  inputCls={inputCls}
-/>
+          <FormBody form={form} sf={sf} editItem={editItem} inputCls={inputCls}/>
           <div className="flex gap-3 justify-end pt-3 border-t border-slate-100">
             <button onClick={()=>setEditItem(null)} className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">Huỷ</button>
             <button onClick={confirmEdit} className="px-5 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition">Lưu thay đổi</button>
@@ -451,12 +549,12 @@ export default function AdminQuiz() {
       {delItem && (
         <Modal title="Xoá đề thi" onClose={()=>setDelItem(null)}>
           <p className="text-sm text-slate-600 mb-5 leading-relaxed">
-            Bạn chắc chắn muốn xoá <strong className="text-red-600">{delItem.name}</strong>?<br/>
+            Bạn chắc chắn muốn xoá <strong className="text-red-600">{delItem.title || delItem.name}</strong>?<br/>
             Toàn bộ câu hỏi liên kết sẽ bị gỡ. Hành động không thể hoàn tác.
           </p>
           <div className="flex gap-3 justify-end">
             <button onClick={()=>setDelItem(null)} className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">Huỷ</button>
-            <button onClick={confirmDel} className="px-5 py-2 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition">Xoá đề thi</button>
+            <button onClick={confirmDel} className="px-5 py-2 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition">Xóa đề thi</button>
           </div>
         </Modal>
       )}

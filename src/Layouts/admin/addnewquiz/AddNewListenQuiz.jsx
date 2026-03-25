@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams,useNavigate } from "react-router-dom";
 import {
   QuizSidebar, QuizPageHeader, QuizRightPanel,
   AnswerOptions, AudioUpload, ImageSlot,
   inputCls, labelCls,
 } from "./_QuizShared";
-
+import { useEffect } from "react";
+import { fetchQuestionDetail, updateQuestion } from "../api/apiquiz";
+import { createQuestion } from "../api/apiquiz";
 const TYPES = [
   {value:"dung-sai",    label:"Đúng / Sai"},
   {value:"abc-anh",     label:"A B C ảnh"},
@@ -15,6 +17,8 @@ const TYPES = [
 
 export default function AddNewListenQuiz() {
   const navigate  = useNavigate();
+  const { quizId, questionId } = useParams();
+const isEdit = !!questionId;
   const [activeType, setActiveType] = useState("dung-sai");
   const [audio, setAudio]           = useState(null);
   const [content, setContent]       = useState("");
@@ -26,32 +30,199 @@ export default function AddNewListenQuiz() {
   const [subQuestions, setSubQ]     = useState(
     Array.from({length:5},(_,i)=>({id:i+1,audio:null,answer:"A"}))
   );
-  const [form, setForm] = useState({hsk:"HSK 1",autoGrade:true,shuffle:false,pinyin:true,score:1,seconds:60,status:"done"});
+  const [form, setForm] = useState({hsk:"HSK 1",autoGrade:true,shuffle:false,pinyin:true,score:1,seconds:60,status:"DONE"});
   const [recentList]    = useState([
     {id:1,type:"Đúng / Sai",status:"done"},
     {id:2,type:"ABC ảnh",   status:"done"},
   ]);
+function switchType(t) {
+  setActiveType(t);
 
-  function switchType(t) {
-    setActiveType(t);
-    if (t==="dung-sai")    { setAnswers(["ĐÚNG (对)","SAI (错)"]); setCorrect(0); }
-    if (t==="abc-anh")     { setAnswers(["Ảnh A","Ảnh B","Ảnh C"]); setCorrect(0); }
-    if (t==="abcd-vanban") { setAnswers(["","","",""]); setCorrect(0); }
+  if (t === "dung-sai") {
+    setAnswers(["ĐÚNG (对)", "SAI (错)"]);
+    setCorrect(0);
   }
 
-  function handleSave(andNext=false) {
-    if (andNext) { setContent(""); setAudio(null); setExplanation(""); }
-    else navigate("/adminEditQuiz/1");
+  if (t === "abc-anh") {
+    setAnswers(["A", "B", "C"]);
+    setCorrect(0);
   }
 
+  if (t === "abcd-vanban") {
+    setAnswers(["", "", "", ""]);
+    setCorrect(0);
+  }
+}
+  async function handleSave(andNext = false) {
+      
+    let finalOptions = [];
+
+    // ===== ĐÚNG / SAI =====
+    if (activeType === "dung-sai") {
+      finalOptions = ["ĐÚNG (对)", "SAI (错)"].map((a, i) => ({
+        content: a,
+        imageUrl: null,
+        isCorrect: i === correct
+      }));
+    }
+
+    // ===== ABC ẢNH =====
+    if (activeType === "abc-anh") {
+
+      if (!content || content.trim().length < 3) {
+        alert("Vui lòng nhập nội dung câu hỏi");
+        return;
+      }
+    finalOptions = images.slice(0, 3).map((img, i) => {
+        let imageUrl = null;
+        
+        if (img) {
+            if (img instanceof File) {
+                // New upload - lấy từ File name
+                imageUrl = img.name;
+            } else if (typeof img === 'object' && img.url) {
+                // Existing image - extract filename từ URL
+                imageUrl = img.url.split('/').pop(); // "hsk2new.jpg"
+            } else if (typeof img === 'string') {
+                // Direct string URL
+                imageUrl = img.split('/').pop();
+            }
+        }
+        
+        return {
+            content: String.fromCharCode(65 + i), // A, B, C
+            imageUrl: imageUrl,  // ✅ Correct filename
+            isCorrect: i === correct
+        };
+    });
+    }
+
+    // ===== ABCD VĂN BẢN =====
+    if (activeType === "abcd-vanban") {
+      finalOptions = answers.map((a, i) => ({
+        content: a,
+        imageUrl: null,
+        isCorrect: i === correct
+      }));
+    }
+    if (activeType === "gop-cau") {
+
+  // Validate đủ 5 ảnh
+  if (images.slice(0,5).some(img => !img)) {
+    alert("Vui lòng tải đủ 5 ảnh");
+    return;
+  }
+
+  // Build options A–E
+  finalOptions = images.slice(0,5).map((img, i) => ({
+    content: String.fromCharCode(65 + i), // A,B,C,D,E
+    imageUrl: img?.name || null,
+    optionOrder: i + 1,
+    isCorrect: false
+  }));
+
+  // Build subQuestions
+  payloadSubQuestions = subQuestions.map((sq, i) => ({
+    content: sq.content || "",
+    audioUrl: sq.audio?.name || null,
+    correctAnswer: sq.answer,
+    questionOrder: i + 1
+  }));
+}
+  try {
+    const payload = {
+      questionType: activeType,
+      skill: "nghe",
+      hskLevel: parseInt(form.hsk.replace("HSK ", "")),
+
+      content,
+      pinyin,
+      explanation,
+      
+
+     audioUrl: audio?.name || null,
+
+      status: form.status.toUpperCase(),
+      score: form.score,
+   quizOptions: finalOptions,
+     ...(activeType === "gop-cau" && {
+    subQuestions: payloadSubQuestions
+  })
+    };
+
+    if (isEdit) {
+  await updateQuestion(questionId, payload);
+} else {
+  await createQuestion(quizId, payload);
+}
+    if (andNext) {
+      setContent("");
+      setAudio(null);
+      setExplanation("");
+    } else {
+      navigate(`/adminEditQuiz/${quizId}`);
+    }
+
+  } catch (err) {
+  console.log("FULL ERROR:", err.response);
+  alert(JSON.stringify(err.response?.data));
+}
+}
+useEffect(() => {
+  if (!isEdit) return;
+
+  async function load() {
+    const res = await fetchQuestionDetail(questionId);
+    const q = res.data;
+  console.log("QUESTION:", q);
+  console.log("OPTIONS:", q.quizOptions);
+    setActiveType(q.questionType);
+    setContent(q.content || "");
+    setPinyin(q.pinyin || "");
+    setExplanation(q.explanation || "");
+    setForm(prev => ({
+      ...prev,
+      hsk: `HSK ${q.hskLevel}`,
+      score: q.score,
+      status: q.status
+    }));
+
+if (q.quizOptions) {
+  setAnswers(q.quizOptions.map(o => o.content));
+  setCorrect(q.quizOptions.findIndex(o => o.isCorrect));
+
+ setImages(
+  q.quizOptions.map(o =>
+    o.imageUrl
+      ? { name: o.imageUrl, url: o.imageUrl } // giữ nguyên tên file đầy đủ
+      : null
+  )
+);
+}
+if (q.audioUrl) {
+  setAudio({
+    name: q.audioUrl.split("/").pop(),
+    url: q.audioUrl.startsWith("http")
+      ? q.audioUrl
+      : `http://localhost:8080/uploads/${q.audioUrl}`
+  });
+}
+
+    if (q.subQuestions) {
+      setSubQ(q.subQuestions);
+    }
+  }
+
+  load();
+}, [questionId]);
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
-      <QuizSidebar activeType={activeType} skill="nghe"/>
+      <QuizSidebar activeType={activeType} skill="nghe"   quizId={quizId} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <QuizPageHeader
-          title={`Tạo câu hỏi Nghe — ${TYPES.find(t=>t.value===activeType)?.label}`}
-          onSaveAndNext={()=>handleSave(true)}
+          title={`${isEdit ? "Chỉnh sửa" : "Tạo"} câu hỏi Nghe — ${TYPES.find(t=>t.value===activeType)?.label}`}
+      onCancel={() => navigate(`/adminEditQuiz/${quizId}`)}
           onSaveAndClose={()=>handleSave(false)}
         />
 
@@ -104,12 +275,30 @@ export default function AddNewListenQuiz() {
               {/* ── A B C ẢNH ── */}
               {activeType==="abc-anh" && (
                 <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
+                   <div>
+      <label className={labelCls}>Nội dung câu hỏi</label>
+      <textarea
+        className={inputCls+" resize-none"}
+        rows={2}
+        value={content}
+        onChange={e=>setContent(e.target.value)}
+        placeholder="VD: Hình nào đúng với nội dung nghe?"
+      />
+    </div>
                   <div>
                     <label className={labelCls}>3 ảnh lựa chọn</label>
                     <div className="grid grid-cols-3 gap-3">
                       {["A","B","C"].map((l,i)=>(
                         <div key={i} className={`rounded-2xl overflow-hidden border-2 transition ${correct===i?"border-emerald-400":"border-slate-200 hover:border-slate-300"}`}>
-                          <ImageSlot value={images[i]} onChange={v=>{ const n=[...images]; n[i]=v; setImages(n); }}/>
+                        <ImageSlot
+  label={`Ảnh lựa chọn ${i+1}`}
+  value={images[i]}  // string (tên file) hoặc File upload mới
+  onChange={(file) => {
+    const newImages = [...images];
+    newImages[i] = file;
+    setImages(newImages);
+  }}
+/>
                           <div className="bg-slate-50 py-1.5 flex items-center justify-between px-3">
                             <span className={`text-xs font-bold ${correct===i?"text-emerald-600":"text-slate-500"}`}>{l}</span>
                             <button onClick={()=>setCorrect(i)}
@@ -132,7 +321,14 @@ export default function AddNewListenQuiz() {
                     <div className="grid grid-cols-5 gap-2">
                       {["A","B","C","D","E"].map((l,i)=>(
                         <div key={i} className="rounded-xl overflow-hidden border border-slate-200">
-                          <ImageSlot value={images[i]} onChange={v=>{ const n=[...images]; n[i]=v; setImages(n); }}/>
+                     <ImageSlot
+  value={images[i]}
+  onChange={(file) => {
+    const newImages = [...images];
+    newImages[i] = file;
+    setImages(newImages);
+  }}
+/>
                           <div className="bg-slate-50 py-1 text-center">
                             <span className="text-xs font-bold text-slate-500">{l}</span>
                           </div>
@@ -147,7 +343,16 @@ export default function AddNewListenQuiz() {
                         <div key={sq.id} className="border border-slate-200 rounded-xl p-4">
                           <div className="flex items-center gap-3 mb-3">
                             <div className="w-7 h-7 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center flex-shrink-0">{i+1}</div>
-                            <input className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary" placeholder={`Nội dung câu hỏi ${i+1}...`}/>
+                          <input
+  className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary"
+  placeholder={`Nội dung câu hỏi ${i+1}...`}
+  value={sq.content || ""}
+  onChange={e => {
+    const n = [...subQuestions];
+    n[i] = { ...n[i], content: e.target.value };
+    setSubQ(n);
+  }}
+/>
                             <select value={sq.answer}
                               onChange={e=>{ const n=[...subQuestions]; n[i]={...n[i],answer:e.target.value}; setSubQ(n); }}
                               className="border border-slate-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-primary">
