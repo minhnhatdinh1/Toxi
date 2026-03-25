@@ -133,8 +133,7 @@ useEffect(() => {
   {[
     { icon: "self_improvement", label: "Khóa học", to: "/course" },
     { icon: "school", label: "Sản phẩm", to: "/store" },
-     { icon: "article", label: "Tiếng Trung Cơ Bản", to: "#" },
-    { icon: "chat", label: "Tiếng Trung Nâng Cao", to: "#" },
+     { icon: "article", label: "Đăng ký Khóa học", to: "/Introduction" },
    
   ].map((item) => (
     <Link
@@ -159,7 +158,7 @@ useEffect(() => {
   {[
     { icon: "article", label: "Blog", to: "/blog" },
     { icon: "quiz", label: "Luyện thi HSK", to: "/Practice" },
-    { icon: "chat", label: "Giao tiếp", to: "/giaotiep" },
+    { icon: "chat", label: "Giới Thiệu", to: "/blogintroduce" },
     
   ].map((item) => (
     <Link
@@ -217,7 +216,7 @@ useEffect(() => {
 
         {/* MAIN */}
 
-        <main className="flex-1 lg:ml-72 bg-slate-50 relative">
+        <main className="flex-1 lg:ml-64 bg-slate-50 relative">
           <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm px-6 py-3 flex justify-between items-center overflow-visible">
 
 

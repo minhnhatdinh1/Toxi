@@ -1,6 +1,10 @@
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import axios from "axios";
 export function HomePage() {
+   const navigate = useNavigate();
+   const [courses, setCourses] = useState([]);
+   const [myCourses, setMyCourses] = useState([]);
    const [blogs] = useState([
     {
       id: 5,
@@ -25,6 +29,75 @@ export function HomePage() {
       color: "primary",
     },
   ]);
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
+  const getOrderedLessons = (course) =>
+    (course?.chapters || []).flatMap((chapter) =>
+      [...(chapter?.contents || [])]
+        .filter((content) => content.contentType === "LESSON" && content.lesson)
+        .sort((a, b) => {
+          const aOrder = a.orderIndex ?? a.order_index ?? a.lesson?.orderIndex ?? a.lesson?.order_index ?? Number.MAX_SAFE_INTEGER;
+          const bOrder = b.orderIndex ?? b.order_index ?? b.lesson?.orderIndex ?? b.lesson?.order_index ?? Number.MAX_SAFE_INTEGER;
+          if (aOrder !== bOrder) return aOrder - bOrder;
+          return Number(a.lesson?.lessonId || 0) - Number(b.lesson?.lessonId || 0);
+        })
+        .map((content) => content.lesson)
+    );
+
+  const getFirstLessonId = (course) => getOrderedLessons(course)[0]?.lessonId || null;
+
+  const handleOpenCourse = async (course) => {
+    const isOwned = myCourses.includes(Number(course.courseId));
+
+    if (!isOwned) {
+      navigate(`/courses/${course.courseId}`);
+      return;
+    }
+
+    let firstLessonId = getFirstLessonId(course);
+
+    if (!firstLessonId) {
+      try {
+        const res = await axios.get(`http://localhost:8080/api/courses/${course.courseId}`);
+        firstLessonId = getFirstLessonId(res.data);
+      } catch (err) {
+        console.error("Khong lay duoc lesson dau tien:", err);
+      }
+    }
+
+    if (firstLessonId) {
+      navigate(`/learn/${course.courseId}/${firstLessonId}`);
+      return;
+    }
+
+    navigate(`/courses/${course.courseId}`);
+  };
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:8080/api/courses")
+      .then((res) => setCourses(res.data || []))
+      .catch((err) => console.error("Fetch home courses error:", err));
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    if (!token) {
+      setMyCourses([]);
+      return;
+    }
+
+    axios
+      .get("http://localhost:8080/api/my-courses", { headers: getAuthHeaders() })
+      .then((res) => setMyCourses((res.data || []).map((course) => Number(course.courseId))))
+      .catch(() => setMyCourses([]));
+  }, []);
+
+  const featuredCourses = courses.slice(0, 3);
 
   return (
     <>
@@ -178,93 +251,60 @@ export function HomePage() {
                 Từ con số 0 đến HSK 6, trang bị đầy đủ 4 kỹ năng Nghe - Nói - Đọc - Viết để chinh phục chứng chỉ quốc tế.
               </p>
             </div>
-            <a href="#" className="text-primary font-bold hover:text-secondary transition-colors flex items-center gap-1 mt-4 md:mt-0">
+            <Link to="/course" className="text-primary font-bold hover:text-secondary transition-colors flex items-center gap-1 mt-4 md:mt-0">
               Xem chi tiết
               <span className="material-symbols-outlined text-sm">
                 arrow_forward_ios
               </span>
-            </a>
+            </Link>
           </div>
 
           {/* Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
-            {/* HSK 1-2 */}
-            <Link to="/courses/1" className="block chinese-border bg-white p-1 shadow-sm hover:shadow-2xl transition-all group">
-              <div className="relative h-56 overflow-hidden">
-                <div className="absolute top-4 left-4 bg-primary text-white text-xs font-bold px-3 py-1 z-10 rounded">
-                  NỀN TẢNG
-                </div>
-                <div className="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-700" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCwxb7nc6Y1agbpHftxTY_o4gDjVVkTrjthWCSr5aBCwYASNCDteRUBSCZszZPjpyC_ojHXMdIfsGFN2TxXG-ynM7Ys8vjpEEM7SYFsxEap7wqxiraLyfoPwKZ_gct2jA74qnO8XM_x9Jc6aeaDM2oQwgSFd1HOfrukFmrN2vDgUOmaNV-a2e7z1IkWP6mUG0NVibB_lY0a0S0Rh34s8N6VIua_DB_UF5NXrbv8oiRT8CsANH17Kx7-D2oDZk8IoCqgcI_r32IbgF0')", }} />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors">
-                  Tiếng Trung Cơ bản
-                </h3>
-                <p className="text-sm text-slate-500 mb-4 line-clamp-2">
-                  Làm quen với ngữ âm, bộ thủ và cấu trúc câu cơ bản. Đủ khả năng giao tiếp chào hỏi thông thường.
-                </p>
-                <div className="flex items-center justify-between border-t border-dashed border-slate-200 pt-4">
-                  <span className="text-lg font-bold text-accent-red">
-                    2.500.000đ
-                  </span>
-                  <span className="text-xs text-slate-400 font-medium bg-slate-100 px-2 py-1 rounded">
-                    24 Buổi
-                  </span>
-                </div>
-              </div>
-            </Link>
+            {featuredCourses.map((course, index) => {
+              const labels = ["NỀN TẢNG", "TRUNG CẤP", "CAO CẤP"];
+              const isOwned = myCourses.includes(Number(course.courseId));
+              const fallbackImages = [
+                "https://lh3.googleusercontent.com/aida-public/AB6AXuCwxb7nc6Y1agbpHftxTY_o4gDjVVkTrjthWCSr5aBCwYASNCDteRUBSCZszZPjpyC_ojHXMdIfsGFN2TxXG-ynM7Ys8vjpEEM7SYFsxEap7wqxiraLyfoPwKZ_gct2jA74qnO8XM_x9Jc6aeaDM2oQwgSFd1HOfrukFmrN2vDgUOmaNV-a2e7z1IkWP6mUG0NVibB_lY0a0S0Rh34s8N6VIua_DB_UF5NXrbv8oiRT8CsANH17Kx7-D2oDZk8IoCqgcI_r32IbgF0",
+                "https://lh3.googleusercontent.com/aida-public/AB6AXuDtVRXFknS_grfTIrQVmQmdLwKAo1xNkkJKHW9CWahlijN4S8g3c0dmeCe5bV8E30creqG7NGrK0vS-RqXB1c9BKVHSkm661aw6RxOaH6LnzJ5LOh5-kOsvC_rqeQeBvBsyq8ce_PfK4HNiiu9DjKUTlrAQsSa-kQPnlwUAB5bi92qJ5VaHA11lIkRCEs7cg_77QBKQI5xotjUgDwQ3FgNXXqXvuQ_Ot4cR6xUv0e_WO-iCBYQ9IAfbxrtjcchMQhOXdKRGJi5zG4I",
+                "https://lh3.googleusercontent.com/aida-public/AB6AXuDFLYj59afdVrP74z9TI2skZU5rLCp33u4OROr59CQ8-n9_zr5jjF0D11cetdShmgGOw_0Wrn9ZfPFEwi4nbNhPXUgMTZKGB-WcB3RTvRyBaHBkF_3BMkjjhsIO9T89kGL_VxLgur7WLuxLkSseZsAMVEvhf3QK8myEY52RUeB-RnNmEof1Scr_B5lhuO8-B1tdpKMz8Se3qGLIIiYU4PnK7fN7hT37ttWTLW7XsBeiUHSU9kLzY9TI4Mc9hoYJSewdZDOcT0Vky0w",
+              ];
 
-            {/* HSK 3-4 */}
-            <Link to="/courses/2" className="block chinese-border bg-white p-1 shadow-sm hover:shadow-2xl transition-all group">
-              <div className="relative h-56 overflow-hidden">
-                <div className="absolute top-4 left-4 bg-primary text-white text-xs font-bold px-3 py-1 z-10 rounded">
-                  TRUNG CẤP
-                </div>
-                <div className="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-700" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDtVRXFknS_grfTIrQVmQmdLwKAo1xNkkJKHW9CWahlijN4S8g3c0dmeCe5bV8E30creqG7NGrK0vS-RqXB1c9BKVHSkm661aw6RxOaH6LnzJ5LOh5-kOsvC_rqeQeBvBsyq8ce_PfK4HNiiu9DjKUTlrAQsSa-kQPnlwUAB5bi92qJ5VaHA11lIkRCEs7cg_77QBKQI5xotjUgDwQ3FgNXXqXvuQ_Ot4cR6xUv0e_WO-iCBYQ9IAfbxrtjcchMQhOXdKRGJi5zG4I')", }} />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors">
-                  HSK 3 - HSK 4 (Tiếng Trung Phổ Thông)
-                </h3>
-                <p className="text-sm text-slate-500 mb-4 line-clamp-2">
-                  Mở rộng vốn từ vựng lên 1200 từ. Giao tiếp trôi chảy các chủ đề đời sống, công việc và học tập.
-                </p>
-                <div className="flex items-center justify-between border-t border-dashed border-slate-200 pt-4">
-                  <span className="text-lg font-bold text-accent-red">
-                    3.800.000đ
-                  </span>
-                  <span className="text-xs text-slate-400 font-medium bg-slate-100 px-2 py-1 rounded">
-                    36 Buổi
-                  </span>
-                </div>
-              </div>
-            </Link>
-
-            {/* HSK 5-6 */}
-            <Link to="/courses/3" className="block chinese-border bg-white p-1 shadow-sm hover:shadow-2xl transition-all group">
-              <div className="relative h-56 overflow-hidden">
-                <div className="absolute top-4 left-4 bg-primary text-white text-xs font-bold px-3 py-1 z-10 rounded">
-                  CAO CẤP
-                </div>
-                <div className="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-700" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDFLYj59afdVrP74z9TI2skZU5rLCp33u4OROr59CQ8-n9_zr5jjF0D11cetdShmgGOw_0Wrn9ZfPFEwi4nbNhPXUgMTZKGB-WcB3RTvRyBaHBkF_3BMkjjhsIO9T89kGL_VxLgur7WLuxLkSseZsAMVEvhf3QK8myEY52RUeB-RnNmEof1Scr_B5lhuO8-B1tdpKMz8Se3qGLIIiYU4PnK7fN7hT37ttWTLW7XsBeiUHSU9kLzY9TI4Mc9hoYJSewdZDOcT0Vky0w')", }} />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors">
-                  HSK 5 - HSK 6
-                </h3>
-                <p className="text-sm text-slate-500 mb-4 line-clamp-2">
-                  Đạt trình độ cao cấp, có thể đọc báo, xem tin tức và làm việc chuyên nghiệp bằng tiếng Trung.
-                </p>
-                <div className="flex items-center justify-between border-t border-dashed border-slate-200 pt-4">
-                  <span className="text-lg font-bold text-accent-red">
-                    5.200.000đ
-                  </span>
-                  <span className="text-xs text-slate-400 font-medium bg-slate-100 px-2 py-1 rounded">
-                    48 Buổi
-                  </span>
-                </div>
-              </div>
-            </Link>
+              return (
+                <button
+                  key={course.courseId}
+                  type="button"
+                  onClick={() => handleOpenCourse(course)}
+                  className="block w-full text-left chinese-border bg-white p-1 shadow-sm hover:shadow-2xl transition-all group"
+                >
+                  <div className="relative h-56 overflow-hidden">
+                    <div className="absolute top-4 left-4 bg-primary text-white text-xs font-bold px-3 py-1 z-10 rounded">
+                      {labels[index] || course.level || "HSK"}
+                    </div>
+                    <div
+                      className="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-700"
+                      style={{ backgroundImage: `url('${course.thumbnailUrl || fallbackImages[index % fallbackImages.length]}')` }}
+                    />
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                      {course.title}
+                    </h3>
+                    <p className="text-sm text-slate-500 mb-4 line-clamp-2">
+                      {course.description}
+                    </p>
+                    <div className="flex items-center justify-between border-t border-dashed border-slate-200 pt-4">
+                      <span className="text-lg font-bold text-accent-red">
+                        {Number(course.discountPrice && course.discountPrice < course.price ? course.discountPrice : course.price || 0).toLocaleString("vi-VN")}đ
+                      </span>
+                      <span className={`text-xs font-medium px-2 py-1 rounded ${isOwned ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-400"}`}>
+                        {isOwned ? "Tiếp tục học" : "Xem chi tiết"}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>

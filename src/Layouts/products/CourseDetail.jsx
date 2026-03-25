@@ -11,7 +11,7 @@ import { useCart } from "../../context/CartContext";
 import StarRating from '../../components/StarRating';
 
 export default function CourseDetail() {
-  const { id } = useParams();
+  const { id: courseId } = useParams();
   const navigate = useNavigate();
 
 
@@ -20,9 +20,10 @@ const { addToCart, cartCount } = useCart();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
 const [timeLeft, setTimeLeft] = useState("");
-  useEffect(() => {
-    fetchCourse();
-  }, [id]);
+const [hasAccess, setHasAccess] = useState(false);
+ useEffect(() => {
+  fetchCourse();
+}, [courseId]);
 useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date();
@@ -42,19 +43,33 @@ useEffect(() => {
 
     return () => clearInterval(timer);
   }, []);
-  const fetchCourse = async () => {
-    try {
-      const res = await axios.get(
-        `http://localhost:8080/api/courses/${id}`
-      );
-      setCourse(res.data);
-      setLoading(false);
-    } catch (error) {
-      console.error("Lỗi khi lấy khóa học:", error);
-      setLoading(false);
-    }
-  };
+const fetchCourse = async () => {
+  try {
+    setLoading(true);
 
+    const res = await axios.get(
+      `http://localhost:8080/api/courses/${courseId}`
+    );
+
+     console.log("DATA:", res.data); // 🔥 thêm dòng này
+    console.log("CHAPTERS:", res.data.chapters); // 🔥 thêm dòng này
+
+    setCourse(res.data);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setLoading(false);
+  }
+};
+useEffect(() => {
+  axios.get(`http://localhost:8080/api/course/${courseId}/access`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`
+    }
+  })
+  .then(res => setHasAccess(res.data))
+  .catch(() => setHasAccess(false));
+}, [courseId]);
 
 const handleAddToCart = () => {
   addToCart(course.courseId,"COURSE",1);
@@ -76,6 +91,18 @@ const discountPercent = hasDiscount
       100 - (course.discountPrice / course.price) * 100
     )
   : 0;
+
+const getMediaUrl = (url) => {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  const normalized = String(url).replace(/\\/g, "/").replace(/^\/+/, "");
+  if (normalized.startsWith("upload/") || normalized.startsWith("uploads/")) {
+    return `http://localhost:8080/${normalized}`;
+  }
+  return `http://localhost:8080/uploads/${normalized}`;
+};
+
+const introVideoUrl = getMediaUrl(course?.introVideoUrl);
 
   
   return (
@@ -218,6 +245,17 @@ const discountPercent = hasDiscount
         </div>
       </div>
       {/* Video preview */}
+{introVideoUrl ? (
+<div className="relative w-full rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 bg-black aspect-video">
+  <video
+    controls
+    preload="metadata"
+    poster={course?.thumbnailUrl || undefined}
+    className="w-full h-full object-cover"
+    src={introVideoUrl}
+  />
+</div>
+) : (
 <div className="relative w-full rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 bg-black aspect-video group cursor-pointer">
   <div
     className="absolute inset-0 bg-cover bg-center opacity-80 group-hover:opacity-60 transition-opacity duration-300"
@@ -245,6 +283,7 @@ const discountPercent = hasDiscount
     </span>
   </div>
 </div>
+)}
 
 {/* Course introduction */}
 {/* Course introduction */}
@@ -333,20 +372,31 @@ const discountPercent = hasDiscount
 
           return (
             <div
-              key={content.courseContentId}
-              onClick={() => {
-                if (isPreview && isLesson) {
-                  navigate(
-                    `/video/${content.lesson?.lessonId}`
-                  );
-                }
-              }}
-              className={`p-4 flex justify-between items-center ${
-                isPreview && isLesson
-                  ? "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50"
-                  : ""
-              }`}
-            >
+  key={content.courseContentId}
+  onClick={() => {
+  if (!isLesson) return;
+
+  // 👉 nếu là bài học FREE thì cho vào
+  if (content.isPreview) {
+    navigate(`/learn/${courseId}/${content.lesson?.lessonId}`);
+    return;
+  }
+
+  // 👉 chưa mua → chuyển checkout
+  if (!hasAccess) {
+    navigate(`/checkout/${courseId}`);
+    return;
+  }
+
+  // 👉 đã mua → vào học
+  navigate(`/learn/${courseId}/${content.lesson?.lessonId}`);
+}}
+  className={`p-4 flex justify-between items-center ${
+    isLesson
+      ? "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50"
+      : ""
+  }`}
+>
               <div className="flex items-center gap-3">
                 <span className="material-symbols-outlined text-primary text-[20px]">
                   {isLesson
@@ -601,7 +651,8 @@ className="w-full sm:w-auto px-8 py-3 bg-secondary hover:bg-[#e6b400] text-prima
         Ưu đãi kết thúc sau {timeLeft}
       </p>
 
-      <button className="w-full h-12 flex items-center justify-center rounded-lg bg-secondary hover:bg-[#e6b400] text-primary font-bold text-base tracking-wide transition-all shadow-md shadow-yellow-100 dark:shadow-none mb-3">
+      <button onClick={() => navigate(`/checkout/${courseId}`)}
+       className="w-full h-12 flex items-center justify-center rounded-lg bg-secondary hover:bg-[#e6b400] text-primary font-bold text-base tracking-wide transition-all shadow-md shadow-yellow-100 dark:shadow-none mb-3">
         Mua ngay 
       </button>
 

@@ -318,20 +318,20 @@ export default function AdminOrderPage() {
 
                           <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                             <div className="flex justify-end items-center gap-1">
-                              {order.status === "AWAITING_CONFIRMATION" && (
-                                <>
-                                  <button onClick={() => handleApprove(order.id)} disabled={approving}
-                                    className="px-3 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-bold transition-all active:scale-95 disabled:opacity-50"
-                                  >
-                                    ✓ Duyệt
-                                  </button>
-                                  <button onClick={() => handleReject(order.id)}
-                                    className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg text-xs font-bold transition-all border border-red-200"
-                                  >
-                                    ✕ Huỷ
-                                  </button>
-                                </>
-                              )}
+                             {["PENDING", "AWAITING_CONFIRMATION"].includes(order.status) && (
+  <>
+    <button onClick={() => handleApprove(order.id)} disabled={approving}
+      className="px-3 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-bold transition-all active:scale-95 disabled:opacity-50"
+    >
+      ✓ Duyệt
+    </button>
+    <button onClick={() => handleReject(order.id)}
+      className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg text-xs font-bold transition-all border border-red-200"
+    >
+      ✕ Huỷ
+    </button>
+  </>
+)}
                               <button onClick={() => setSelected(selected?.id === order.id ? null : order)}
                                 className="p-2 text-slate-400 hover:text-primary transition-colors"
                               >

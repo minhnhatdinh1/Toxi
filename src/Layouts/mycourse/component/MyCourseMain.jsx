@@ -6,20 +6,58 @@ import axios from "axios";
 
 export default function MyCourseMain() {
   const [courses, setCourses] = useState([]);
+  const [courseProgressMap, setCourseProgressMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
   const { cartCount } = useCart();
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+  const getOrderedLessons = (course) =>
+    (course?.chapters || []).flatMap((chapter) =>
+      [...(chapter?.contents || [])]
+        .filter((content) => content.contentType === "LESSON" && content.lesson)
+        .sort((a, b) => {
+          const aOrder = a.orderIndex ?? a.order_index ?? a.lesson?.orderIndex ?? a.lesson?.order_index ?? Number.MAX_SAFE_INTEGER;
+          const bOrder = b.orderIndex ?? b.order_index ?? b.lesson?.orderIndex ?? b.lesson?.order_index ?? Number.MAX_SAFE_INTEGER;
+          if (aOrder !== bOrder) return aOrder - bOrder;
+          return Number(a.lesson?.lessonId || 0) - Number(b.lesson?.lessonId || 0);
+        })
+        .map((content) => content.lesson)
+    );
 
   useEffect(() => {
     const fetchMyCourses = async () => {
       try {
-        const token = localStorage.getItem("token");
         const res = await axios.get("http://localhost:8080/api/my-courses", {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: getAuthHeaders()
         });
         setCourses(res.data);
+        const completedRes = await axios.get("http://localhost:8080/api/progress/user", {
+          headers: getAuthHeaders()
+        });
+        const completedIds = new Set((completedRes.data || []).map(Number));
+        const courseDetails = await Promise.all(
+          res.data.map(async (course) => {
+            if (course?.chapters?.length) return course;
+            try {
+              const detailRes = await axios.get(`http://localhost:8080/api/courses/${course.courseId}`);
+              return detailRes.data;
+            } catch (error) {
+              return course;
+            }
+          })
+        );
+        const progressEntries = courseDetails.map((course) => {
+          const lessons = getOrderedLessons(course);
+          const totalLessons = lessons.length;
+          const completedCount = lessons.filter((lesson) => completedIds.has(Number(lesson.lessonId))).length;
+          return [course.courseId, totalLessons ? (completedCount / totalLessons) * 100 : 0];
+        });
+        setCourseProgressMap(Object.fromEntries(progressEntries));
       } catch (err) {
         console.error("Lỗi tải khóa học:", err);
       } finally {
@@ -38,6 +76,35 @@ export default function MyCourseMain() {
   }, []);
 
   const userName = localStorage.getItem("userName") || "User";
+  const getFirstLessonId = (course) => {
+    const orderedLessons = getOrderedLessons(course);
+
+    return orderedLessons[0]?.lessonId || null;
+  };
+  const handleContinueLearning = async (course) => {
+    if (!(course.status === "active" || course.status === "completed")) {
+      navigate(`/courses/${course.courseId}`);
+      return;
+    }
+
+    let firstLessonId = getFirstLessonId(course);
+
+    if (!firstLessonId) {
+      try {
+        const res = await axios.get(`http://localhost:8080/api/courses/${course.courseId}`);
+        firstLessonId = getFirstLessonId(res.data);
+      } catch (err) {
+        console.error("Khong lay duoc lesson dau tien:", err);
+      }
+    }
+
+    if (firstLessonId) {
+      navigate(`/learn/${course.courseId}/${firstLessonId}`);
+      return;
+    }
+
+    navigate(`/courses/${course.courseId}`);
+  };
 
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col bg-chinese-pattern overflow-x-hidden">
@@ -185,6 +252,10 @@ export default function MyCourseMain() {
                 {courses.map((course) => (
                   <article key={course.courseId}
                     className="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:shadow-lg hover:border-primary/30 transition-all duration-300 flex flex-col">
+                    {(() => {
+                      const progressValue = Math.max(0, Math.min(100, Number(courseProgressMap[course.courseId] || 0)));
+                      return (
+                        <>
                     
                     {/* THUMBNAIL */}
                     <div className="relative h-44 overflow-hidden bg-slate-100">
@@ -228,16 +299,38 @@ export default function MyCourseMain() {
                         {course.description}
                       </p>
 
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
+                          <span>Tiến độ học tập</span>
+                          <span className="font-bold text-primary">{progressValue.toFixed(0)}%</span>
+                        </div>
+                        <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-sky-400 via-primary to-emerald-400 transition-all duration-500"
+                            style={{ width: `${progressValue}%` }}
+                          />
+                        </div>
+                      </div>
+
                       <div className="mt-auto">
-                        <button
-                          onClick={() => navigate(`/course/${course.courseId}`)}
-                          className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-2.5 px-4 rounded-xl shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2 text-sm"
-                        >
-                          <span>{course.status === "completed" ? "Xem lại" : "Tiếp tục học"}</span>
-                          <span className="material-symbols-outlined text-base">arrow_forward</span>
-                        </button>
+                      <button
+  onClick={() => handleContinueLearning(course)}
+  className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-2.5 px-4 rounded-xl shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2 text-sm"
+>
+  <span>
+    {course.status === "completed"
+      ? "Xem lại"
+      : course.status === "active"
+      ? "Tiếp tục học"
+      : "Chi tiết"}
+  </span>
+  <span className="material-symbols-outlined text-base">arrow_forward</span>
+</button>
                       </div>
                     </div>
+                        </>
+                      );
+                    })()}
                   </article>
                 ))}
               </div>

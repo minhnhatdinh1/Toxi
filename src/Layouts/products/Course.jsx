@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 // shared components
 import FilterSidebar from '../../components/FilterSidebar';
 import StarRating from '../../components/StarRating';
@@ -12,7 +13,53 @@ export default function Course() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedRatings, setSelectedRatings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [myCourses, setMyCourses] = useState([]);
+  const [courseProgressMap, setCourseProgressMap] = useState({});
+  const navigate = useNavigate();
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+  const getOrderedLessons = (course) =>
+    (course?.chapters || []).flatMap((chapter) =>
+      [...(chapter?.contents || [])]
+        .filter((content) => content.contentType === "LESSON" && content.lesson)
+        .sort((a, b) => {
+          const aOrder = a.orderIndex ?? a.order_index ?? a.lesson?.orderIndex ?? a.lesson?.order_index ?? Number.MAX_SAFE_INTEGER;
+          const bOrder = b.orderIndex ?? b.order_index ?? b.lesson?.orderIndex ?? b.lesson?.order_index ?? Number.MAX_SAFE_INTEGER;
+          if (aOrder !== bOrder) return aOrder - bOrder;
+          return Number(a.lesson?.lessonId || 0) - Number(b.lesson?.lessonId || 0);
+        })
+        .map((content) => content.lesson)
+    );
+  const getFirstLessonId = (course) => {
+    const orderedLessons = getOrderedLessons(course);
+    return orderedLessons[0]?.lessonId || null;
+  };
+  const handleContinueLearning = async (course) => {
+    if (!myCourses.includes(Number(course.courseId))) {
+      navigate(`/courses/${course.courseId}`);
+      return;
+    }
 
+    let firstLessonId = getFirstLessonId(course);
+
+    if (!firstLessonId) {
+      try {
+        const res = await axios.get(`http://localhost:8080/api/courses/${course.courseId}`);
+        firstLessonId = getFirstLessonId(res.data);
+      } catch (err) {
+        console.error("Khong lay duoc lesson dau tien:", err);
+      }
+    }
+
+    if (firstLessonId) {
+      navigate(`/learn/${course.courseId}/${firstLessonId}`);
+      return;
+    }
+
+    navigate(`/courses/${course.courseId}`);
+  };
   const formatCurrency = (number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -32,6 +79,46 @@ export default function Course() {
       });
   }, []);
 
+ useEffect(() => {
+  fetch("http://localhost:8080/api/my-courses", {
+    headers: getAuthHeaders()
+  })
+    .then(res => res.json())
+    .then(async data => {
+      console.log("API my-courses:", data);
+      setMyCourses(data.map(c => c.courseId));
+      const completedRes = await axios.get("http://localhost:8080/api/progress/user", {
+        headers: getAuthHeaders()
+      });
+      const completedIds = new Set((completedRes.data || []).map(Number));
+      const courseDetails = await Promise.all(
+        data.map(async (course) => {
+          if (course?.chapters?.length) return course;
+          try {
+            const detailRes = await axios.get(`http://localhost:8080/api/courses/${course.courseId}`);
+            return detailRes.data;
+          } catch (error) {
+            return course;
+          }
+        })
+      );
+
+      return courseDetails.map((course) => {
+        const lessons = getOrderedLessons(course);
+        const totalLessons = lessons.length;
+        const completedCount = lessons.filter((lesson) => completedIds.has(Number(lesson.lessonId))).length;
+        return [course.courseId, totalLessons ? (completedCount / totalLessons) * 100 : 0];
+      });
+    })
+    .then((progressEntries) => {
+      if (progressEntries) {
+        setCourseProgressMap(Object.fromEntries(progressEntries));
+      }
+    })
+    .catch(() => setMyCourses([]));
+}, []);
+console.log("myCourses:", myCourses);
+console.log(localStorage.getItem("token"))
   const sortedCourses = [...courses].filter((course) => {
     // Filter by level
     if (selectedLevels.length > 0) {
@@ -162,6 +249,11 @@ export default function Course() {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
               {sortedCourses.map((course) => (
+                (() => {
+                  const isOwned = myCourses.includes(Number(course.courseId));
+                  const progressValue = Math.max(0, Math.min(100, Number(courseProgressMap[course.courseId] || 0)));
+
+                  return (
                 <div
                   key={course.courseId}
                   className=" chinese-border bg-white shadow-sm hover:shadow-xl transition-all overflow-hidden flex flex-col border h-full border border-slate-100 rounded-xl"
@@ -220,25 +312,48 @@ export default function Course() {
                         </span>
                       )}
 
-                      {/* BUTTONS */}
-                      <div className="grid grid-cols-2 gap-2 mt-4">
-                        <Link
-                          to={`/courses/${course.courseId}`}
-                          className="py-2 text-xs font-bold text-primary border border-primary/20 rounded-lg hover:bg-primary/5 flex justify-center"
-                        >
-                          Chi tiết
-                        </Link>
+                      {isOwned && (
+                        <div className="mt-4 mb-1">
+                          <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1.5">
+                            <span>Tiến độ khóa học</span>
+                            <span className="font-bold text-primary">{progressValue.toFixed(0)}%</span>
+                          </div>
+                          <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-sky-500 to-primary transition-all duration-500"
+                              style={{ width: `${progressValue}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
 
-                        <Link
-                          to={`/checkout/${course.courseId}`}
-                          className="py-2 text-xs font-bold bg-secondary  transition-colors text-primary rounded-lg hover:bg-yellow-400 flex justify-center"
-                        >
-                          Đăng ký
-                        </Link>
-                      </div>
+                      <div className={`mt-4 ${isOwned ? "" : "grid grid-cols-2 gap-2"}`}>
+ <button
+  onClick={() => handleContinueLearning(course)}
+  className={`py-2 text-xs font-bold rounded-lg transition-colors ${
+    isOwned
+      ? "w-full bg-primary text-white hover:bg-primary/90"
+      : "bg-slate-100 text-primary hover:bg-slate-200"
+  }`}
+>
+  {isOwned ? "Tiếp tục học" : "Chi tiết"}
+  
+</button>
+
+  {!isOwned && (
+  <Link
+    to={`/checkout/${course.courseId}`}
+    className="py-2 text-xs font-bold bg-secondary text-primary rounded-lg hover:bg-yellow-400 flex justify-center"
+  >
+    Đăng ký
+  </Link>
+  )}
+</div>
                     </div>
                   </div>
                 </div>
+                  );
+                })()
               ))}
             </div>
           )}
