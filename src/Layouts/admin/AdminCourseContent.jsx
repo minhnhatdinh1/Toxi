@@ -7,10 +7,12 @@ import {
   updateQuizApi,
   createLessonApi,
   addLessonToChapterApi,
+  addQuizToChapterApi,
   deleteContentApi,
   deleteChapterApi,       // DELETE /admin/chapters/:chapterId
 } from "./api/apiCourseContent";
 import { uploadImage } from "./api/apiFile";
+import { fetchQuizzes } from "./api/apiquiz";
 
 // ─── HELPER: lấy đúng ID của chapter dù API trả về chapterId hay id ────────────
 const getChapterId = (ch) => ch?.chapterId ?? ch?.id ?? null;
@@ -351,6 +353,189 @@ function AddLessonModal({ chapterId, chapterTitle, onClose, onSaved }) {
   );
 }
 
+function AddQuizModal({ chapterId, chapterTitle, onClose, onSaved }) {
+  const [quizList, setQuizList] = useState([]);
+  const [selectedQuizId, setSelectedQuizId] = useState("");
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+
+    async function loadQuizzes() {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await fetchQuizzes({ status: "ACTIVE" });
+        const quizzes = res.data?.data || [];
+        if (!alive) return;
+        setQuizList(quizzes);
+      } catch (e) {
+        if (!alive) return;
+        console.error("LOAD QUIZ BANK ERROR:", e);
+        setError(e.response?.data?.message || "Khong tai duoc danh sach quiz.");
+      } finally {
+        if (alive) setLoading(false);
+      }
+    }
+
+    loadQuizzes();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const filteredQuizzes = quizList.filter((quiz) => {
+    const haystack = `${quiz.title || ""} ${quiz.quizType || ""} HSK ${quiz.hsklevel || ""}`.toLowerCase();
+    return haystack.includes(search.toLowerCase());
+  });
+
+  const handleSave = async () => {
+    if (!chapterId || !selectedQuizId) {
+      setError("Vui long chon quiz de them vao chuong.");
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+    try {
+      await addQuizToChapterApi(chapterId, Number(selectedQuizId));
+      await onSaved();
+      onClose();
+    } catch (e) {
+      console.error("ADD QUIZ TO CHAPTER ERROR:", e);
+      setError(e.response?.data?.message || "Khong the them quiz vao chuong.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+        style={{ animation: "modalIn 0.22s cubic-bezier(.22,1,.36,1)" }}
+      >
+        <div className="flex items-center gap-4 border-b px-8 pb-6 pt-8">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50">
+            <span className="material-symbols-outlined text-orange-500">quiz</span>
+          </div>
+          <div className="min-w-0">
+            <p className="mb-0.5 truncate text-xs font-bold uppercase tracking-widest text-slate-400">
+              {chapterTitle || "Chuong"}
+            </p>
+            <h2 className="text-xl font-extrabold text-slate-900">Them Quiz co san</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="ml-auto rounded-xl p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div className="space-y-5 px-8 py-6">
+          <div>
+            <label className="mb-1.5 block text-sm font-bold text-slate-700">Tim quiz</label>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Tim theo ten de, dang de, HSK..."
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-2.5 rounded-xl border border-red-100 bg-red-50 px-4 py-3">
+              <span className="material-symbols-outlined text-[18px] text-red-500">error</span>
+              <p className="text-sm font-medium text-red-600">{error}</p>
+            </div>
+          )}
+
+          <div className="max-h-[50vh] space-y-2 overflow-y-auto pr-1">
+            {loading ? (
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-10 text-center text-sm text-slate-400">
+                Dang tai danh sach quiz...
+              </div>
+            ) : filteredQuizzes.length === 0 ? (
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-10 text-center text-sm text-slate-400">
+                Khong tim thay quiz phu hop.
+              </div>
+            ) : (
+              filteredQuizzes.map((quiz) => {
+                const selected = String(selectedQuizId) === String(quiz.quizId);
+                return (
+                  <button
+                    key={quiz.quizId}
+                    type="button"
+                    onClick={() => setSelectedQuizId(String(quiz.quizId))}
+                    className={`w-full rounded-2xl border p-4 text-left transition ${
+                      selected
+                        ? "border-primary bg-blue-50 shadow-sm"
+                        : "border-slate-200 hover:border-primary/40 hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-extrabold text-slate-900">{quiz.title}</p>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+                          <span className="rounded-full bg-slate-100 px-2.5 py-1 font-bold text-slate-700">
+                            HSK {quiz.hsklevel || 1}
+                          </span>
+                          <span className="rounded-full bg-orange-50 px-2.5 py-1 font-bold text-orange-600">
+                            {quiz.quizType || "Quiz"}
+                          </span>
+                          <span className={`rounded-full px-2.5 py-1 font-bold ${
+                            quiz.status === "ACTIVE"
+                              ? "bg-emerald-50 text-emerald-600"
+                              : quiz.status === "DRAFT"
+                              ? "bg-amber-50 text-amber-600"
+                              : "bg-slate-100 text-slate-500"
+                          }`}>
+                            {quiz.status || "UNKNOWN"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className={`mt-1 h-5 w-5 rounded-full border-2 ${selected ? "border-primary" : "border-slate-300"}`}>
+                        <div className={`m-0.5 h-2.5 w-2.5 rounded-full ${selected ? "bg-primary" : "bg-transparent"}`} />
+                      </div>
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-3 border-t bg-slate-50/60 px-8 py-5">
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className="rounded-xl px-5 py-2.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50"
+          >
+            Huy
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving || !selectedQuizId}
+            className="flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white shadow transition-all hover:-translate-y-0.5 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 disabled:translate-y-0"
+          >
+            {saving && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>}
+            {saving ? "Dang them..." : "Them quiz vao chuong"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── EDIT MODAL ────────────────────────────────────────────────────────────────
 function EditModal({ type, data, onClose, onSave }) {
   const [form, setForm] = useState({ ...data });
@@ -442,7 +627,7 @@ function EditModal({ type, data, onClose, onSave }) {
 }
 
 // ─── CHAPTER CARD ──────────────────────────────────────────────────────────────
-function ChapterCard({ ch, ci, onEditChapter, onEditLesson, onEditQuiz, onAddLesson, onDeleteChapter, onDeleteContent }) {
+function ChapterCard({ ch, ci, onEditChapter, onEditLesson, onEditQuiz, onAddLesson, onAddQuiz, onDeleteChapter, onDeleteContent }) {
   const [expanded, setExpanded] = useState(true);
   const lessons = ch.contents?.filter(i => i.contentType === 'LESSON') || [];
   const quizzes = ch.contents?.filter(i => i.contentType === 'QUIZ') || [];
@@ -458,6 +643,14 @@ function ChapterCard({ ch, ci, onEditChapter, onEditLesson, onEditQuiz, onAddLes
       return;
     }
     onAddLesson(chapterId, ch.title);
+  };
+
+  const handleAddQuiz = () => {
+    if (!chapterId) {
+      alert("Khong tim thay ID chuong.");
+      return;
+    }
+    onAddQuiz(chapterId, ch.title);
   };
 
   return (
@@ -512,6 +705,20 @@ function ChapterCard({ ch, ci, onEditChapter, onEditLesson, onEditQuiz, onAddLes
             <span className="material-symbols-outlined text-[18px]">add</span>
           </button>
           <button
+            onClick={handleAddQuiz}
+            className="hidden sm:flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
+          >
+            <span className="material-symbols-outlined text-sm">quiz</span>
+            Quiz
+          </button>
+          <button
+            onClick={handleAddQuiz}
+            className="flex sm:hidden p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors"
+            title="ThÃªm quiz"
+          >
+            <span className="material-symbols-outlined text-[18px]">quiz</span>
+          </button>
+          <button
             onClick={() => onEditChapter(ch, ci)}
             className="p-2 text-slate-400 hover:text-primary hover:bg-blue-50 rounded-lg transition-colors"
             title="Chỉnh sửa chương">
@@ -548,6 +755,12 @@ function ChapterCard({ ch, ci, onEditChapter, onEditLesson, onEditQuiz, onAddLes
                 className="text-xs font-bold text-primary hover:underline uppercase tracking-widest"
               >
                 Bắt đầu tạo bài học
+              </button>
+              <button
+                onClick={handleAddQuiz}
+                className="text-xs font-bold text-orange-500 hover:underline uppercase tracking-widest"
+              >
+                ThÃªm quiz cÃ³ sáºµn
               </button>
             </div>
           ) : (
@@ -593,7 +806,12 @@ function ChapterCard({ ch, ci, onEditChapter, onEditLesson, onEditQuiz, onAddLes
                         <span className="material-symbols-outlined text-[16px] text-orange-500">quiz</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-800 truncate leading-snug">{item.quiz?.title}</p>
+                        <Link
+                          to={`/quiz/${item.quiz?.quizId || item.quiz?.id}`}
+                          className="block text-sm font-semibold text-slate-800 truncate leading-snug hover:text-primary transition-colors"
+                        >
+                          {item.quiz?.title}
+                        </Link>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           {item.quiz?.questionCount && (
                             <span className="text-[11px] text-slate-400">{item.quiz.questionCount} câu</span>
@@ -640,6 +858,7 @@ export default function AdminCourseContent() {
   const [course, setCourse] = useState(null);
   const [modal, setModal] = useState(null);
   const [addLessonModal, setAddLessonModal] = useState(null);
+  const [addQuizModal, setAddQuizModal] = useState(null);
 
   const fetchCourse = async () => {
     const token = localStorage.getItem("token") || "";
@@ -683,6 +902,9 @@ export default function AdminCourseContent() {
 
   const closeAddLesson = () => setAddLessonModal(null);
   const handleLessonSaved = () => fetchCourse();
+  const openAddQuiz = (chapterId, chapterTitle) => setAddQuizModal({ chapterId, chapterTitle });
+  const closeAddQuiz = () => setAddQuizModal(null);
+  const handleQuizSaved = () => fetchCourse();
 
   // ── Delete handlers ───────────────────────────────────────────────────────────
   const handleDeleteContent = async (courseContentId, type, name) => {
@@ -735,6 +957,15 @@ export default function AdminCourseContent() {
           chapterTitle={addLessonModal.chapterTitle}
           onClose={closeAddLesson}
           onSaved={handleLessonSaved}
+        />
+      )}
+
+      {addQuizModal && (
+        <AddQuizModal
+          chapterId={addQuizModal.chapterId}
+          chapterTitle={addQuizModal.chapterTitle}
+          onClose={closeAddQuiz}
+          onSaved={handleQuizSaved}
         />
       )}
 
@@ -852,6 +1083,7 @@ export default function AdminCourseContent() {
                     ch={ch}
                     ci={ci}
                     onAddLesson={openAddLesson}
+                    onAddQuiz={openAddQuiz}
                     onDeleteChapter={handleDeleteChapter}
                     onDeleteContent={handleDeleteContent}
                     onEditChapter={(ch) => openEdit('chapter', {

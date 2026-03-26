@@ -6,7 +6,7 @@ export default function BlogIntrodution() {
 
     return (
      <>
-       <main className=" ml-64 flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900/50">
+       <div className="w-full bg-slate-50 dark:bg-slate-900/50">
 <section className="relative w-full h-[500px] flex items-center justify-center overflow-hidden">
       
       {/* Background */}
@@ -516,7 +516,7 @@ export default function BlogIntrodution() {
 
       </div>
     </section>
-    </main>
+    </div>
      </>
     )
 }

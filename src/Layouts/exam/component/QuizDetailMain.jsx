@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect  } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import logo from "../../../assets/image/LOGO (1).png";
 import { useCart } from "../../../context/CartContext";
@@ -49,6 +49,14 @@ const SKILL_COLORS = {
   viet:  { bg:"bg-orange-50", border:"border-orange-200",badge:"bg-orange-100 text-orange-800",icon:"text-orange-600", bar:"bg-orange-500" },
 };
 
+function getQuestionSpan(question) {
+  const type = question?.questionType;
+  if (type === "gop-cau" || type === "gop-anh" || type === "gop-van") {
+    return question?.subQuestions?.length || 1;
+  }
+  return 1;
+}
+
 function StarRating({ rating }) {
   return (
     <div className="flex items-center gap-0.5">
@@ -60,7 +68,7 @@ function StarRating({ rating }) {
   );
 }
 
-function ConfirmModal({ onClose, onConfirm }) {
+function ConfirmModal({ onClose, onConfirm ,time }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
@@ -71,7 +79,7 @@ function ConfirmModal({ onClose, onConfirm }) {
           <h3 className="text-lg font-bold text-slate-900 mb-1">Bắt đầu làm bài?</h3>
           <p className="text-sm text-slate-500 leading-relaxed">
             Đồng hồ sẽ bắt đầu chạy ngay khi bạn nhấn xác nhận.<br/>
-            Thời gian: <strong className="text-primary">{QUIZ.time} phút</strong>
+            Thời gian: <strong className="text-primary">{time} phút</strong>
           </p>
         </div>
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-5 text-xs text-amber-700 flex gap-2">
@@ -98,11 +106,80 @@ export default function QuizDetailPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState("info");
   const userName = localStorage.getItem("userName") || "User";
-  const q = QUIZ;
+const [quiz, setQuiz] = useState(null);
+const token = localStorage.getItem("token");
+const [hasDone, setHasDone] = useState(false);
+const [bestScore, setBestScore] = useState(null);
 
-  const bestScore = q.history.length ? Math.max(...q.history.map(h=>h.score)) : null;
-  const lastAttempt = q.history[0] || null;
 
+const questionList = quiz?.questions || [];
+const sectionCounts = {
+  nghe: questionList.filter((item) => item.skill === "nghe").reduce((sum, item) => sum + getQuestionSpan(item), 0),
+  doc: questionList.filter((item) => item.skill === "doc").reduce((sum, item) => sum + getQuestionSpan(item), 0),
+  viet: questionList.filter((item) => item.skill === "viet").reduce((sum, item) => sum + getQuestionSpan(item), 0),
+};
+const totalQuestionCount = questionList.length
+  ? questionList.reduce((sum, item) => sum + getQuestionSpan(item), 0)
+  : QUIZ.totalQ;
+
+const mappedQuiz = quiz
+  ? {
+      ...QUIZ,
+      id: quiz.quizId,
+      title: quiz.title,
+      hsk: quiz.hsklevel ? `HSK ${quiz.hsklevel}` : QUIZ.hsk,
+      type: quiz.quizType || QUIZ.type,
+      desc: quiz.description,
+      time: quiz.timeLimit,
+      pass: quiz.passScore,
+      totalQ: totalQuestionCount,
+      plays: quiz.playCount,
+      createdAt: quiz.createdAt || QUIZ.createdAt,
+      history: [],
+      sections: QUIZ.sections.map((section) => ({
+        ...section,
+        questions: sectionCounts[section.skill] ?? section.questions,
+      })),
+    }
+  : QUIZ;
+  const q = mappedQuiz;
+
+
+
+useEffect(() => {
+  fetch(`http://localhost:8080/api/quizzes/${id}`)
+    .then(res => res.json())
+    .then(data => setQuiz(data.data));
+}, [id]);
+
+
+useEffect(() => {
+  if (!token) return;
+
+  fetch(`http://localhost:8080/api/exam/history/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+    .then(res => res.json())
+    .then(data => {
+      const history = data.data || [];
+
+      if (history.length > 0) {
+        setHasDone(true);
+
+        const best = Math.max(...history.map(h => h.score));
+        setBestScore(best);
+      }
+    })
+    .catch(() => {
+      setHasDone(false);
+      setBestScore(null);
+    });
+
+}, [id,token]);
+
+    if (!quiz) return <div className="text-center mt-10">Loading...</div>;
   return (
     <div className="min-h-screen bg-slate-100">
 
@@ -427,7 +504,12 @@ export default function QuizDetailPage() {
                     <button onClick={()=>setShowConfirm(true)}
                       className="w-full py-3.5 bg-primary text-white font-black text-base rounded-xl hover:bg-primary/90 transition shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
                       <span className="material-symbols-outlined">play_circle</span>
-                      {q.history.length>0 ? "Làm lại bài thi" : "Bắt đầu làm bài"}
+                      
+                   {!token
+  ? "Bắt đầu bài thi"
+  : hasDone
+    ? "Làm lại bài thi"
+    : "Bắt đầu làm bài"}
                     </button>
                     <Link to={`/adminQuiz/${q.id}/preview`}
                       className="w-full py-2.5 border border-slate-200 text-slate-600 font-semibold text-sm rounded-xl hover:bg-slate-50 transition flex items-center justify-center gap-2">
@@ -476,10 +558,14 @@ export default function QuizDetailPage() {
 
       {/* Confirm modal */}
       {showConfirm && (
-        <ConfirmModal
-          onClose={()=>setShowConfirm(false)}
-          onConfirm={()=>{ setShowConfirm(false); navigate("/Exam"); }}
-        />
+       <ConfirmModal
+  time={q.time}
+  onClose={() => setShowConfirm(false)}
+  onConfirm={() => {
+    setShowConfirm(false);
+    navigate(`/exam/${id}`);
+  }}
+/>
       )}
     </div>
   );

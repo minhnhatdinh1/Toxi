@@ -32,9 +32,27 @@ export const addLessonToChapterApi = (chapterId, lessonId) => {
 };
 // add quiz vào chapter
 export const addQuizToChapterApi = (chapterId, quizId) => {
-  return API.post("/admin/course-contents/quiz", {
+  const payload = {
     chapterId,
     quizId,
+  };
+
+  return API.post("/admin/course-contents/quiz", payload).catch(async (error) => {
+    console.error("ADD QUIZ PRIMARY ENDPOINT ERROR:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      payload,
+    });
+
+    // Fallback to a lesson-like route shape in case the backend maps quiz addition by path params.
+    return API.post(`/admin/course-contents/chapter/${chapterId}/quiz/${quizId}`).catch((fallbackError) => {
+      console.error("ADD QUIZ FALLBACK ENDPOINT ERROR:", {
+        status: fallbackError.response?.status,
+        data: fallbackError.response?.data,
+        payload,
+      });
+      throw fallbackError;
+    });
   });
 };
 

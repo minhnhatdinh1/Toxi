@@ -1,10 +1,12 @@
 import react from "react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { uploadImage } from "./api/apiFile";
 export default function AdminEditCourses() {
   const navigate = useNavigate();
+  const { id: routeCourseId } = useParams();
+  const token = localStorage.getItem("token");
 
   const initialFormData = {
 
@@ -25,7 +27,67 @@ export default function AdminEditCourses() {
   const [hasChanges, setHasChanges] = useState(false);
   const [introVideoFile, setIntroVideoFile] = useState(null);
   const [introVideoName, setIntroVideoName] = useState("");
+  const [thumbnailFile, setThumbnailFile] = useState(null);
   const introVideoInputRef = useRef(null);
+
+  useEffect(() => {
+    const loadCourse = async () => {
+      if (!routeCourseId) return;
+
+      try {
+        const headers = { Authorization: `Bearer ${token}` };
+        let course = null;
+
+        const detailRes = await fetch(
+          `http://localhost:8080/api/admin/courses/${routeCourseId}`,
+          { headers }
+        );
+
+        if (detailRes.ok) {
+          course = await detailRes.json();
+        } else {
+          const listRes = await fetch("http://localhost:8080/api/admin/courses", {
+            headers,
+          });
+          if (listRes.ok) {
+            const list = await listRes.json();
+            course = (list || []).find((c) => String(c.courseId) === String(routeCourseId));
+          }
+        }
+
+        if (!course) return;
+
+        const mappedData = {
+          courseId: course.courseId || routeCourseId,
+          title: course.title || "",
+          type: course.courseType || course.type || "",
+          price: course.price ?? 0,
+          discountPrice: course.discountPrice ?? 0,
+          introVideoUrl:
+            course.introVideoUrl || course.videoUrl || course.introUrl || "",
+        };
+
+        setFormData(mappedData);
+        setOriginalFormData(mappedData);
+        setDescription(course.description || "");
+        setThumbnail(
+          course.thumbnailUrl ||
+            course.thumbnail ||
+            course.imageUrl ||
+            course.image ||
+            ""
+        );
+        setStatus(course.status || "Drafting");
+        setHasChanges(false);
+        setError("");
+      } catch (err) {
+        console.error("Load course error:", err);
+        setError("Không tải được dữ liệu khóa học");
+      }
+    };
+
+    loadCourse();
+  }, [routeCourseId, token]);
 
   const resolveUploadedPath = (uploaded) => {
     if (!uploaded) return "";
@@ -86,12 +148,46 @@ export default function AdminEditCourses() {
         introVideoUrl = resolveUploadedPath(uploadedVideo);
       }
 
+      let thumbnailUrl = thumbnail?.trim?.() ? thumbnail.trim() : "";
+      if (thumbnailFile) {
+        const uploadedThumbnail = await uploadImage(thumbnailFile);
+        thumbnailUrl = resolveUploadedPath(uploadedThumbnail);
+      }
+
       const updatedFormData = {
         ...formData,
         introVideoUrl,
+        thumbnailUrl,
       };
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const payload = new FormData();
+      payload.append(
+        "course",
+        new Blob([JSON.stringify(updatedFormData)], {
+          type: "application/json",
+        })
+      );
+      if (thumbnailFile) {
+        payload.append("thumbnail", thumbnailFile);
+      }
+
+      const response = await fetch(
+        `http://localhost:8080/api/admin/courses/${routeCourseId || formData.courseId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: payload,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update course");
+      }
+
+      setThumbnail(thumbnailUrl || thumbnail);
+      setThumbnailFile(null);
       setFormData(updatedFormData);
       setOriginalFormData(updatedFormData);
       setHasChanges(false);
@@ -133,7 +229,7 @@ export default function AdminEditCourses() {
 const fileInputRef = useRef(null);
 
 const handleChangeImage = () => {
-  fileInputRef.current.click();
+  fileInputRef.current?.click();
 };
 
 const handleFileChange = (e) => {
@@ -148,6 +244,8 @@ const handleFileChange = (e) => {
 
   const previewUrl = URL.createObjectURL(file);
   setThumbnail(previewUrl);
+  setThumbnailFile(file);
+  setHasChanges(true);
 };
 const handleChangeIntroVideo = () => {
   introVideoInputRef.current?.click();
@@ -164,7 +262,6 @@ const handleIntroVideoFileChange = (e) => {
   setFormData(updatedData);
   setHasChanges(JSON.stringify(updatedData) !== JSON.stringify(originalFormData));
 };
- const [courseId] = useState("TOXI-HSK1-001");
   const [status, setStatus] = useState("Drafting");
   const [lastSaved, setLastSaved] = useState("2 mins ago");
 
@@ -462,7 +559,7 @@ const handleIntroVideoFileChange = (e) => {
     />
   )}
 
-  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+  <div className="absolute inset-0 z-10 bg-black/40 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto flex items-center justify-center transition-opacity">
     <button
       type="button"
       onClick={handleChangeImage}
@@ -495,10 +592,22 @@ const handleIntroVideoFileChange = (e) => {
             <input
               type="text"
               value={thumbnail}
-              onChange={(e) => setThumbnail(e.target.value)}
+              onChange={(e) => {
+                setThumbnail(e.target.value);
+                setHasChanges(true);
+              }}
               className="w-full rounded-lg border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2.5 text-sm focus:ring-primary focus:border-primary"
             />
           </div>
+
+          <button
+            type="button"
+            onClick={handleChangeImage}
+            className="px-4 py-2 rounded-lg border border-primary/20 text-primary font-semibold hover:bg-primary/10 transition-colors flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined">upload_file</span>
+            Upload Thumbnail
+          </button>
 
           <p className="text-xs text-slate-500 italic">
             Recommended size: 1280x720px. Max size 2MB. Supports JPG, PNG, WEBP.
@@ -611,7 +720,7 @@ const handleIntroVideoFileChange = (e) => {
             </label>
             <input
               type="text"
-              value={courseId}
+              value={formData.courseId}
               readOnly
               className="w-full rounded-lg border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2.5 font-mono text-xs"
             />

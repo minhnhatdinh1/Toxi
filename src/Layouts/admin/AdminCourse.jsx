@@ -170,13 +170,18 @@ const paginated = courses.slice(
       <td className="px-6 py-5 text-gray-900 dark:text-white font-semibold">
     ${(course.discountPrice || 0).toLocaleString()}
       </td>
-       <td>
-      <img
-        src={course.thumbnailUrl}
-        width="80"
-        alt={course.title}
-      />
-    </td>
+      <td className="px-6 py-5">
+        {(course.thumbnailUrl || course.thumbnail || course.imageUrl || course.image) ? (
+          <img
+            src={course.thumbnailUrl || course.thumbnail || course.imageUrl || course.image}
+            width="80"
+            alt={course.title}
+            className="h-12 w-20 object-cover rounded-md border border-slate-200"
+          />
+        ) : (
+          <span className="text-xs text-slate-400">No image</span>
+        )}
+      </td>
       <td className="px-6 py-5">
         <span
           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${

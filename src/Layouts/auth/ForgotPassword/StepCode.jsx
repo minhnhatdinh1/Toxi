@@ -230,7 +230,7 @@ export default function StepCode({ code, setCode }) {
         {/* Change email */}
         <div className="text-center">
           <Link
-            to="/forgot-password"
+            to="/MissingPassword"
             className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-secondary dark:hover:text-primary transition-colors decoration-2 underline-offset-4"
           >
             <span className="material-symbols-outlined text-base">

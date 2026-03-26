@@ -1,5 +1,5 @@
 
-import { Link,useNavigate  } from "react-router-dom";
+import { Link,useNavigate, useLocation  } from "react-router-dom";
 import { useState,useRef, useEffect } from "react";
 import ThemeToggle from "./ThemeToggle";
 
@@ -22,6 +22,7 @@ const [avatarUrl, setAvatarUrl] = useState(localStorage.getItem("avatarUrl") || 
  const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
 const { cartCount } = useCart();
 
  const [searchQuery, setSearchQuery] = useState("");
@@ -79,32 +80,50 @@ useEffect(() => {
     navigate(`/search?q=${encodeURIComponent(q)}`);
   };
 
+  const navItems = [
+    { icon: "home_app_logo", label: "Trang chủ", to: "/Home" },
+    { icon: "self_improvement", label: "Khóa học", to: "/course" },
+    { icon: "school", label: "Sản phẩm", to: "/store" },
+    { icon: "article", label: "Đăng ký Khóa học", to: "/Introduction" },
+  ];
+
+  const quickLinks = [
+    { icon: "article", label: "Blog", to: "/blog" },
+    { icon: "quiz", label: "Luyện thi HSK", to: "/Practice" },
+    { icon: "chat", label: "Giới Thiệu", to: "/blogintroduce" },
+  ];
+
+  const isActiveLink = (to) => {
+    const pathname = location.pathname.toLowerCase();
+    const target = String(to).toLowerCase();
+    return pathname === target || pathname.startsWith(`${target}/`);
+  };
+
   return (
     <div className="bg-surface text-slate-900 antialiased ">
-      <div className="flex flex-col lg:flex-row ">
+      <div className="flex">
         {/* SIDEBAR */}
      <aside
   className={`
     fixed top-0 bottom-0 left-0
-    lg:w-64 w-64
-    bg-primary dark:bg-slate-950 
-    text-white
+    w-64
+    bg-white dark:bg-slate-950 
+    text-slate-900
     flex flex-col
     z-50 shadow-xl
     overflow-y-auto
-    lg:border-r border-secondary/20 dark:border-slate-800/50
-    bg-chinese-pattern
+    lg:border-r border-slate-200 dark:border-slate-800/50
     transition-all duration-300
     ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
   `}
 >
           {/* Logo */}
-          <div className="px-3 py-2.5 flex flex-col items-center border-b border-white/10 relative">
+          <div className="px-3 py-2.5 flex flex-col items-center border-b border-slate-200 relative bg-slate-50/80">
             <div className="h-16 w-16 rounded-2xl  text-primary flex items-center ">
               <img src={toxiLogo} alt="TOXI Logo" className=" object-contain" />
             </div>
 
-            <h1 className="text-3xl font-black tracking-tighter text-white">
+            <h1 className="text-3xl font-black tracking-tighter text-primary">
               TOXI
             </h1>
 
@@ -118,13 +137,19 @@ useEffect(() => {
           </div>
 
           {/* NAV */}
-       <nav className="flex-1 px-4 py-6 space-y-2">
+       <nav className="flex-1 px-5 py-6 space-y-2.5 bg-white">
   {/* TRANG CHỦ */}
   <a
     href="/Home"
-    className="group flex items-center gap-3 px-4 py-4 rounded-xl text-white bg-white/10 shadow-lg border border-secondary/30 transition-all"
+    className={`group flex items-center gap-3 px-5 py-4 rounded-2xl border transition-all ${
+      isActiveLink("/Home")
+        ? "text-white bg-primary shadow-lg border-primary"
+        : "text-slate-600 bg-transparent border-transparent hover:bg-blue-50 hover:text-primary hover:border-blue-100"
+    }`}
   >
-    <span className="material-symbols-outlined text-secondary group-hover:scale-110 transition-transform">
+    <span className={`material-symbols-outlined group-hover:scale-110 transition-transform ${
+      isActiveLink("/Home") ? "text-secondary" : "text-slate-400 group-hover:text-primary"
+    }`}>
       home_app_logo
     </span>
     <span className="font-bold">Trang chủ</span>
@@ -139,9 +164,15 @@ useEffect(() => {
     <Link
       key={item.label}
       to={item.to}
-      className="group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-300 dark:text-slate-400 hover:bg-white/10 dark:hover:bg-slate-800/50 hover:text-white dark:hover:text-white transition-all border border-transparent hover:border-secondary/30 dark:hover:border-slate-700 text-left bg-transparent"
+      className={`group w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all border text-left ${
+        isActiveLink(item.to)
+          ? "bg-primary text-white border-primary shadow-lg shadow-primary/20"
+          : "text-slate-600 bg-transparent hover:bg-blue-50 hover:text-primary border-transparent hover:border-blue-100"
+      }`}
     >
-      <span className="material-symbols-outlined text-secondary/70 group-hover:text-secondary group-hover:scale-110 transition-transform">
+      <span className={`material-symbols-outlined group-hover:scale-110 transition-transform ${
+        isActiveLink(item.to) ? "text-secondary" : "text-slate-400 group-hover:text-primary"
+      }`}>
         {item.icon}
       </span>
       <span className="font-medium">{item.label}</span>
@@ -150,8 +181,8 @@ useEffect(() => {
 
   {/* QUICK LINKS */}
 {/* QUICK LINKS */}
-<div className="mt-4 pt-4 border-t border-white/10">
-  <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+<div className="mt-5 pt-4 border-t border-slate-200">
+  <p className="px-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.22em] mb-2.5">
     Danh mục nhanh
   </p>
 
@@ -164,9 +195,15 @@ useEffect(() => {
     <Link
       key={item.label}
       to={item.to}
-      className="group flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-all border border-transparent hover:border-secondary/30"
+      className={`group flex items-center gap-3 px-5 py-3 rounded-2xl transition-all border ${
+        isActiveLink(item.to)
+          ? "bg-blue-50 text-primary border-blue-100"
+          : "text-slate-600 hover:bg-blue-50 hover:text-primary border-transparent hover:border-blue-100"
+      }`}
     >
-      <span className="material-symbols-outlined text-secondary/70 group-hover:text-secondary group-hover:scale-110 transition-transform">
+      <span className={`material-symbols-outlined group-hover:scale-110 transition-transform ${
+        isActiveLink(item.to) ? "text-primary" : "text-slate-400 group-hover:text-primary"
+      }`}>
         {item.icon}
       </span>
       <span className="font-medium">{item.label}</span>
@@ -176,22 +213,22 @@ useEffect(() => {
 </nav>
 
           {/* SUPPORT */}
-          <div className="p-6 bg-primary-dark/50 border-t border-white/10 text-center relative overflow-hidden">
-            <div className="absolute -right-4 -bottom-4 text-white/5 pointer-events-none">
+          <div className="p-6 bg-slate-50 border-t border-slate-200 text-center relative overflow-hidden">
+            <div className="absolute -right-4 -bottom-4 text-primary/5 pointer-events-none">
               <span className="material-symbols-outlined text-6xl">
                 support_agent
               </span>
             </div>
 
             <div className="relative z-10">
-              <div className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-secondary/50 text-secondary mb-3 bg-primary/50">
+              <div className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-primary/20 text-primary mb-3 bg-white shadow-sm">
                 <span className="material-symbols-outlined">
                   headset_mic
                 </span>
               </div>
 
-              <p className="text-xs text-slate-400 mb-1">Cần tư vấn ngay?</p>
-              <p className="text-lg font-bold text-white tracking-wide">
+              <p className="text-xs text-slate-500 mb-1">Cần tư vấn ngay?</p>
+              <p className="text-lg font-bold text-primary tracking-wide">
                 0987 654 321
               </p>
             </div>
@@ -200,7 +237,7 @@ useEffect(() => {
           {/* Close button for mobile */}
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden absolute top-4 right-4 text-white hover:bg-white/10 p-2 rounded-lg transition-all"
+            className="lg:hidden absolute top-4 right-4 text-slate-500 hover:bg-slate-100 p-2 rounded-lg transition-all"
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -216,8 +253,8 @@ useEffect(() => {
 
         {/* MAIN */}
 
-        <main className="flex-1 lg:ml-64 bg-slate-50 relative">
-          <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm px-6 py-3 flex justify-between items-center overflow-visible">
+     <main className="flex-1 ml-0 lg:ml-64 bg-slate-50 relative min-h-screen">
+          <header className="sticky top-0 z-[60] bg-[#f5f8ff]/95 backdrop-blur-md border-b border-primary/10 shadow-sm px-6 py-3 flex justify-between items-center overflow-visible">
 
 
             <div className="flex items-center gap-4">
@@ -384,7 +421,7 @@ useEffect(() => {
             </div>
           </header>
 
-          <div className="p-0">{children}</div>
+          <div className="pt-0">{children}</div>
         </main>
       </div>
     </div>
@@ -392,3 +429,4 @@ useEffect(() => {
 };
 
 export default Header;
+

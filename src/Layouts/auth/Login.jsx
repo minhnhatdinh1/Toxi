@@ -94,7 +94,11 @@ const { mergeCartAfterLogin } = useCart();
         {/* CARD */}
         <div className="relative w-full max-w-[900px] bg-[#fcfbf8] dark:bg-[#1a1a1a] rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden z-10">
           {/* CLOSE BUTTON */}
-          <button className="absolute top-4 right-4 z-20 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-secondary dark:text-white/80">
+          <button
+            type="button"
+            onClick={() => navigate("/home")}
+            className="absolute top-4 right-4 z-20 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-secondary dark:text-white/80"
+          >
             <span className="material-symbols-outlined text-2xl">close</span>
           </button>
 
@@ -195,12 +199,12 @@ const { mergeCartAfterLogin } = useCart();
                   <label className="text-secondary dark:text-white text-sm font-semibold">
                     Mật khẩu
                   </label>
-                  <a
-                    href="/MissingPassword"
+                  <Link
+                    to="/MissingPassword"
                     className="text-sm text-gray-500 hover:text-secondary dark:hover:text-primary transition-colors"
                   >
                     Quên mật khẩu?
-                  </a>
+                  </Link>
                 </div>
 
                 <div className="relative group">
@@ -292,12 +296,12 @@ const { mergeCartAfterLogin } = useCart();
               <div className="mt-2 text-center">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Chưa có tài khoản?
-                  <a
-                    href="/register"
+                  <Link
+                    to="/register"
                     className="font-bold text-secondary dark:text-primary hover:underline decoration-2 decoration-primary underline-offset-4 ml-1"
                   >
                     Đăng ký ngay
-                  </a>
+                  </Link>
                 </p>
               </div>
             </form>

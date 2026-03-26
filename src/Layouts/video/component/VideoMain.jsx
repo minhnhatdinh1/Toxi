@@ -98,6 +98,35 @@ export default function VideoMain() {
         return Number(a.lesson?.lessonId || 0) - Number(b.lesson?.lessonId || 0);
       });
 
+  const getOrderedContents = (chapter) =>
+    [...(chapter?.contents || [])]
+      .filter(
+        (content) =>
+          (content.contentType === "LESSON" && content.lesson) ||
+          (content.contentType === "QUIZ" && content.quiz)
+      )
+      .sort((a, b) => {
+        const aOrder =
+          a.orderIndex ??
+          a.order_index ??
+          a.lesson?.orderIndex ??
+          a.lesson?.order_index ??
+          a.quiz?.orderIndex ??
+          a.quiz?.order_index ??
+          Number.MAX_SAFE_INTEGER;
+        const bOrder =
+          b.orderIndex ??
+          b.order_index ??
+          b.lesson?.orderIndex ??
+          b.lesson?.order_index ??
+          b.quiz?.orderIndex ??
+          b.quiz?.order_index ??
+          Number.MAX_SAFE_INTEGER;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        return Number(a.lesson?.lessonId || a.quiz?.quizId || a.quiz?.id || 0) -
+          Number(b.lesson?.lessonId || b.quiz?.quizId || b.quiz?.id || 0);
+      });
+
   const isLocked = (orderedLessons, idx) => {
     if (idx === 0) return false;
     const prevLessonId = Number(orderedLessons[idx - 1]?.lesson?.lessonId);
@@ -628,6 +657,7 @@ const handleVideoEnd = () => {
           <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-3">
             {course?.chapters?.map((chapter) => {
               const orderedLessons = getOrderedLessons(chapter);
+              const orderedContents = getOrderedContents(chapter);
               return (
               <div key={chapter.chapterId} className="mb-3">
                 <div className="flex items-center gap-2 p-2">
@@ -635,9 +665,34 @@ const handleVideoEnd = () => {
                   <span className="text-xs font-bold text-slate-400 uppercase">{chapter.title}</span>
                 </div>
                 <div className="pl-4 space-y-1">
-                  {orderedLessons.map((content, idx) => {
+                  {orderedContents.map((content, idx) => {
+  if (content.contentType === "QUIZ" && content.quiz) {
+    const quizId = content.quiz.quizId || content.quiz.id;
+
+    return (
+      <div
+        key={`quiz-${quizId}`}
+        onClick={() => {
+          navigate(`/quiz/${quizId}`);
+          setOpenLeft(false);
+        }}
+        className="p-2 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-orange-50 dark:hover:bg-slate-700 transition-colors"
+      >
+        <span className="material-symbols-outlined text-[18px] text-orange-500">quiz</span>
+
+        <div className="flex flex-col">
+          <span className="text-sm font-bold text-slate-800 dark:text-white">{content.quiz.title}</span>
+          <span className="text-xs text-orange-500 font-medium">Quiz trắc nghiệm</span>
+        </div>
+      </div>
+    );
+  }
+
   const l = content.lesson;
-  const locked = isLocked(orderedLessons, idx);
+  const lessonIndex = orderedLessons.findIndex(
+    (lessonContent) => String(lessonContent.lesson?.lessonId) === String(l?.lessonId)
+  );
+  const locked = isLocked(orderedLessons, lessonIndex);
 
   return (
     <div

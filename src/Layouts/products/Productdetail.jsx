@@ -1,4 +1,4 @@
-
+﻿
 import { useParams, Link } from "react-router-dom";
 import logo from "../../assets/image/LOGO (1).png";
 import { useNavigate } from "react-router-dom";
@@ -8,12 +8,18 @@ import { useState, useEffect, useRef } from "react";
 export default function Productdetail() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
+  const [activeTab, setActiveTab] = useState("description");
   const navigate = useNavigate();
-  const [activeIndex, setActiveIndex] = useState(0); // ← dùng index thay vì URL string
+  const [activeIndex, setActiveIndex] = useState(0); // dung index thay vi URL string
   const [quantity, setQuantity] = useState(1);
 const { addToCart ,cartCount } = useCart();
 const [menuOpen, setMenuOpen] = useState(false);
 const menuRef = useRef(null);
+const reviews = [
+  { id: 1, name: "Nguyen Thu Ha", rating: 5, date: "2 ngay truoc", comment: "Noi dung de hieu, in dep va giup minh nho tu vung nhanh hon rat nhieu." },
+  { id: 2, name: "Tran Minh Tuan", rating: 4, date: "1 tuan truoc", comment: "Sach chat luong, bo cuc ro rang. Neu them nhieu bai tap hon nua thi rat tot." },
+  { id: 3, name: "Le Ngoc Anh", rating: 5, date: "2 tuan truoc", comment: "Phu hop cho nguoi moi bat dau va ca nguoi can on lai kien thuc nen tang." },
+];
   const saved =
     product?.originalPrice && product?.price
       ? product.originalPrice - product.price
@@ -48,7 +54,7 @@ const handleAddToCart = () => {
         };
 
         setProduct(mappedProduct);
-        setActiveIndex(0); // reset về ảnh đầu tiên
+        setActiveIndex(0); // reset ve anh dau tien
 
         const allBooks = await getHomeBooks();
         const books = allBooks || [];
@@ -299,9 +305,9 @@ useEffect(() => {
         {/* CONTENT */}
         <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
-            {/* ── IMAGE GALLERY ── */}
+            {/* IMAGE GALLERY */}
             <div className="lg:col-span-5 space-y-4">
-              {/* Ảnh chính */}
+              {/* Anh chinh */}
               <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center group overflow-hidden relative">
                 <div className="chinese-border w-full">
                   <img
@@ -311,7 +317,7 @@ useEffect(() => {
                   />
                 </div>
 
-                {/* Badge số ảnh */}
+                {/* Badge so anh */}
                 {images.length > 1 && (
                   <div className="absolute bottom-6 right-6 bg-black/50 text-white text-xs font-bold px-2.5 py-1 rounded-lg backdrop-blur-sm">
                     {activeIndex + 1} / {images.length}
@@ -319,7 +325,7 @@ useEffect(() => {
                 )}
               </div>
 
-              {/* Thumbnails — chỉ hiện khi có > 1 ảnh */}
+              {/* Thumbnails - chi hien khi co > 1 anh */}
               {images.length > 1 && (
                 <div className="flex gap-3 flex-wrap">
                   {images.map((img, index) => (
@@ -384,10 +390,10 @@ useEffect(() => {
               <div className="bg-white p-8 rounded-2xl mb-8 border border-slate-100 shadow-sm relative overflow-hidden">
                 <div className="flex items-baseline gap-4 mb-2">
                   <span className="text-5xl font-black text-primary">
-                    {formatCurrency(product?.price)}₫
+                    {formatCurrency(product?.price)} VND
                   </span>
                   <span className="text-xl text-slate-400 line-through">
-                    {formatCurrency(product?.originalPrice)}₫
+                    {formatCurrency(product?.originalPrice)} VND
                   </span>
                   <span className="bg-accent-red text-white text-xs font-bold px-2 py-1 rounded">
                     -{discountPercent}%
@@ -397,7 +403,7 @@ useEffect(() => {
                   <span className="material-symbols-outlined text-sm">
                     timer
                   </span>
-                  Tiết kiệm {formatCurrency(saved)}₫ khi mua hôm nay
+                  Tiết kiệm {formatCurrency(saved)} VND khi mua hôm nay
                 </p>
               </div>
 
@@ -492,135 +498,107 @@ useEffect(() => {
               </div>
             </div>
           </div>
-
           {/* TABS + DESCRIPTION */}
           <div className="mt-20">
             <div className="bg-white rounded-t-2xl px-6 py-4 border-b border-slate-200 mb-10">
-              <div className="flex items-center gap-2">
-                <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold uppercase tracking-widest whitespace-nowrap transition-colors">
-                  <span className="material-symbols-outlined text-[16px]">
-                    description
-                  </span>
-                  Mô tả sản phẩm
+              <div className="flex items-center gap-2 flex-wrap">
+                <button type="button" onClick={() => setActiveTab("description")} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm uppercase tracking-widest whitespace-nowrap transition-colors ${activeTab === "description" ? "bg-primary text-white font-bold" : "bg-slate-100 text-slate-500 hover:text-primary font-medium"}`}>
+                  <span className="material-symbols-outlined text-[16px]">description</span>
+                  Mo ta san pham
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 text-slate-500 hover:text-primary text-sm font-medium uppercase tracking-widest whitespace-nowrap transition-colors">
-                  <span className="material-symbols-outlined text-[16px]">
-                    settings
-                  </span>
-                  Thông số kỹ thuật
+                <button type="button" onClick={() => setActiveTab("specs")} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm uppercase tracking-widest whitespace-nowrap transition-colors ${activeTab === "specs" ? "bg-primary text-white font-bold" : "bg-slate-100 text-slate-500 hover:text-primary font-medium"}`}>
+                  <span className="material-symbols-outlined text-[16px]">settings</span>
+                  Thong so ky thuat
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 text-slate-500 hover:text-primary text-sm font-medium uppercase tracking-widest whitespace-nowrap transition-colors">
-                  <span className="material-symbols-outlined text-[16px]">
-                    star
-                  </span>
-                  Đánh giá học viên (124)
+                <button type="button" onClick={() => setActiveTab("reviews")} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm uppercase tracking-widest whitespace-nowrap transition-colors ${activeTab === "reviews" ? "bg-primary text-white font-bold" : "bg-slate-100 text-slate-500 hover:text-primary font-medium"}`}>
+                  <span className="material-symbols-outlined text-[16px]">star</span>
+                  Danh gia hoc vien (124)
                 </button>
               </div>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-16">
               <div className="lg:col-span-2 space-y-8 text-slate-600 leading-relaxed">
-                <h4 className="text-2xl font-bold text-primary">
-                  {product?.name}
-                </h4>
+                {activeTab === "description" && (
+                  <>
+                    <h4 className="text-2xl font-bold text-primary">{product?.name}</h4>
+                    <p className="text-lg">{product?.description}</p>
+                    <div className="bg-white p-8 rounded-3xl border border-secondary/20 shadow-sm relative overflow-hidden group">
+                      <ul className="space-y-6 relative z-10">
+                        <li className="flex items-start gap-4">
+                          <span className="material-symbols-outlined text-secondary bg-primary/5 p-1 rounded-lg">check_circle</span>
+                          <span>
+                            <strong className="text-primary">Danh muc</strong>{" "}
+                            {product?.categories?.map((c) => (typeof c === "string" ? c : c.nameCategory)).join(", ")}
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
+                    <img src={activeImage} alt={product?.title} className="w-full h-auto aspect-square object-cover rounded-lg" onError={(e) => (e.target.src = "/no-image.png")} />
+                  </>
+                )}
 
-                <p className="text-lg">{product?.description}</p>
-
-                <div className="bg-white p-8 rounded-3xl border border-secondary/20 shadow-sm relative overflow-hidden group">
-                  <div className="absolute -right-12 -bottom-12 text-secondary/10 font-serif text-[180px] select-none group-hover:scale-110 transition-transform">
-                    艺
+                {activeTab === "specs" && (
+                  <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                    <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary">tune</span>
+                      <h4 className="text-xl font-bold text-primary">Thong so ky thuat</h4>
+                    </div>
+                    <div className="p-6 grid sm:grid-cols-2 gap-4">
+                      <div className="rounded-xl border border-slate-100 p-4"><p className="text-xs text-slate-400 uppercase tracking-wider">Ma san pham</p><p className="text-base font-bold text-slate-800 mt-1">{product?.bookId}</p></div>
+                      <div className="rounded-xl border border-slate-100 p-4"><p className="text-xs text-slate-400 uppercase tracking-wider">Ten san pham</p><p className="text-base font-bold text-slate-800 mt-1">{product?.title}</p></div>
+                      <div className="rounded-xl border border-slate-100 p-4"><p className="text-xs text-slate-400 uppercase tracking-wider">Danh muc</p><p className="text-base font-bold text-slate-800 mt-1">{product?.categories?.map((c) => (typeof c === "string" ? c : c?.nameCategory)).join(", ") || "Dang cap nhat"}</p></div>
+                      <div className="rounded-xl border border-slate-100 p-4"><p className="text-xs text-slate-400 uppercase tracking-wider">Ton kho</p><p className="text-base font-bold text-slate-800 mt-1">{product?.stock ?? 0}</p></div>
+                      <div className="rounded-xl border border-slate-100 p-4"><p className="text-xs text-slate-400 uppercase tracking-wider">Gia goc</p><p className="text-base font-bold text-slate-800 mt-1">{formatCurrency(product?.originalPrice)}đ</p></div>
+                      <div className="rounded-xl border border-slate-100 p-4"><p className="text-xs text-slate-400 uppercase tracking-wider">Gia sau giam</p><p className="text-base font-bold text-red-500 mt-1">{formatCurrency(product?.discountPrice)}đ</p></div>
+                    </div>
                   </div>
-                  <ul className="space-y-6 relative z-10">
-                    <li className="flex items-start gap-4">
-                      <span className="material-symbols-outlined text-secondary bg-primary/5 p-1 rounded-lg">
-                        check_circle
-                      </span>
-                      <span>
-                        <strong className="text-primary">Danh Mục</strong>{" "}
-                        {product?.categories
-                          ?.map((c) =>
-                            typeof c === "string" ? c : c.nameCategory,
-                          )
-                          .join(", ")}
-                      </span>
-                    </li>
-                  </ul>
-                </div>
+                )}
 
-                <p className="text-lg">
-                  Phù hợp cho mọi đối tượng độc giả, từ người mới bắt đầu đến
-                  người đã có kinh nghiệm. Cuốn sách mang đến những kiến thức
-                  hữu ích và giá trị thực tiễn, giúp bạn mở rộng tư duy và áp
-                  dụng vào cuộc sống{" "}
-                  <span className="text-primary font-bold">学以致用</span>.
-                </p>
-
-                {/* Ảnh chính trong tab mô tả cũng đồng bộ theo activeImage */}
-                <img
-                  src={activeImage}
-                  alt={product?.title}
-                  className="w-full h-auto aspect-square object-cover rounded-lg"
-                  onError={(e) => (e.target.src = "/no-image.png")}
-                />
+                {activeTab === "reviews" && (
+                  <div className="space-y-6">
+                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xl font-bold text-primary">Danh gia hoc vien</h4>
+                        <div className="text-sm font-bold text-slate-700">4.8/5 (124 danh gia)</div>
+                      </div>
+                      <div className="mt-3 flex text-secondary">
+                        {[1, 2, 3, 4].map((i) => (<span key={i} className="material-symbols-outlined fill-1">star</span>))}
+                        <span className="material-symbols-outlined fill-1">star_half</span>
+                      </div>
+                    </div>
+                    {reviews.map((item) => (
+                      <div key={item.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                        <div className="flex items-start justify-between gap-4">
+                          <div><p className="font-bold text-slate-900">{item.name}</p><p className="text-xs text-slate-400 mt-1">{item.date}</p></div>
+                          <div className="flex text-secondary">
+                            {[1, 2, 3, 4, 5].map((star) => (<span key={star} className={`material-symbols-outlined ${star <= item.rating ? "fill-1" : "text-slate-300"}`}>star</span>))}
+                          </div>
+                        </div>
+                        <p className="text-slate-600 mt-4 leading-relaxed">{item.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* RIGHT SIDEBAR */}
               <div className="space-y-8">
                 <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-xl h-fit sticky top-32">
                   <h4 className="font-bold text-primary mb-6 border-b border-slate-100 pb-4 flex items-center gap-3">
-                    <span className="material-symbols-outlined text-secondary">
-                      info
-                    </span>
-                    Thông tin chi tiết
+                    <span className="material-symbols-outlined text-secondary">info</span>
+                    Thong tin chi tiet
                   </h4>
-
                   <dl className="space-y-5 text-sm">
-                    <div className="flex justify-between border-b border-dashed border-slate-100 pb-3">
-                      <dt className="text-slate-500">Mã sách</dt>
-                      <dd className="font-bold text-slate-900">
-                        {product.bookId}
-                      </dd>
-                    </div>
-                    <div className="flex justify-between border-b border-dashed border-slate-100 pb-3">
-                      <dt className="text-slate-500">Tên sách</dt>
-                      <dd className="font-bold text-slate-900">
-                        {product.title}
-                      </dd>
-                    </div>
-                    <div className="flex justify-between border-b border-dashed border-slate-100 pb-3">
-                      <dt className="text-slate-500">Giá gốc</dt>
-                      <dd className="font-bold text-slate-900">
-                        {formatCurrency(product.originalPrice)}₫
-                      </dd>
-                    </div>
-                    <div className="flex justify-between border-b border-dashed border-slate-100 pb-3">
-                      <dt className="text-slate-500">Giá sau khi giảm</dt>
-                      <dd className="font-bold text-red-500">
-                        {formatCurrency(product.discountPrice)}₫
-                      </dd>
-                    </div>
-                    <div className="flex justify-between border-b border-dashed border-slate-100 pb-3">
-                      <dt className="text-slate-500">Tồn kho</dt>
-                      <dd className="font-bold text-slate-900">
-                        {product.stock}
-                      </dd>
-                    </div>
+                    <div className="flex justify-between border-b border-dashed border-slate-100 pb-3"><dt className="text-slate-500">Ma sach</dt><dd className="font-bold text-slate-900">{product.bookId}</dd></div>
+                    <div className="flex justify-between border-b border-dashed border-slate-100 pb-3"><dt className="text-slate-500">Ten sach</dt><dd className="font-bold text-slate-900">{product.title}</dd></div>
+                    <div className="flex justify-between border-b border-dashed border-slate-100 pb-3"><dt className="text-slate-500">Gia goc</dt><dd className="font-bold text-slate-900">{formatCurrency(product.originalPrice)}₫</dd></div>
+                    <div className="flex justify-between border-b border-dashed border-slate-100 pb-3"><dt className="text-slate-500">Gia sau khi giam</dt><dd className="font-bold text-red-500">{formatCurrency(product.discountPrice)}₫</dd></div>
+                    <div className="flex justify-between border-b border-dashed border-slate-100 pb-3"><dt className="text-slate-500">Ton kho</dt><dd className="font-bold text-slate-900">{product.stock}</dd></div>
                   </dl>
-
-                  <div className="mt-8 bg-gold-light/20 p-5 rounded-2xl border border-secondary/30">
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      <span className="font-bold text-primary block mb-1">
-                        Note:
-                      </span>
-                      Sản phẩm phù hợp với mọi người dùng, mang lại sự tiện lợi,
-                      dễ sử dụng và trải nghiệm chất lượng
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
-
           {/* RELATED PRODUCTS */}
           <section className="bg-white py-20 border-t border-slate-100">
             <div className="max-w-[1920px] mx-auto px-4 md:px-8">
@@ -676,7 +654,7 @@ useEffect(() => {
                       {product.name}
                     </h3>
                     <p className="text-accent-red font-black text-xl">
-                      {formatCurrency(product.price)}₫
+                      {formatCurrency(product.price)} VND
                     </p>
                   </Link>
                 ))}
@@ -688,3 +666,8 @@ useEffect(() => {
     </>
   );
 }
+
+
+
+
+

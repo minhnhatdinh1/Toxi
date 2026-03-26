@@ -3,6 +3,7 @@ import toxiLogo from "../../../assets/image/LOGO (1).png"
 import { Link, useNavigate } from "react-router-dom";
 import { sendOtpApi } from "../api/authApi";
 import { useToast } from '../../common/ToastContext';
+import { testSendOtpRequest } from "./stepEmailDebug";
 
 export default function StepEmail({ email, setEmail }) {
   const navigate = useNavigate();
@@ -49,6 +50,14 @@ export default function StepEmail({ email, setEmail }) {
       const errorMsg = err.response?.data?.message || 'Gửi email thất bại. Vui lòng thử lại.';
       setError(errorMsg);
       toast.addToast(errorMsg, 'error');
+
+      if (import.meta.env.DEV) {
+        const debugInfo = await testSendOtpRequest(inputEmail);
+        console.group("[StepEmail][send-otp debug]");
+        console.log("Original axios error:", err);
+        console.log("Debug request info:", debugInfo);
+        console.groupEnd();
+      }
     } finally {
       setLoading(false);
     }
@@ -178,13 +187,13 @@ export default function StepEmail({ email, setEmail }) {
                 </button>
 
                 <div className="mt-6 text-center">
-                  <a
-                    href="/login"
+                  <Link
+                    to="/login"
                     className="inline-flex items-center gap-2 text-sm font-bold text-secondary dark:text-primary hover:underline decoration-2 underline-offset-4"
                   >
                     <span className="material-symbols-outlined text-base">arrow_back</span>
                     Quay lại Đăng nhập
-                  </a>
+                  </Link>
                 </div>
               </form>
 

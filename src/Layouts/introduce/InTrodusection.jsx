@@ -60,7 +60,7 @@ export default function IntroSection() {
     console.log("Register Data:", formData);
   };
   return (
-    <main className=" ml-64 flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900/50">
+    <div className="w-full bg-slate-50 dark:bg-slate-900/50">
       
       {/* Header */}
       <header className="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-8 py-4 flex justify-between items-center border-b border-slate-200 dark:border-slate-800">
@@ -263,7 +263,7 @@ export default function IntroSection() {
     </div>
       </div>
 
-    </main>
+    </div>
   );
 }
 

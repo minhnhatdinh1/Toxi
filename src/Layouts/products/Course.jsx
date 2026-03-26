@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 // shared components
 import FilterSidebar from '../../components/FilterSidebar';
 import StarRating from '../../components/StarRating';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 export default function Course() {
   const [courses, setCourses] = useState([]);
@@ -15,7 +16,31 @@ export default function Course() {
   const [loading, setLoading] = useState(true);
   const [myCourses, setMyCourses] = useState([]);
   const [courseProgressMap, setCourseProgressMap] = useState({});
+  const [activeHero, setActiveHero] = useState(0);
   const navigate = useNavigate();
+  const heroSlides = [
+    {
+      eyebrow: "TOXI Education",
+      title: "Khoa hoc HSK",
+      subtitle: "Lo trinh chinh phuc chung chi tieng Trung theo phong cach gon va hien dai.",
+      image: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1600&q=80",
+      accent: "HSK Roadmap",
+    },
+    {
+      eyebrow: "Practice Daily",
+      title: "Luyen deu moi ngay",
+      subtitle: "Noi dung ro rang, banner de nhin va chuyen slide muot nhu HomeMain.",
+      image: "https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=1600&q=80",
+      accent: "Daily Plan",
+    },
+    {
+      eyebrow: "Smart Layout",
+      title: "Hoc nhanh, nho lau",
+      subtitle: "Tap trung vao bai hoc trong tam, ket hop ly thuyet va bai tap thuc hanh.",
+      image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1600&q=80",
+      accent: "Compact Banner",
+    },
+  ];
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -117,6 +142,12 @@ export default function Course() {
     })
     .catch(() => setMyCourses([]));
 }, []);
+useEffect(() => {
+  const timer = window.setInterval(() => {
+    setActiveHero((prev) => (prev + 1) % heroSlides.length);
+  }, 4500);
+  return () => window.clearInterval(timer);
+}, [heroSlides.length]);
 console.log("myCourses:", myCourses);
 console.log(localStorage.getItem("token"))
   const sortedCourses = [...courses].filter((course) => {
@@ -151,45 +182,67 @@ console.log(localStorage.getItem("token"))
 
   return (
     <>
-      <main className="flex-1 lg:ml-72 bg-surface relative">
+      <div className="w-full bg-surface relative">
         {/* HEADER */}
-
         {/* HERO */}
-        <section className="relative h-64 md:h-80 w-full bg-primary overflow-hidden">
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-overlay"
-            style={{
-              backgroundImage:
-                "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAwsBsZIsyCmtSVufrnW8IQ3OcNeGQO6uv5_S2x_YweK8CwOgxS_j8F_1UlAP1CKu-MJ4a6fHrmJFtzUUcb_X4KSq8qWpLna00jvHLg7DEjci3_9aaWB-JPpLO0hbOLKlLYbtXWV_1gq2dYp2AdtNDqJHNF-j2XA-3y-JFm721_M16loDAuswddRMrVB91_VS9Tc0bFgo4Ft74lY4nteoQG2dIzPct6KXEEJ9A_vnNS8l55l5dzg3f46GB6CxSZ1N3nNlKt4Oc23S0')",
-            }}
-          />
+        <section className="bg-[#f4f7ff] pt-4 md:pt-5 lg:pt-6 w-full">
+          <div className="bg-[#eef3ff]">
+            <div className="mx-auto max-w-7xl px-4 pb-6 pt-4 md:px-6 md:pb-8 md:pt-5">
+              <div className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white shadow-[0_24px_80px_rgba(33,54,120,0.14)]">
+                <div className="relative h-[260px] sm:h-[320px] lg:h-[380px]">
+                  {heroSlides.map((slide, index) => (
+                    <div
+                      key={slide.title}
+                      className={`absolute inset-0 transition-all duration-700 ${
+                        activeHero === index
+                          ? "opacity-100 translate-x-0"
+                          : index < activeHero
+                          ? "opacity-0 -translate-x-6"
+                          : "opacity-0 translate-x-6"
+                      }`}
+                    >
+                      <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('${slide.image}')` }} />
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#082b73]/94 via-[#1747d6]/82 to-[#173ec9]/50" />
+                      <div className="absolute inset-y-0 left-0 w-[58%] bg-gradient-to-r from-[#061b4f]/92 via-[#0a2872]/72 to-transparent" />
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_50%,rgba(255,255,255,0.16),transparent_24%),radial-gradient(circle_at_62%_100%,rgba(255,255,255,0.1),transparent_22%)]" />
 
-          <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/60 to-transparent"></div>
-          <div className="absolute inset-0 bg-chinese-pattern opacity-10"></div>
-
-          <div className="absolute right-0 top-0 h-full w-1/2 pointer-events-none opacity-20 flex items-center justify-end pr-10">
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhvprHGL6K93pHFVHLPVSFyKTZaBgwoiNwoZ6rufaP3po7sqtplcZ0ZwYV2GwP_0zun0jre0uIAbdySGtu4jG-uSCgC3yAEj_a49Fjunnm7lnluUwzOxT5LJN2DlK-mV7HEw8F0s7lXu7lzThvMEwBhVv1qGxDMQ0k589zZgj_A5-D1zb3exuWfXZ6VvlypTc_EcokCIn_ffDJPT0UKVdGasZVPsKRp-8BZ6p0Ng55-0HMo1e1E5gT-rBRAduNNVBO0Z1AhRqdGH8"
-              alt="Chinese clouds"
-              className="h-full object-contain invert"
-            />
-          </div>
-
-          <div className="relative h-full flex flex-col justify-center px-6 md:px-12 max-w-7xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-4">
-              KHÓA HỌC <span className="text-secondary">HSK</span>
-            </h2>
-
-            <div className="flex items-center gap-4 text-slate-200">
-              <p className="text-lg font-light max-w-lg leading-relaxed">
-                Chinh phục chứng chỉ tiếng Trung quốc tế với lộ trình bài bản,
-                tinh gọn và hiệu quả nhất.
-              </p>
-            </div>
-
-            <div className="absolute bottom-6 right-10 flex gap-4 opacity-30">
-              <span className="text-secondary font-serif text-6xl">學</span>
-              <span className="text-secondary font-serif text-6xl">習</span>
+                      <div className="relative z-10 flex h-full items-center justify-center px-6 py-8 sm:px-10 lg:px-14">
+                        <div className="mx-auto max-w-3xl text-center text-white">
+                          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.28em] text-white/90 backdrop-blur-md">
+                            <span className="h-2 w-2 rounded-full bg-secondary" />
+                            {slide.eyebrow}
+                          </div>
+                          <h1 className="mx-auto max-w-2xl text-3xl font-black leading-tight sm:text-4xl lg:text-[48px] xl:text-[56px]">
+                            {slide.title}
+                          </h1>
+                          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-white/85 sm:text-base">
+                            {slide.subtitle}
+                          </p>
+                          <div className="mt-6 flex items-center justify-center gap-4">
+                            <div className="rounded-full bg-white/14 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-secondary backdrop-blur-sm">
+                              {slide.accent}
+                            </div>
+                            <div className="text-sm font-semibold text-white/80">10.000+ hoc vien</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white/14 px-3 py-2 backdrop-blur-md">
+                    {heroSlides.map((slide, index) => (
+                      <button
+                        key={slide.accent}
+                        type="button"
+                        onClick={() => setActiveHero(index)}
+                        aria-label={`Course hero slide ${index + 1}`}
+                        className={`h-2.5 rounded-full transition-all ${
+                          activeHero === index ? "w-8 bg-white" : "w-2.5 bg-white/45 hover:bg-white/70"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -197,15 +250,15 @@ console.log(localStorage.getItem("token"))
         <section className="bg-white border-b border-primary/10 px-6 py-4">
           <div className=" mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
             <nav className="flex items-center gap-2 text-xs font-medium text-slate-400">
-              <a href="#" className="hover:text-primary transition-colors">
+              <Link to="/home" className="hover:text-primary transition-colors">
                 Trang chủ
-              </a>
+              </Link>
               <span className="material-symbols-outlined text-[14px]">
                 chevron_right
               </span>
-              <a href="#" className="hover:text-primary transition-colors">
+              <Link to="/course" className="hover:text-primary transition-colors">
                 Khóa học
-              </a>
+              </Link>
               <span className="material-symbols-outlined text-[14px]">
                 chevron_right
               </span>
@@ -243,9 +296,7 @@ console.log(localStorage.getItem("token"))
         {/* COURSE GRID */}
         <section className="py-12 px-6 md:px-12">
           {loading ? (
-            <div className="text-center text-primary font-bold">
-              Đang tải khóa học...
-            </div>
+            <LoadingSpinner text="Dang tai khoa hoc..." />
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
               {sortedCourses.map((course) => (
@@ -358,7 +409,13 @@ console.log(localStorage.getItem("token"))
             </div>
           )}
         </section>
-      </main>
+      </div>
     </>
   );
 }
+
+
+
+
+
+

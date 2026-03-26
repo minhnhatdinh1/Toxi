@@ -3,6 +3,7 @@ import logo from "../../assets/image/LOGO (1).png";
 import { Link, useNavigate } from "react-router-dom";
 import { getHomeBooks, getAllCategories } from "./api/apiProduct";
 import { useCart } from "../../context/CartContext";
+import LoadingSpinner from "../common/LoadingSpinner";
 // Quick filter chips
 const QUICK_FILTERS = [
   { id: "all", label: "Tất cả" },
@@ -616,12 +617,7 @@ useEffect(() => {
               </div>
 
               {loading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                    <p className="text-text-muted mt-4">Đang tải sản phẩm...</p>
-                  </div>
-                </div>
+                <LoadingSpinner text="Dang tai san pham..." />
               ) : filteredProducts.length === 0 ? (
                 <div className="flex justify-center items-center h-64">
                   <div className="text-center">
@@ -735,3 +731,5 @@ useEffect(() => {
     </>
   );
 }
+
+

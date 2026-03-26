@@ -117,8 +117,8 @@ function App() {
       <Route path="/checkout" element={<CheckOutPage />} />
       <Route path="/learn/:courseId/:lessonId" element={<VideoPage />} />
       <Route path="/flashcard" element={<FlashcardPage />} />
-      <Route path="/Exam" element={<ExamPage />} />
-      <Route path="/ExamResult" element={<ExamResultPage />} />
+      <Route path="/Exam/:id" element={<ExamPage />} />
+      <Route path="/result/:id" element={<ExamResultPage />} />
       <Route path="/MyCourse" element={<MyCoursePage />} />
       <Route path="/Profile" element={<MyInformationPage />} />
       <Route path="/MyProduct" element={<MyProductMain />} />
@@ -140,9 +140,7 @@ function App() {
      
     
       <Route path="/order-success" element={<OderSuccess />} />
-      <Route path="/listenQuiz" element={<AddNewListenQuiz />} />
-      <Route path="/readQuiz" element={<AddNewReadQuiz />} />
-      <Route path="/writtingQuiz" element={<AddNewWritting />} />
+    
       <Route path="/adminaddnewquiz" element={<AdminAddNewQuiz />} />
    
       <Route path="/AddNewFillOfWord" element={<AddNewFillOfWord />} />
@@ -188,6 +186,16 @@ function App() {
       <Route path="/adminQuiz/:id/preview" element={<AdminRoute><AdminQuizPreview /></AdminRoute>} />
       <Route path="/adminAddNewVideo/:courseId" element={<AdminRoute><AdminAddNewVideo /></AdminRoute>} />
       <Route path="/admincoursecontent/:courseId" element={<AdminRoute><AdminCourseContent /></AdminRoute>} />
+
+   <Route path="/adminQuiz/:quizId/add-question/listen" element={<AdminRoute><AddNewListenQuiz /></AdminRoute>} />
+<Route path="/adminQuiz/:quizId/add-question/read" element={<AdminRoute><AddNewReadQuiz /></AdminRoute>} />
+<Route path="/adminQuiz/:quizId/add-question/write" element={<AdminRoute><AddNewWritting /></AdminRoute>} />
+
+{/* EDIT QUESTION ROUTES */}
+<Route path="/adminQuiz/:quizId/edit-question/listen/:questionId" element={<AdminRoute><AddNewListenQuiz /></AdminRoute>} />
+<Route path="/adminQuiz/:quizId/edit-question/read/:questionId" element={<AdminRoute><AddNewReadQuiz /></AdminRoute>} />
+<Route path="/adminQuiz/:quizId/edit-question/write/:questionId" element={<AdminRoute><AddNewWritting /></AdminRoute>} />
+
     </Routes>
   )
 };

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import logo from "../../../assets/image/LOGO (1).png";
 import { useCart } from "../../../context/CartContext";
 import axios from "axios";
+import LoadingSpinner from "../../common/LoadingSpinner";
 
 export default function MyCourseMain() {
   const [courses, setCourses] = useState([]);
@@ -236,9 +237,7 @@ export default function MyCourseMain() {
             </div>
 
             {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-              </div>
+              <LoadingSpinner text="Dang tai khoa hoc cua ban..." />
             ) : courses.length === 0 ? (
               <div className="bg-white rounded-2xl border border-slate-200 p-16 text-center">
                 <span className="material-symbols-outlined text-6xl text-slate-300">school</span>
@@ -341,3 +340,5 @@ export default function MyCourseMain() {
     </div>
   );
 }
+
+
