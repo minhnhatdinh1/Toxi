@@ -1,420 +1,294 @@
-import React from "react";
-
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
+import { deleteAdminBlog, fetchAdminBlogs } from "./api/apiBlog";
+
+const POSTS_PER_PAGE = 8;
+
+const formatDate = (value) => {
+  const date = value ? new Date(value) : null;
+  return date && !Number.isNaN(date.getTime())
+    ? date.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+    : "--";
+};
+
 export default function AdminBlog() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-const [activeTab, setActiveTab] = useState("ALL");
-const [currentPage, setCurrentPage] = useState(1);
+  const [activeTab, setActiveTab] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-const postsPerPage = 5;
+  useEffect(() => {
+    async function load() {
+      try {
+        setLoading(true);
+        setError("");
+        setPosts(await fetchAdminBlogs());
+      } catch (err) {
+        console.error(err);
+        setError("Không tải được danh sách bài viết.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
-const [posts, setPosts] = useState([
-  {
-    id: 1,
-    title: "The Art of Traditional Tea Ceremony",
-    category: "Culture",
-    author: "Li Wei",
-    status: "PUBLISHED",
-    date: "Oct 24, 2023",
-  },
-  {
-    id: 2,
-    title: "10 Must-Try Street Foods in Chengdu",
-    category: "Food",
-    author: "Chen Hao",
-    status: "PUBLISHED",
-    date: "Oct 18, 2023",
-  },
-  {
-    id: 3,
-    title: "Hidden Temples in Shanghai",
-    category: "Travel",
-    author: "Wang Jun",
-    status: "DRAFT",
-    date: "Oct 12, 2023",
-  },
-]);
-const filteredPosts = posts
-  .filter((post) => {
-    if (activeTab === "ALL") return true;
-    return post.status === activeTab;
-  })
-  .filter((post) =>
-    post.title.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPosts = useMemo(() => {
+    return posts
+      .filter((post) => activeTab === "ALL" || post.status === activeTab)
+      .filter((post) => {
+        const q = searchTerm.trim().toLowerCase();
+        if (!q) return true;
+        return [post.title, post.category, post.author].some((value) =>
+          String(value || "").toLowerCase().includes(q)
+        );
+      });
+  }, [posts, activeTab, searchTerm]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchTerm]);
+
+  const totalPublished = posts.filter((post) => post.status === "PUBLISHED").length;
+  const totalDrafts = posts.filter((post) => post.status === "DRAFT").length;
+  const totalPages = Math.max(1, Math.ceil(filteredPosts.length / POSTS_PER_PAGE));
+  const currentPosts = filteredPosts.slice(
+    (currentPage - 1) * POSTS_PER_PAGE,
+    currentPage * POSTS_PER_PAGE
   );
 
-const indexOfLast = currentPage * postsPerPage;
-const indexOfFirst = indexOfLast - postsPerPage;
-const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bạn có chắc muốn xóa bài viết này?")) return;
 
-    return (
-        <>
-            <div className="flex h-screen overflow-hidden ">
-            <AdminSidebar />
-                                {/* Main Content */}
-<main className="flex-1 flex flex-col overflow-hidden relative">
+    try {
+      await deleteAdminBlog(id);
+      setPosts((prev) => prev.filter((post) => post.id !== id));
+    } catch (err) {
+      console.error(err);
+      window.alert("Không xóa được bài viết.");
+    }
+  };
 
-  {/* Header */}
-  <div className="h-16 flex items-center justify-between px-8 border-b border-slate-100 bg-white/80 backdrop-blur-sm z-10">
+  return (
+    <div className="flex h-screen overflow-hidden">
+      <AdminSidebar />
 
-    {/* Left */}
-    <div className="flex items-center gap-4">
-      <h2 className="text-xl font-bold flex items-center gap-2">
-        <span className="text-slate-900 material-symbols-outlined">
-          filter_vintage
-        </span>
-        Blog Management
-      </h2>
-    </div>
+      <main className="flex flex-1 flex-col overflow-hidden bg-slate-50">
+        <div className="flex h-16 items-center justify-between border-b border-slate-100 bg-white/90 px-8 backdrop-blur-sm">
+          <div className="flex items-center gap-4">
+            <h2 className="flex items-center gap-2 text-xl font-bold text-slate-900">
+              <span className="material-symbols-outlined">article</span>
+              Quản lý Blog
+            </h2>
+          </div>
 
-    {/* Right */}
-    <div className="flex items-center gap-4">
-
-      {/* Search */}
-      <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-lg">
-          search
-        </span>
-        <input
-
-  type="text"
-  placeholder="Search posts..."
-  value={searchTerm}
-  onChange={(e) => setSearchTerm(e.target.value)}
-  className="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-slate-900 w-64"
-/>
-
-      </div>
-
-      {/* Notification */}
-      <button className="p-2 rounded-lg bg-slate-100 text-slate-600 relative">
-        <span className="material-symbols-outlined">
-          notifications
-        </span>
-        <span className="absolute top-2 right-2 size-2 bg-blue-500 rounded-full"></span>
-      </button>
-
-      {/* Avatar */}
-      <div className="size-10 rounded-full border-2 border-slate-200 overflow-hidden">
-        <img
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuC774ihvnJj_MK3G_gmKKm-i0PU4UDCS4XKg49ZvvkpA204dXlqCw0ZvGnKH0mT804v8YPYTCHTpCwfs_y9JLAlZoqOnEbtHmq-DJPgkPQlEJM6vkrb6ZyYR11SLCZcVYByRfU8oYBccbgvNoNz8snw0YElaNmOVOp3gKu0ltQLBjgPqecoVCjPL8hruHWtBz7P97p0INha2a7mH6RKUgfYo1_MtGh4m-HrixzJCubL_ZrV4TLbqvKKWuA0TcbFY21CX1NqRTIDT7Y"
-          alt="Admin Avatar"
-          className="w-full h-full object-cover"
-        />
-      </div>
-
-    </div>
-
-  </div>
-  {/* Scrollable Content Area */}
-<div className="flex-1 overflow-y-auto p-8 space-y-8">
-
-  {/* Stats Summary */}
-  <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-    {/* Total Posts */}
-    <div className="bg-white p-6 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm group hover:border-slate-300 transition-all">
-      <div>
-        <p className="text-slate-500 text-sm font-medium">
-          Total Posts
-        </p>
-        <h3 className="text-3xl font-bold mt-1">
-          1,284
-        </h3>
-        <p className="text-green-500 text-xs font-bold mt-2 flex items-center gap-1">
-          <span className="material-symbols-outlined text-sm">
-            trending_up
-          </span>
-          +12.5% this month
-        </p>
-      </div>
-
-      <div className="size-12 bg-slate-100 rounded-lg flex items-center justify-center text-slate-900">
-        <span className="material-symbols-outlined text-2xl">
-          book
-        </span>
-      </div>
-    </div>
-
-    {/* Published */}
-    <div className="bg-white p-6 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm group hover:border-slate-300 transition-all">
-      <div>
-        <p className="text-slate-500 text-sm font-medium">
-          Published
-        </p>
-        <h3 className="text-3xl font-bold mt-1">
-          1,156
-        </h3>
-        <p className="text-green-500 text-xs font-bold mt-2 flex items-center gap-1">
-          <span className="material-symbols-outlined text-sm">
-            check_circle
-          </span>
-          92% completion
-        </p>
-      </div>
-
-      <div className="size-12 bg-green-500/10 rounded-lg flex items-center justify-center text-green-500">
-        <span className="material-symbols-outlined text-2xl">
-          publish
-        </span>
-      </div>
-    </div>
-
-    {/* Drafts */}
-    <div className="bg-white p-6 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm group hover:border-slate-300 transition-all">
-      <div>
-        <p className="text-slate-500 text-sm font-medium">
-          Drafts
-        </p>
-        <h3 className="text-3xl font-bold mt-1">
-          128
-        </h3>
-        <p className="text-blue-600 text-xs font-bold mt-2 flex items-center gap-1">
-          <span className="material-symbols-outlined text-sm">
-            edit_note
-          </span>
-          Needs attention
-        </p>
-      </div>
-
-      <div className="size-12 bg-slate-100 rounded-lg flex items-center justify-center text-slate-900">
-        <span className="material-symbols-outlined text-2xl">
-          draft
-        </span>
-      </div>
-    </div>
-
-  </section>
-  {/* Blog Table Section */}
-<section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-
-  {/* Top Bar */}
-  <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-
-    {/* Tabs */}
-    <div className="flex gap-2">
-
-     <button
-  onClick={() => setActiveTab("ALL")}
-  className={`px-4 py-1.5 rounded-full text-xs font-bold ${
-    activeTab === "ALL"
-      ? "bg-slate-900 text-white"
-      : "bg-slate-100 text-slate-600"
-  }`}
->
-  All Posts
-</button>
-
-<button
-  onClick={() => setActiveTab("PUBLISHED")}
-  className={`px-4 py-1.5 rounded-full text-xs font-bold ${
-    activeTab === "PUBLISHED"
-      ? "bg-slate-900 text-white"
-      : "bg-slate-100 text-slate-600"
-  }`}
->
-  Published
-</button>
-
-<button
-  onClick={() => setActiveTab("DRAFT")}
-  className={`px-4 py-1.5 rounded-full text-xs font-bold ${
-    activeTab === "DRAFT"
-      ? "bg-slate-900 text-white"
-      : "bg-slate-100 text-slate-600"
-  }`}
->
-  Drafts
-</button>
-
-    </div>
-
-    {/* Actions */}
-    <div className="flex gap-3">
-
-  {/* Add Post */}
-  <button
-    onClick={() => navigate("/admin/blog/add")}
-    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 active:scale-95 transition-all"
-  >
-    <span className="material-symbols-outlined text-lg">
-      add
-    </span>
-    Add Post
-  </button>
-
-
-    </div>
-
-  </div>
-
-  {/* Table */}
-  <div className="overflow-x-auto">
-    <table className="w-full text-left">
-
-      {/* Table Head */}
-      <thead>
-        <tr className="bg-slate-50">
-          <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Title</th>
-          <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Category</th>
-          <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Author</th>
-          <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Status</th>
-          <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Publish Date</th>
-          <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Actions</th>
-        </tr>
-      </thead>
-
-      {/* Table Body */}
-
-     <tbody className="divide-y divide-primary/5">
-  {currentPosts.map((post) => (
-    <tr key={post.id} className="hover:bg-slate-50 transition-colors">
-      <td className="px-6 py-4">
-        <span className="text-sm font-semibold">
-          {post.title}
-        </span>
-      </td>
-
-      <td className="px-6 py-4">
-        <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-600">
-          {post.category}
-        </span>
-      </td>
-
-      <td className="px-6 py-4 text-sm">
-        {post.author}
-      </td>
-
-      <td className="px-6 py-4">
-        <span
-          className={`text-xs font-bold uppercase ${
-            post.status === "PUBLISHED"
-              ? "text-green-500"
-              : "text-yellow-500"
-          }`}
-        >
-          {post.status}
-        </span>
-      </td>
-
-      <td className="px-6 py-4 text-sm text-slate-500">
-        {post.date}
-      </td>
-
-      <td className="px-6 py-4">
-        <button
-          onClick={() =>
-            setPosts(posts.filter((p) => p.id !== post.id))
-          }
-          className="text-red-500 text-sm"
-        >
-          Delete
-        </button>
-      </td>
-    </tr>
-  ))}
-
-</tbody>
-</table>
-</div>
-
-{/* Pagination */}
-<div className="p-6 border-t border-slate-100 flex items-center justify-between">
-
-
-  {/* Text hiển thị số bản ghi */}
-  <p className="text-xs text-slate-500 dark:text-slate-400">
-    Showing{" "}
-    {filteredPosts.length === 0
-      ? 0
-      : (currentPage - 1) * postsPerPage + 1}{" "}
-    to{" "}
-    {Math.min(
-      currentPage * postsPerPage,
-      filteredPosts.length
-    )}{" "}
-    of {filteredPosts.length} entries
-  </p>
-
-  {/* Pagination buttons */}
-  {filteredPosts.length > 0 && (
-    <div className="flex gap-1">
-
-      {/* Prev */}
-      <button
-        onClick={() =>
-          setCurrentPage((prev) => Math.max(prev - 1, 1))
-        }
-        disabled={currentPage === 1}
-        className="size-8 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-xs disabled:opacity-40"
-      >
-        <span className="material-symbols-outlined text-sm">
-          chevron_left
-        </span>
-      </button>
-
-      {/* Page numbers */}
-      {Array.from(
-        {
-          length: Math.ceil(
-            filteredPosts.length / postsPerPage
-          ),
-        },
-        (_, i) => i + 1
-      ).map((page) => (
-        <button
-          key={page}
-          onClick={() => setCurrentPage(page)}
-          className={`size-8 flex items-center justify-center rounded-lg text-xs ${
-            currentPage === page
-              ? "bg-slate-900 text-white"
-              : "border border-slate-200 hover:bg-slate-50"
-          }`}
-        >
-          {page}
-        </button>
-      ))}
-
-      {/* Next */}
-      <button
-        onClick={() =>
-          setCurrentPage((prev) =>
-            Math.min(
-              prev + 1,
-              Math.ceil(
-                filteredPosts.length / postsPerPage
-              )
-            )
-          )
-        }
-        disabled={
-          currentPage ===
-          Math.ceil(
-            filteredPosts.length / postsPerPage
-          )
-        }
-        className="size-8 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-xs disabled:opacity-40"
-      >
-        <span className="material-symbols-outlined text-sm">
-          chevron_right
-        </span>
-      </button>
-
-
-    </div>
-  )}
-
-</div>
-
-</section>
-
-</div>
-
-</main>
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-slate-400">
+                search
+              </span>
+              <input
+                type="text"
+                placeholder="Tìm bài viết..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-64 rounded-lg border-none bg-slate-100 py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-slate-900"
+              />
             </div>
-        </>
-    )
-};
+
+            <button
+              onClick={() => navigate("/admin/blog/add")}
+              className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-slate-800"
+            >
+              <span className="material-symbols-outlined text-lg">add</span>
+              Thêm bài viết
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 space-y-8 overflow-y-auto p-8">
+          <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div>
+                <p className="text-sm font-medium text-slate-500">Tổng bài viết</p>
+                <h3 className="mt-1 text-3xl font-bold">{posts.length}</h3>
+              </div>
+              <div className="flex size-12 items-center justify-center rounded-lg bg-slate-100 text-slate-900">
+                <span className="material-symbols-outlined text-2xl">article</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div>
+                <p className="text-sm font-medium text-slate-500">Đã xuất bản</p>
+                <h3 className="mt-1 text-3xl font-bold">{totalPublished}</h3>
+              </div>
+              <div className="flex size-12 items-center justify-center rounded-lg bg-green-50 text-green-600">
+                <span className="material-symbols-outlined text-2xl">publish</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div>
+                <p className="text-sm font-medium text-slate-500">Bản nháp</p>
+                <h3 className="mt-1 text-3xl font-bold">{totalDrafts}</h3>
+              </div>
+              <div className="flex size-12 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+                <span className="material-symbols-outlined text-2xl">draft</span>
+              </div>
+            </div>
+          </section>
+
+          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 p-6">
+              <div className="flex gap-2">
+                {["ALL", "PUBLISHED", "DRAFT"].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`rounded-full px-4 py-1.5 text-xs font-bold ${
+                      activeTab === tab
+                        ? "bg-slate-900 text-white"
+                        : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {tab === "ALL"
+                      ? "Tất cả"
+                      : tab === "PUBLISHED"
+                      ? "Đã xuất bản"
+                      : "Bản nháp"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="p-10 text-center text-sm font-semibold text-slate-500">
+                Đang tải bài viết...
+              </div>
+            ) : error ? (
+              <div className="p-10 text-center text-sm font-semibold text-red-500">{error}</div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-slate-50">
+                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Tiêu đề</th>
+                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Chuyên mục</th>
+                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Tác giả</th>
+                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Trạng thái</th>
+                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Ngày đăng</th>
+                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-primary/5">
+                      {currentPosts.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="px-6 py-10 text-center text-sm text-slate-400">
+                            Chưa có bài viết nào.
+                          </td>
+                        </tr>
+                      ) : (
+                        currentPosts.map((post) => (
+                          <tr key={post.id} className="transition-colors hover:bg-slate-50">
+                            <td className="px-6 py-4 text-sm font-semibold text-slate-900">{post.title}</td>
+                            <td className="px-6 py-4">
+                              <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-600">
+                                {post.category}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-sm">{post.author}</td>
+                            <td className="px-6 py-4">
+                              <span
+                                className={`text-xs font-bold uppercase ${
+                                  post.status === "PUBLISHED"
+                                    ? "text-green-500"
+                                    : "text-yellow-500"
+                                }`}
+                              >
+                                {post.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-slate-500">{formatDate(post.publishedAt)}</td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-4">
+                                <button
+                                  onClick={() => navigate(`/admin/blog/edit/${post.id}`)}
+                                  className="text-sm font-semibold text-primary"
+                                >
+                                  Sửa
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(post.id)}
+                                  className="text-sm text-red-500"
+                                >
+                                  Xóa
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="flex items-center justify-between border-t border-slate-100 p-6">
+                  <p className="text-xs text-slate-500">
+                    Hiển thị{" "}
+                    {filteredPosts.length === 0 ? 0 : (currentPage - 1) * POSTS_PER_PAGE + 1}
+                    {" "}đến {Math.min(currentPage * POSTS_PER_PAGE, filteredPosts.length)} của{" "}
+                    {filteredPosts.length} bài viết
+                  </p>
+
+                  {filteredPosts.length > POSTS_PER_PAGE && (
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="flex size-8 items-center justify-center rounded-lg border border-slate-200 text-xs disabled:opacity-40"
+                      >
+                        <span className="material-symbols-outlined text-sm">chevron_left</span>
+                      </button>
+
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`flex size-8 items-center justify-center rounded-lg text-xs ${
+                            currentPage === page
+                              ? "bg-slate-900 text-white"
+                              : "border border-slate-200 hover:bg-slate-50"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+
+                      <button
+                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="flex size-8 items-center justify-center rounded-lg border border-slate-200 text-xs disabled:opacity-40"
+                      >
+                        <span className="material-symbols-outlined text-sm">chevron_right</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </section>
+        </div>
+      </main>
+    </div>
+  );
+}
