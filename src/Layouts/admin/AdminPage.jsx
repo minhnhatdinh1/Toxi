@@ -1,707 +1,449 @@
-import React from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
-import { useState, useRef, useEffect } from "react";
+import { fetchQuizStatistics, fetchQuizzes } from "./api/apiquiz";
+
+const API = "http://localhost:8080/api";
+const REPORT_RANGES = [
+  { value: "7d", label: "7 ngay", days: 7 },
+  { value: "1m", label: "1 thang", days: 30 },
+  { value: "6m", label: "6 thang", days: 180 },
+  { value: "1y", label: "1 nam", days: 365 },
+];
+const SNAPSHOT_DAYS = 30;
+const CHART_DAYS = 180;
+
+const money = (v) => `${Number(v || 0).toLocaleString("vi-VN")}đ`;
+const parseDate = (v) => {
+  const d = v ? new Date(v) : null;
+  return d && !Number.isNaN(d.getTime()) ? d : null;
+};
+const fmtDate = (v) => {
+  const d = parseDate(v);
+  return d
+    ? d.toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+    : "--";
+};
+const inRange = (v, days) => {
+  const d = parseDate(v);
+  if (!d) return false;
+  const diff = Date.now() - d.getTime();
+  return diff >= 0 && diff <= days * 86400000;
+};
+const itemAmount = (item) => Number(item.finalPrice || item.price || item.unitPrice || item.discountPrice || item.amount || 0) * Number(item.quantity || item.qty || 1);
+const tone = (type) =>
+  type === "BOOK"
+    ? { label: "Sach", pill: "bg-amber-50 text-amber-700 border-amber-100", bar: "from-amber-500 to-yellow-300", iconWrap: "bg-amber-100", icon: "text-amber-600", progress: "bg-amber-500" }
+    : type === "COMBO"
+      ? { label: "Combo", pill: "bg-violet-50 text-violet-700 border-violet-100", bar: "from-violet-600 to-fuchsia-400", iconWrap: "bg-violet-100", icon: "text-violet-600", progress: "bg-violet-500" }
+      : { label: "Khoa hoc", pill: "bg-blue-50 text-blue-700 border-blue-100", bar: "from-blue-600 to-sky-400", iconWrap: "bg-blue-100", icon: "text-blue-600", progress: "bg-blue-500" };
+
+function sumByType(orders) {
+  const totals = { COURSE: 0, BOOK: 0, COMBO: 0 };
+  orders.forEach((order) => {
+    const items = order.items || [];
+    if (!items.length) return;
+    const byItem = items.reduce((s, i) => s + itemAmount(i), 0);
+    if (byItem > 0) {
+      items.forEach((i) => {
+        const key = totals[i.type] != null ? i.type : "COMBO";
+        totals[key] += itemAmount(i);
+      });
+      return;
+    }
+    const split = Number(order.amount || 0) / items.length;
+    items.forEach((i) => {
+      const key = totals[i.type] != null ? i.type : "COMBO";
+      totals[key] += split;
+    });
+  });
+  return ["COURSE", "BOOK", "COMBO"].map((key) => ({ key, amount: totals[key], ...tone(key) }));
+}
+
+function countUnitsByType(orders, type) {
+  return orders.reduce((sum, order) => (
+    sum + (order.items || []).reduce((itemSum, item) => (
+      itemSum + ((item.type === type ? Number(item.quantity || item.qty || 1) : 0))
+    ), 0)
+  ), 0);
+}
+
+function chartSeries(orders, range) {
+  const filtered = [...orders].filter((o) => parseDate(o.createdAt)).sort((a, b) => parseDate(a.createdAt) - parseDate(b.createdAt));
+  if (!filtered.length) return [];
+  if (range === "7d") {
+    const map = new Map();
+    for (let i = 6; i >= 0; i -= 1) {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - i);
+      map.set(d.toISOString().slice(0, 10), { key: d.toISOString().slice(0, 10), label: d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" }), COURSE: 0, BOOK: 0 });
+    }
+    filtered.forEach((o) => {
+      const k = parseDate(o.createdAt).toISOString().slice(0, 10);
+      if (!map.has(k)) return;
+      const row = map.get(k);
+      const s = sumByType([o]);
+      row.COURSE += s.find((x) => x.key === "COURSE")?.amount || 0;
+      row.BOOK += s.find((x) => x.key === "BOOK")?.amount || 0;
+    });
+    return [...map.values()];
+  }
+  const map = new Map();
+  filtered.forEach((o) => {
+    const d = parseDate(o.createdAt);
+    const k = `${d.getFullYear()}-${d.getMonth() + 1}`;
+    if (!map.has(k)) map.set(k, { key: k, label: `Thg ${d.getMonth() + 1}`, COURSE: 0, BOOK: 0 });
+    const row = map.get(k);
+    const s = sumByType([o]);
+    row.COURSE += s.find((x) => x.key === "COURSE")?.amount || 0;
+    row.BOOK += s.find((x) => x.key === "BOOK")?.amount || 0;
+  });
+  return [...map.values()].slice(-6);
+}
+
+function change(now, prev) {
+  if (!prev) return 100;
+  return ((now - prev) / prev) * 100;
+}
+
+function exportCsv(rangeLabel, orders, quizzes, typeRevenue) {
+  const rows = [
+    ["Bao cao dashboard", rangeLabel],
+    ["Xuat luc", new Date().toLocaleString("vi-VN")],
+    [],
+    ["Tong doanh thu", orders.reduce((s, o) => s + Number(o.amount || 0), 0)],
+    ["Doanh thu khoa hoc", typeRevenue.find((x) => x.key === "COURSE")?.amount || 0],
+    ["Doanh thu sach", typeRevenue.find((x) => x.key === "BOOK")?.amount || 0],
+    ["Doanh thu combo", typeRevenue.find((x) => x.key === "COMBO")?.amount || 0],
+    [],
+    ["Don hang"],
+    ["Ma don", "Hoc vien", "Gia tri", "Trang thai", "Ngay tao"],
+    ...orders.map((o) => [o.id, o.customer, o.amount, o.status, fmtDate(o.createdAt)]),
+    [],
+    ["De thi"],
+    ["Tieu de", "HSK", "Trang thai", "So cau", "Luot lam"],
+    ...quizzes.map((q) => [q.title, q.hsklevel || "--", q.status || "--", q.totalQuestions || 0, q.playCount || 0]),
+  ];
+  const csv = rows.map((r) => r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `bao-cao-${rangeLabel.replace(/\s+/g, "-")}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function Card({ icon, label, value, delta, toneData, footer }) {
+  const hasDelta = typeof delta === "number" && Number.isFinite(delta);
+  const up = hasDelta ? delta >= 0 : true;
+  return (
+    <div className="group relative overflow-hidden rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <div className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${toneData.iconWrap}`}>
+          <span className={`material-symbols-outlined text-[22px] ${toneData.icon}`}>{icon}</span>
+        </div>
+        {hasDelta ? <div className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold ${up ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+          <span className="material-symbols-outlined text-xs">{up ? "trending_up" : "trending_down"}</span>
+          {`${up ? "+" : ""}${delta.toFixed(1)}%`}
+        </div> : <div className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-500">Toan thoi gian</div>}
+      </div>
+
+      <div className="space-y-3">
+        <p className="min-h-[32px] text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">{label}</p>
+        <h3 className="text-[40px] font-black leading-none text-slate-900">{value}</h3>
+      </div>
+
+      <div className="mt-5 rounded-2xl bg-slate-50 px-3 py-3">
+        <div className="mb-2 flex items-center justify-between gap-3 text-[10px] font-semibold text-slate-400">
+          <span className="truncate">{footer.left}</span>
+          <span className="shrink-0">{footer.right}</span>
+        </div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-white">
+          <div className={`h-full rounded-full ${toneData.progress}`} style={{ width: footer.progress }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [showNoti, setShowNoti] = useState(false);
-const notiRef = useRef(null);
-useEffect(() => {
-  function handleClickOutside(event) {
-    if (notiRef.current && !notiRef.current.contains(event.target)) {
-      setShowNoti(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [dashboard, setDashboard] = useState({ quizStats: null, quizzes: [], courses: [], orders: [] });
+  const notiRef = useRef(null);
+  const exportRef = useRef(null);
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const onMouseDown = (e) => {
+      if (notiRef.current && !notiRef.current.contains(e.target)) setShowNoti(false);
+      if (exportRef.current && !exportRef.current.contains(e.target)) setShowExportMenu(false);
+    };
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, []);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        setLoading(true);
+        setError("");
+        const headers = { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+        const [quizStatsRes, quizListRes, courseRes, orderRes] = await Promise.all([
+          fetchQuizStatistics(),
+          fetchQuizzes({ search: "", status: null, hsk: null, sortBy: "newest" }),
+          fetch(`${API}/admin/courses`, { headers }).then((r) => r.json()),
+          fetch(`${API}/admin/orders`, { headers }).then((r) => r.json()),
+        ]);
+        setDashboard({
+          quizStats: quizStatsRes?.data || null,
+          quizzes: quizListRes?.data?.data || [],
+          courses: Array.isArray(courseRes) ? courseRes : courseRes?.data || [],
+          orders: Array.isArray(orderRes) ? orderRes : orderRes?.data || [],
+        });
+      } catch (err) {
+        console.error(err);
+        setError("Khong tai duoc du lieu dashboard.");
+      } finally {
+        setLoading(false);
+      }
     }
+    load();
+  }, [token]);
+
+  const orders = useMemo(() => (dashboard.orders || []).map((o, i) => ({
+    id: o.orderCode || o.id || `OD-${i + 1}`,
+    customer: o.username || o.fullName || o.customerName || "Hoc vien",
+    amount: Number(o.totalAmount || o.amount || 0),
+    status: o.status || "PENDING",
+    createdAt: o.createdAt || o.created_at || "",
+    items: (o.orderItems || o.items || []).map((item) => ({
+      type: item.itemType || item.type || "OTHER",
+      name: item.course?.title || item.book?.title || item.combo?.name || item.name || "San pham",
+      quantity: item.quantity || item.qty || 1,
+      finalPrice: item.finalPrice || item.price || item.unitPrice || item.discountPrice || item.amount || 0,
+    })),
+  })), [dashboard.orders]);
+
+  const snapshotOrders = orders.filter((o) => inRange(o.createdAt, SNAPSHOT_DAYS));
+  const snapshotQuizzes = (dashboard.quizzes || []).filter((q) => inRange(q.createdAt, SNAPSHOT_DAYS));
+  const snapshotCourses = (dashboard.courses || []).filter((c) => inRange(c.createdAt || c.created_at, SNAPSHOT_DAYS));
+  const chartOrders = orders.filter((o) => inRange(o.createdAt, CHART_DAYS));
+  const previousOrders = orders.filter((o) => {
+    const d = parseDate(o.createdAt);
+    if (!d) return false;
+    const diff = Date.now() - d.getTime();
+    const ms = SNAPSHOT_DAYS * 86400000;
+    return diff > ms && diff <= ms * 2;
+  });
+
+  const totalRevenue = orders.reduce((s, o) => s + o.amount, 0);
+  const typeRevenue = useMemo(() => sumByType(orders), [orders]);
+  const totalCourseUnits = useMemo(() => countUnitsByType(orders, "COURSE"), [orders]);
+  const totalBookUnits = useMemo(() => countUnitsByType(orders, "BOOK"), [orders]);
+  const totalComboUnits = useMemo(() => countUnitsByType(orders, "COMBO"), [orders]);
+  const totalCustomers = useMemo(() => new Set(orders.map((o) => o.customer).filter(Boolean)).size, [orders]);
+  const totalPaidOrders = useMemo(() => orders.filter((o) => o.status === "PAID").length, [orders]);
+  const courseRevenue = typeRevenue.find((x) => x.key === "COURSE")?.amount || 0;
+  const bookRevenue = typeRevenue.find((x) => x.key === "BOOK")?.amount || 0;
+  const comboRevenue = typeRevenue.find((x) => x.key === "COMBO")?.amount || 0;
+  const totalSalesRevenue = courseRevenue + bookRevenue + comboRevenue;
+  const courseShare = totalSalesRevenue > 0 ? (courseRevenue / totalSalesRevenue) * 100 : 0;
+  const bookShare = totalSalesRevenue > 0 ? (bookRevenue / totalSalesRevenue) * 100 : 0;
+  const comboShare = totalSalesRevenue > 0 ? (comboRevenue / totalSalesRevenue) * 100 : 0;
+  const graph = useMemo(() => chartSeries(chartOrders, "6m"), [chartOrders]);
+  const maxGraph = Math.max(...graph.flatMap((i) => [i.COURSE, i.BOOK]), 0);
+  const recentOrders = [...orders].sort((a, b) => (parseDate(b.createdAt)?.getTime() || 0) - (parseDate(a.createdAt)?.getTime() || 0)).slice(0, 5);
+  const recentQuizzes = [...(dashboard.quizzes || [])].sort((a, b) => (parseDate(b.createdAt)?.getTime() || 0) - (parseDate(a.createdAt)?.getTime() || 0)).slice(0, 2);
+  const notifications = [
+    recentOrders[0] ? `Don ${recentOrders[0].id} vua duoc tao` : null,
+    recentQuizzes[0] ? `De thi ${recentQuizzes[0].title} vua cap nhat` : null,
+    `${dashboard.quizStats?.totalPlays || 0} luot lam quiz hien co`,
+  ].filter(Boolean);
+  const feed = [
+    ...recentOrders.slice(0, 3).map((o) => ({ time: fmtDate(o.createdAt), title: `Don hang ${o.id}`, desc: `${o.customer} vua tao don gia tri ${money(o.amount)}.`, tone: "bg-primary" })),
+    ...recentQuizzes.map((q) => ({ time: fmtDate(q.createdAt), title: q.title, desc: `Quiz HSK ${q.hsklevel || "--"} duoc cap nhat voi ${q.totalQuestions || 0} cau.`, tone: "bg-amber-400" })),
+    snapshotCourses[0] ? { time: fmtDate(snapshotCourses[0].createdAt || snapshotCourses[0].created_at), title: snapshotCourses[0].title || "Khoa hoc moi", desc: `Da ghi nhan ${snapshotCourses.length} khoa hoc moi trong 30 ngay gan day.`, tone: "bg-emerald-500" } : null,
+  ].filter(Boolean);
+  const suggestion = (() => {
+    const top = [...typeRevenue].sort((a, b) => b.amount - a.amount)[0];
+    if (!top || top.amount <= 0) return "Chua co du lieu doanh thu mua hang thuc te de dua ra goi y trong luc nay.";
+    if (top.key === "BOOK") return "Doanh thu sach dang dan dau. Ban co the day manh combo sach + de thi thu de tang gia tri don hang.";
+    if (top.key === "COURSE") return "Khoa hoc dang la nhom ban tot nhat. Nen ket hop qua tang sach hoac workbook de tang ty le chot don.";
+    return "Combo dang hoat dong hieu qua. Ban co the mo rong them goi combo HSK cap do cao hon.";
+  })();
+  const handleExport = (range) => {
+    const reportOrders = orders.filter((o) => inRange(o.createdAt, range.days));
+    const reportQuizzes = (dashboard.quizzes || []).filter((q) => inRange(q.createdAt, range.days));
+    exportCsv(range.label, reportOrders, reportQuizzes, sumByType(reportOrders));
+    setShowExportMenu(false);
+  };
+
+  if (loading) {
+    return <div className="flex h-screen overflow-hidden"><AdminSidebar /><main className="flex flex-1 items-center justify-center bg-slate-50"><div className="text-center"><div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-primary" /><p className="text-sm font-semibold text-slate-600">Dang tai dashboard...</p></div></main></div>;
   }
 
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-}, []);
-    return (
-    <>
-        <div className="flex h-screen overflow-hidden">
-          <AdminSidebar />
-<main className="flex-1 flex flex-col overflow-y-auto bg-slate-50 dark:bg-background-dark">
-  
-  {/* Header */}
-  <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 z-10">
-    
-    <div className="flex items-center gap-4 flex-1">
-      <div className="relative w-full max-w-md group">
-        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">
-          search
-        </span>
-        <input
-          type="text"
-          placeholder="Tìm kiếm học viên, đơn hàng, khóa học..."
-          className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border-none focus:ring-2 focus:ring-primary/20 text-sm transition-all"
-        />
-      </div>
-    </div>
-
-    <div className="flex items-center gap-6">
-
-      {/* Language Switch */}
-      <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-full cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-        <span className="material-symbols-outlined text-primary text-xl">
-          language
-        </span>
-        <span className="text-xs font-semibold">VI / 中</span>
-      </div>
-
-      {/* Notifications */}
-     <div className="relative" ref={notiRef}>
-  {/* Icon */}
-  <div
-    onClick={() => setShowNoti(!showNoti)}
-    className="relative cursor-pointer group"
-  >
-    <span className="material-symbols-outlined text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">
-      notifications
-    </span>
-
-    <span className="absolute -top-1 -right-1 size-4 bg-red-500 text-[10px] text-white flex items-center justify-center rounded-full font-bold border-2 border-white dark:border-slate-900">
-      4
-    </span>
-  </div>
-
-  {/* Dropdown */}
-  {showNoti && (
-    <div className="absolute right-0 mt-4 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 animate-fadeIn">
-      
-      {/* Header */}
-      <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-        <h4 className="font-bold text-sm">Thông báo</h4>
-        <button className="text-xs text-primary font-semibold hover:underline">
-          Đánh dấu đã đọc
-        </button>
-      </div>
-
-      {/* List */}
-      <div className="max-h-80 overflow-y-auto">
-
-        {/* Item */}
-        <div className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer border-b border-slate-100 dark:border-slate-800">
-          <p className="text-sm font-medium">
-            Nguyễn An đã mua khóa học HSK 4
-          </p>
-          <p className="text-xs text-slate-400 mt-1">2 phút trước</p>
-        </div>
-
-        <div className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer border-b border-slate-100 dark:border-slate-800">
-          <p className="text-sm font-medium">
-            Có đơn hàng mới #TX9827
-          </p>
-          <p className="text-xs text-slate-400 mt-1">10 phút trước</p>
-        </div>
-
-        <div className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
-          <p className="text-sm font-medium">
-            Học viên vừa hoàn thành bài thi
-          </p>
-          <p className="text-xs text-slate-400 mt-1">1 giờ trước</p>
-        </div>
-
-      </div>
-
-      {/* Footer */}
-      <div className="p-3 text-center border-t border-slate-200 dark:border-slate-800">
-        <button className="text-primary text-sm font-semibold hover:underline">
-          Xem tất cả thông báo
-        </button>
-      </div>
-
-    </div>
-  )}
-</div>
-
-      <div className="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
-
-      {/* User */}
-      <div className="flex items-center gap-3 cursor-pointer group">
-        <div className="text-right">
-          <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
-            Minh TOXI
-          </p>
-          <p className="text-[10px] text-slate-500 dark:text-slate-400">
-            Super Admin
-          </p>
-        </div>
-        <span className="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">
-          expand_more
-        </span>
-      </div>
-
-    </div>
-  </header>
-
-  {/* Dashboard Content */}
-  <div className="flex-1 overflow-y-auto p-8">
-
-    {/* Title */}
-    <div className="flex items-center justify-between mb-8">
-      <div>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-          Tổng quan hệ thống
-        </h2>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">
-          Chào mừng trở lại! Hôm nay hệ thống có 152 lượt truy cập mới.
-        </p>
-      </div>
-
-      <div className="flex gap-3">
-        <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors">
-          <span className="material-symbols-outlined text-sm">
-            calendar_month
-          </span>
-          7 ngày qua
-        </button>
-
-        <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
-          <span className="material-symbols-outlined text-sm">
-            download
-          </span>
-          Xuất báo cáo
-        </button>
-      </div>
-    </div>
-
-    {/* KPI Cards */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-
-      {/* Revenue */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
-        <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform">
-          <span className="material-symbols-outlined text-9xl text-primary">
-            cloud
-          </span>
-        </div>
-
-        <div className="flex justify-between items-start mb-4">
-          <div className="p-2 bg-primary/10 rounded-lg text-primary">
-            <span className="material-symbols-outlined">
-              monetization_on
-            </span>
-          </div>
-
-          <span className="text-green-500 text-xs font-bold flex items-center gap-1">
-            <span className="material-symbols-outlined text-xs">
-              trending_up
-            </span>
-            +12.5%
-          </span>
-        </div>
-
-        <p className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">
-          Tổng doanh thu
-        </p>
-
-        <h3 className="text-3xl font-bold text-accent-yellow drop-shadow-sm">
-          $125,400
-        </h3>
-      </div>
-
-      {/* New Students */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
-        <div className="flex justify-between items-start mb-4">
-          <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
-            <span className="material-symbols-outlined">
-              person_add
-            </span>
-          </div>
-
-          <span className="text-red-500 text-xs font-bold flex items-center gap-1">
-            <span className="material-symbols-outlined text-xs">
-              trending_down
-            </span>
-            -2.1%
-          </span>
-        </div>
-
-        <p className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">
-          Học viên mới
-        </p>
-
-        <h3 className="text-3xl font-bold text-accent-yellow">
-          1,240
-        </h3>
-      </div>
-
-      {/* Courses Sold */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
-        <div className="flex justify-between items-start mb-4">
-          <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
-            <span className="material-symbols-outlined">
-              auto_stories
-            </span>
-          </div>
-
-          <span className="text-green-500 text-xs font-bold flex items-center gap-1">
-            <span className="material-symbols-outlined text-xs">
-              trending_up
-            </span>
-            +5.4%
-          </span>
-        </div>
-
-        <p className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">
-          Khóa học đã bán
-        </p>
-
-        <h3 className="text-3xl font-bold text-accent-yellow">
-          856
-        </h3>
-      </div>
-
-      {/* Completion Rate */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
-        <div className="flex justify-between items-start mb-4">
-          <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
-            <span className="material-symbols-outlined">
-              checklist
-            </span>
-          </div>
-
-          <span className="text-green-500 text-xs font-bold flex items-center gap-1">
-            <span className="material-symbols-outlined text-xs">
-              trending_up
-            </span>
-            +0.8%
-          </span>
-        </div>
-
-        <p className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">
-          Hoàn thành bài học
-        </p>
-
-        <h3 className="text-3xl font-bold text-accent-yellow">
-          78.2%
-        </h3>
-      </div>
-
-    </div>
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm mb-8">
-  
-  {/* Header */}
-  <div className="flex items-center justify-between mb-6">
-    <div>
-      <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-        Tăng trưởng học viên & Doanh thu
-      </h3>
-      <p className="text-slate-500 text-xs">
-        Dữ liệu thống kê trong 6 tháng gần nhất
-      </p>
-    </div>
-
-    <div className="flex gap-4">
-      <div className="flex items-center gap-2">
-        <div className="size-3 rounded-full bg-primary"></div>
-        <span className="text-xs text-slate-600 dark:text-slate-400">
-          Doanh thu
-        </span>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <div className="size-3 rounded-full bg-accent-yellow"></div>
-        <span className="text-xs text-slate-600 dark:text-slate-400">
-          Học viên
-        </span>
-      </div>
-    </div>
-  </div>
-
-  {/* Fake Chart */}
-  <div className="h-72 w-full flex items-end gap-1 px-4">
-
-    {/* Month 1 */}
-    <div className="flex-1 flex flex-col items-center group">
-      <div className="w-full flex justify-center gap-1">
-        <div
-          className="w-4 bg-primary rounded-t group-hover:brightness-110 transition-all"
-          style={{ height: "120px" }}
-        ></div>
-        <div
-          className="w-4 bg-accent-yellow rounded-t group-hover:brightness-110 transition-all"
-          style={{ height: "80px" }}
-        ></div>
-      </div>
-      <span className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-        Tháng 1
-      </span>
-    </div>
-
-    {/* Month 2 */}
-    <div className="flex-1 flex flex-col items-center group">
-      <div className="w-full flex justify-center gap-1">
-        <div
-          className="w-4 bg-primary rounded-t group-hover:brightness-110 transition-all"
-          style={{ height: "140px" }}
-        ></div>
-        <div
-          className="w-4 bg-accent-yellow rounded-t group-hover:brightness-110 transition-all"
-          style={{ height: "110px" }}
-        ></div>
-      </div>
-      <span className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-        Tháng 2
-      </span>
-    </div>
-
-    {/* Month 3 */}
-    <div className="flex-1 flex flex-col items-center group">
-      <div className="w-full flex justify-center gap-1">
-        <div
-          className="w-4 bg-primary rounded-t group-hover:brightness-110 transition-all"
-          style={{ height: "180px" }}
-        ></div>
-        <div
-          className="w-4 bg-accent-yellow rounded-t group-hover:brightness-110 transition-all"
-          style={{ height: "150px" }}
-        ></div>
-      </div>
-      <span className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-        Tháng 3
-      </span>
-    </div>
-
-    {/* Month 4 */}
-    <div className="flex-1 flex flex-col items-center group">
-      <div className="w-full flex justify-center gap-1">
-        <div
-          className="w-4 bg-primary rounded-t group-hover:brightness-110 transition-all"
-          style={{ height: "220px" }}
-        ></div>
-        <div
-          className="w-4 bg-accent-yellow rounded-t group-hover:brightness-110 transition-all"
-          style={{ height: "190px" }}
-        ></div>
-      </div>
-      <span className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-        Tháng 4
-      </span>
-    </div>
-
-    {/* Month 5 */}
-    <div className="flex-1 flex flex-col items-center group">
-      <div className="w-full flex justify-center gap-1">
-        <div
-          className="w-4 bg-primary rounded-t group-hover:brightness-110 transition-all"
-          style={{ height: "190px" }}
-        ></div>
-        <div
-          className="w-4 bg-accent-yellow rounded-t group-hover:brightness-110 transition-all"
-          style={{ height: "160px" }}
-        ></div>
-      </div>
-      <span className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-        Tháng 5
-      </span>
-    </div>
-
-    {/* Month 6 */}
-    <div className="flex-1 flex flex-col items-center group">
-      <div className="w-full flex justify-center gap-1">
-        <div
-          className="w-4 bg-primary rounded-t group-hover:brightness-110 transition-all"
-          style={{ height: "240px" }}
-        ></div>
-        <div
-          className="w-4 bg-accent-yellow rounded-t group-hover:brightness-110 transition-all"
-          style={{ height: "210px" }}
-        ></div>
-      </div>
-      <span className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-        Tháng 6
-      </span>
-    </div>
-
-  </div>
-</div>
-{/* Tables Grid */}
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-  {/* Latest Orders */}
-  <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-    
-    <div className="p-6 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
-      <h3 className="font-bold text-slate-900 dark:text-white">
-        Đơn hàng mới nhất
-      </h3>
-      <button className="text-primary text-xs font-bold hover:underline">
-        Xem tất cả
-      </button>
-    </div>
-
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm text-left">
-        
-        <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs uppercase tracking-wider">
-          <tr>
-            <th className="px-6 py-4">Mã đơn</th>
-            <th className="px-6 py-4">Học viên</th>
-            <th className="px-6 py-4">Sản phẩm</th>
-            <th className="px-6 py-4">Số tiền</th>
-            <th className="px-6 py-4">Trạng thái</th>
-          </tr>
-        </thead>
-
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-
-          <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-            <td className="px-6 py-4 font-mono text-xs">#TX9823</td>
-            <td className="px-6 py-4 font-medium">Nguyễn An</td>
-            <td className="px-6 py-4 text-slate-500">HSK 4 Online</td>
-            <td className="px-6 py-4 font-bold text-primary">$45.00</td>
-            <td className="px-6 py-4">
-              <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-[10px] font-bold uppercase">
-                Đã xử lý
-              </span>
-            </td>
-          </tr>
-
-          <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-            <td className="px-6 py-4 font-mono text-xs">#TX9824</td>
-            <td className="px-6 py-4 font-medium">Trần Bích</td>
-            <td className="px-6 py-4 text-slate-500">Sách Từ vựng HSK</td>
-            <td className="px-6 py-4 font-bold text-primary">$12.50</td>
-            <td className="px-6 py-4">
-              <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-[10px] font-bold uppercase">
-                Đang chờ
-              </span>
-            </td>
-          </tr>
-
-          <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-            <td className="px-6 py-4 font-mono text-xs">#TX9825</td>
-            <td className="px-6 py-4 font-medium">Lê Nam</td>
-            <td className="px-6 py-4 text-slate-500">Combo Tiếng Trung</td>
-            <td className="px-6 py-4 font-bold text-primary">$89.00</td>
-            <td className="px-6 py-4">
-              <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-[10px] font-bold uppercase">
-                Đã xử lý
-              </span>
-            </td>
-          </tr>
-
-          <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-            <td className="px-6 py-4 font-mono text-xs">#TX9826</td>
-            <td className="px-6 py-4 font-medium">Vũ Hà</td>
-            <td className="px-6 py-4 text-slate-500">HSK 5 Nâng cao</td>
-            <td className="px-6 py-4 font-bold text-primary">$55.00</td>
-            <td className="px-6 py-4">
-              <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-[10px] font-bold uppercase">
-                Đã hủy
-              </span>
-            </td>
-          </tr>
-
-        </tbody>
-      </table>
-    </div>
-  </div>
-   <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-      
-      {/* Header */}
-      <div className="p-6 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
-        <h3 className="font-bold text-slate-900 dark:text-white">
-          Học viên vừa đăng ký
-        </h3>
-        <button className="text-primary text-xs font-bold hover:underline">
-          Xem tất cả
-        </button>
-      </div>
-
-      {/* Content */}
-      <div className="p-6 space-y-6">
-
-        {/* Item 1 */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="size-10 rounded-full overflow-hidden bg-slate-100">
-              <img
-                className="w-full h-full object-cover"
-                alt="Thùy Dương"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3iLrO6FaIO-QSnYx8RIfEFe6SZA55lg8H8aC1n45gekPu9oTCD9mqGTbdPVX5vZZoNZ_BAg72vHiqETG5RXD-JoRkvNcOrMpsJVGpELt3u8W9rN2jA-H8yFpWc0UagU8DHX5oFInr4c0Nh16F8EHCY_3zfkcD7F_pQSmYw-qvpuK_K-2hUjUJZnrLiVMUB4LxK4sr46FLgQtEMhy8-LXtAH4qFFXEd2KgTApu2mhZ3gT-SBniMgfJc6c8rT3W-lJprmFA73pTK7o"
-              />
+  return (
+    <div className="flex h-screen overflow-hidden bg-slate-100">
+      <AdminSidebar />
+      <main className="flex flex-1 overflow-hidden bg-slate-100">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <header className="z-10 flex h-20 items-center justify-between border-b border-slate-200 bg-white px-10 shadow-sm">
+            <div className="flex flex-1 items-center gap-4">
+              <div className="group relative w-full max-w-lg">
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary">search</span>
+                <input type="text" placeholder="Tim kiem hoc vien, don hang, khoa hoc..." className="w-full rounded-2xl border border-transparent bg-slate-100 py-3 pl-12 pr-4 text-sm transition-all focus:border-primary/20 focus:bg-white focus:ring-4 focus:ring-primary/5" />
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-bold text-slate-900 dark:text-white">
-                Thùy Dương
-              </p>
-              <p className="text-[10px] text-slate-500">
-                Khóa học HSK 1 - 2 giờ trước
-              </p>
+            <div className="flex items-center gap-8">
+              <div className="group flex cursor-pointer items-center gap-2 rounded-full bg-slate-100 px-4 py-2 transition-all hover:bg-primary hover:text-white"><span className="material-symbols-outlined text-xl text-primary group-hover:text-white">language</span><span className="text-xs font-bold">VI / 中</span></div>
+             
+              <div className="h-10 w-px bg-slate-200" />
+              <div className="flex cursor-pointer items-center gap-3"><div className="text-right"><p className="text-sm font-bold text-slate-900">Admin TOXI</p><p className="text-[11px] font-medium text-slate-500">Super Admin</p></div><span className="material-symbols-outlined text-slate-400">expand_more</span></div>
+            </div>
+          </header>
+
+          <div className="flex-1 overflow-y-auto p-10">
+            <div className="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+              <div>
+                <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">Tong quan he thong</h2>
+                <div className="mt-2 flex items-center gap-2"><span className="size-2 rounded-full bg-green-500 animate-pulse" /><p className="text-sm font-medium text-slate-500">{error || `He thong dang hoat dong on dinh. ${orders.length} don hang, ${totalCourseUnits} khoa hoc va ${totalBookUnits} sach da duoc ghi nhan.`}</p></div>
+              </div>
+              <div className="flex gap-4">
+                <div className="relative" ref={exportRef}>
+                  <button type="button" onClick={() => setShowExportMenu((v) => !v)} className="flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95"><span className="material-symbols-outlined text-xl">download</span>Xuat bao cao<span className="material-symbols-outlined text-base">expand_more</span></button>
+                  {showExportMenu ? <div className="absolute right-0 top-14 z-40 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">{REPORT_RANGES.map((range) => <button key={range.value} type="button" onClick={() => handleExport(range)} className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"><span>Bao cao {range.label}</span><span className="material-symbols-outlined text-base text-slate-400">download</span></button>)}</div> : null}
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+              <Card icon="payments" label="Tổng doanh thu" value={money(totalRevenue)} delta={null} toneData={{ iconWrap: "bg-primary/10", icon: "text-primary", progress: "bg-primary" }} footer={{ left: "Toan thoi gian", right: `${orders.length} don`, progress: "100%" }} />
+              <Card icon="school" label="Doanh thu Khóa học" value={money(courseRevenue)} delta={null} toneData={tone("COURSE")} footer={{ left: "Tong khoa hoc da ban", right: `${totalCourseUnits} khoa hoc`, progress: `${Math.max(courseShare, totalSalesRevenue > 0 ? 8 : 0)}%` }} />
+              <Card icon="auto_stories" label="Doanh thu Sách" value={money(bookRevenue)} delta={null} toneData={tone("BOOK")} footer={{ left: "Tong sach da ban", right: `${totalBookUnits} quyen`, progress: `${Math.max(bookShare, totalSalesRevenue > 0 ? 8 : 0)}%` }} />
+              <Card icon="person_add" label="Tổng học viên" value={totalCustomers} delta={null} toneData={{ iconWrap: "bg-emerald-100", icon: "text-emerald-600", progress: "bg-emerald-500" }} footer={{ left: "Khach hang da mua", right: `${totalPaidOrders} don`, progress: `${Math.max(comboShare || Math.min(totalCustomers * 5, 100), totalPaidOrders > 0 ? 8 : 0)}%` }} />
+            </div>
+
+            <div className="mb-10 rounded-3xl border border-slate-100 bg-white p-10 shadow-sm">
+              <div className="mb-12 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+                <div className="flex items-center gap-5"><div className="flex size-14 items-center justify-center rounded-2xl bg-primary/5"><span className="material-symbols-outlined text-3xl text-primary">analytics</span></div><div><h3 className="text-2xl font-bold text-slate-900">So sanh doanh thu</h3><p className="mt-1 text-sm font-medium text-slate-500">Ty trong giua Khoa hoc va Sach trong 6 thang gan day</p></div></div>
+                <div className="flex gap-4 rounded-2xl bg-slate-50 p-1.5"><div className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-white px-4 py-2 shadow-sm"><div className="size-3.5 rounded-full bg-gradient-to-b from-blue-600 to-sky-400" /><span className="text-xs font-bold text-slate-700">Doanh thu Khoa hoc</span></div><div className="flex items-center gap-2.5 px-4 py-2"><div className="size-3.5 rounded-full bg-gradient-to-b from-amber-500 to-yellow-300" /><span className="text-xs font-bold text-slate-500">Sach va san pham</span></div></div>
+              </div>
+              {graph.length === 0 || maxGraph === 0 ? (
+                <div className="mt-8 flex h-[260px] items-center justify-center rounded-3xl bg-slate-50 text-sm font-semibold text-slate-400">
+                  Chua co du lieu doanh thu trong khoang thoi gian nay.
+                </div>
+              ) : (
+                <div className="relative mt-8 h-[400px] w-full">
+                  <div className="pointer-events-none absolute inset-0 flex flex-col justify-between">{[100, 75, 50, 25, 0].map((l) => <div key={l} className="relative h-px w-full border-t border-slate-100"><span className="absolute -left-10 -top-2 text-[10px] font-bold text-slate-400">{l}%</span></div>)}</div>
+                  <div className="absolute inset-0 flex items-end justify-around gap-4 px-2">
+                    {graph.map((g) => {
+                      const cH = `${Math.max((g.COURSE / maxGraph) * 100, g.COURSE > 0 ? 8 : 0)}%`;
+                      const bH = `${Math.max((g.BOOK / maxGraph) * 100, g.BOOK > 0 ? 8 : 0)}%`;
+                      return (
+                        <div key={g.key} className="flex h-full max-w-[88px] flex-1 flex-col items-center justify-end">
+                          <div className="flex w-full items-end justify-center gap-2">
+                            <div className="group relative w-1/3"><div className="absolute -top-10 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-primary px-2 py-1 text-[10px] font-bold text-white group-hover:block">{money(g.COURSE)}</div><div className="w-full rounded-t-xl bg-gradient-to-b from-blue-600 to-sky-400 shadow-xl shadow-blue-500/15 transition-all duration-500 group-hover:scale-y-105" style={{ height: cH }} /></div>
+                            <div className="group relative w-1/3"><div className="absolute -top-10 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-amber-500 px-2 py-1 text-[10px] font-bold text-white group-hover:block">{money(g.BOOK)}</div><div className="w-full rounded-t-xl bg-gradient-to-b from-amber-500 to-yellow-300 shadow-xl shadow-amber-500/15 transition-all duration-500 group-hover:scale-y-105" style={{ height: bH }} /></div>
+                          </div>
+                          <span className="mt-6 text-[11px] font-bold uppercase tracking-wider text-slate-500">{g.label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mb-10 overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-slate-50 p-8"><div><h3 className="text-xl font-bold text-slate-900">Don hang va dang ky gan day</h3><p className="mt-1 text-sm font-medium text-slate-500">Theo doi cac giao dich moi nhat trong he thong</p></div><Link to="/admin/orders" className="rounded-xl bg-slate-50 px-6 py-2.5 text-sm font-bold text-primary transition-all hover:bg-primary hover:text-white">Xem tat ca</Link></div>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[860px] text-left text-sm">
+                  <thead className="bg-slate-50/60 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400"><tr><th className="px-8 py-5">Ma don</th><th className="px-8 py-5">Hoc vien</th><th className="px-8 py-5">Loai hinh</th><th className="px-8 py-5">San pham</th><th className="px-8 py-5 text-right">Gia tri</th><th className="px-8 py-5 text-center">Trang thai</th></tr></thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {recentOrders.length === 0 ? <tr><td colSpan={6} className="px-8 py-10 text-center text-sm text-slate-400">Chua co don hang de hien thi.</td></tr> : recentOrders.map((o) => {
+                      const t = tone(o.items[0]?.type === "BOOK" ? "BOOK" : o.items[0]?.type === "COMBO" ? "COMBO" : "COURSE");
+                      return <tr key={o.id} className="cursor-pointer transition-all hover:bg-slate-50/80"><td className="px-8 py-5 font-mono text-xs font-bold text-primary">#{o.id}</td><td className="px-8 py-5 font-bold text-slate-700">{o.customer}</td><td className="px-8 py-5"><span className={`rounded-lg border px-2.5 py-1 text-[10px] font-bold uppercase ${t.pill}`}>{t.label}</span></td><td className="px-8 py-5 font-medium text-slate-600">{o.items.map((i) => i.name).join(", ") || "--"}</td><td className="px-8 py-5 text-right font-extrabold text-slate-900">{money(o.amount)}</td><td className="px-8 py-5"><div className="flex justify-center"><span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase text-slate-600">{o.status}</span></div></td></tr>;
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-          <button className="p-1.5 text-slate-400 hover:text-primary transition-colors">
-            <span className="material-symbols-outlined text-lg">
-              more_vert
-            </span>
-          </button>
         </div>
 
-        {/* Item 2 */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="size-10 rounded-full overflow-hidden bg-slate-100">
-              <img
-                className="w-full h-full object-cover"
-                alt="Hoàng Minh"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8J3zL1tgAu7v7KeMIRzdSEx3Wsv1vlxSMDkjIoFUFVv0vgqe4irfBBnPcFnXmVQ9LYJFDza-4aL4coe7lRKb16suuzwwyzqQE1kEtwetG3GLCUKuAFNSUeWutA6Gub5rSntI_GTIkL3DB3HgvDjqjrRowK9DvMX1z3mnKaC4PeeliDWAVEXn5r1FbJoHnz1AwWKwCeylbrwQqpzc2cO8RSk4rNIWCmyvNbbJ83C-PAQMT8knZk5o_1TtpzG3eln_sv3T5_YcLqXo"
-              />
+        <aside className="hidden w-[360px] border-l border-slate-200 bg-white 2xl:flex 2xl:flex-col">
+          <div className="border-b border-slate-100 p-8">
+            <h3 className="text-2xl font-extrabold tracking-tight text-slate-900">Hoat dong he thong</h3>
+            <p className="mt-1 text-sm font-medium text-slate-500">Cap nhat truc tiep tu du lieu hien co</p>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-8">
+            <div className="space-y-4">
+              {feed.length === 0 ? (
+                <div className="rounded-3xl border border-slate-100 bg-slate-50 p-6 text-sm text-slate-400">
+                  Chua co hoat dong nao trong khoang thoi gian nay.
+                </div>
+              ) : (
+                feed.map((f, i) => (
+                  <div key={`${f.title}-${i}`} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+                    <div className="mb-3 flex items-start gap-3">
+                      <div className={`mt-1 h-3 w-3 rounded-full ${f.tone}`} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">{f.time}</p>
+                        <p className="mt-1 text-lg font-bold leading-tight text-slate-900">{f.title}</p>
+                      </div>
+                    </div>
+                    <p className="text-sm leading-7 text-slate-600">{f.desc}</p>
+                  </div>
+                ))
+              )}
             </div>
-            <div>
-              <p className="text-sm font-bold text-slate-900 dark:text-white">
-                Hoàng Minh
-              </p>
-              <p className="text-[10px] text-slate-500">
-                Khóa học HSK 3 - 5 giờ trước
-              </p>
+
+            <div className="relative mt-8 overflow-hidden rounded-3xl border border-primary/10 bg-primary/5 p-8">
+              <div className="absolute -right-6 -top-6 opacity-5">
+                <span className="material-symbols-outlined text-[100px] text-primary">psychology</span>
+              </div>
+              <div className="mb-4 flex items-center gap-2">
+                <span className="material-symbols-outlined text-xl text-primary">auto_awesome</span>
+                <h4 className="text-sm font-bold uppercase tracking-wider text-primary">Loi khuyen AI</h4>
+              </div>
+              <p className="text-sm leading-7 text-slate-600">{suggestion}</p>
+              <button className="mt-6 w-full rounded-xl bg-primary py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:brightness-110">
+                Ap dung ngay
+              </button>
+            </div>
+
+            <div className="mt-8 rounded-3xl border border-slate-100 bg-slate-50 p-6">
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">Chi so nhanh</p>
+              <div className="mt-4 space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500">Tong luot lam quiz</span>
+                  <span className="font-black text-slate-900">{dashboard.quizStats?.totalPlays || 0}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500">De thi cong khai</span>
+                  <span className="font-black text-slate-900">{dashboard.quizStats?.activeQuizzes || 0}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500">Tong khoa hoc da ban</span>
+                  <span className="font-black text-slate-900">{totalCourseUnits}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500">Tong sach da ban</span>
+                  <span className="font-black text-slate-900">{totalBookUnits}</span>
+                </div>
+              </div>
             </div>
           </div>
-          <button className="p-1.5 text-slate-400 hover:text-primary transition-colors">
-            <span className="material-symbols-outlined text-lg">
-              more_vert
-            </span>
-          </button>
-        </div>
-
-        {/* Item 3 */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="size-10 rounded-full overflow-hidden bg-slate-100">
-              <img
-                className="w-full h-full object-cover"
-                alt="Lan Khuê"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2EDScMJLu96h43fCSGQAabwf-GGG6vGwq0KiS8uu3iftWpa9V6MgfIPf01tRYhIexQfiEL9vONdVV8UFUFED7wTNH5cjieMK92wKwzB6sM2MEWnA094bahhnNjGfc-zFRVGVyLEa3WNkp0WYQjTnit-w4MxCsvXBbunIQr0prqBGPnWR6WcTfOyrhtAefapEyOf1tJKMgGolkkUbcsqhWvBId3g2C8mCdKFUJ-Y2V4wSfG_jH7estpx1ZaXBSX65dmEm9fQ-WNvc"
-              />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-slate-900 dark:text-white">
-                Lan Khuê
-              </p>
-              <p className="text-[10px] text-slate-500">
-                Khóa học Giao tiếp - 8 giờ trước
-              </p>
-            </div>
-          </div>
-          <button className="p-1.5 text-slate-400 hover:text-primary transition-colors">
-            <span className="material-symbols-outlined text-lg">
-              more_vert
-            </span>
-          </button>
-        </div>
-
-        {/* Item 4 */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="size-10 rounded-full overflow-hidden bg-slate-100">
-              <img
-                className="w-full h-full object-cover"
-                alt="Thành Vinh"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuASHc530IcU5o4s3hb7TaWQVHj_eFbJJ1qN2-2M9NjmQ4euwInhkq7z8EccLZI7GPB1b6v_Gm7Z9XJ07ZQsOXGFiv8EWd_A8hAgdhi11xCc56xKwUV8Zl9_tU39WfIMSokrclwn31JPx2UcIVL0HjU1ZLc0bCYMsKbsBY0PvW5Zi-ZLPF2rdKpAQLSg2Vw6OXb72jY9au4ZeXKdZztTwwycMJ5SI-SXUliI8tOPPbR8X03ocBQsPbGWR77O5H70hsomRFTI0LurP8Q"
-              />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-slate-900 dark:text-white">
-                Thành Vinh
-              </p>
-              <p className="text-[10px] text-slate-500">
-                HSK 6 Cấp tốc - 12 giờ trước
-              </p>
-            </div>
-          </div>
-          <button className="p-1.5 text-slate-400 hover:text-primary transition-colors">
-            <span className="material-symbols-outlined text-lg">
-              more_vert
-            </span>
-          </button>
-        </div>
-
-      </div>
+        </aside>
+      </main>
     </div>
-
-</div>
-  </div>
-</main>
-<aside className="w-80 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 hidden xl:flex flex-col">
-      
-      {/* Header */}
-      <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-        <h3 className="font-bold text-slate-900 dark:text-white">
-          Hoạt động hệ thống
-        </h3>
-      </div>
-
-      {/* Content */}
-      <div className="p-6 flex-1 overflow-y-auto">
-
-        <div className="relative space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-slate-200 dark:before:bg-slate-800">
-
-          {/* Activity 1 */}
-          <div className="relative pl-8">
-            <div className="absolute left-0 top-1.5 size-[22px] bg-primary rounded-full border-4 border-white dark:border-slate-900 z-10"></div>
-            <p className="text-xs text-slate-500 mb-1">10:45 AM - Hôm nay</p>
-            <p className="text-sm font-medium text-slate-900 dark:text-white">
-              Khóa học{" "}
-              <span className="text-primary font-bold">
-                HSK 4 Online
-              </span>{" "}
-              đã được cập nhật nội dung bài tập mới.
-            </p>
-          </div>
-
-          {/* Activity 2 */}
-          <div className="relative pl-8">
-            <div className="absolute left-0 top-1.5 size-[22px] bg-accent-yellow rounded-full border-4 border-white dark:border-slate-900 z-10"></div>
-            <p className="text-xs text-slate-500 mb-1">
-              09:12 AM - Hôm nay
-            </p>
-            <p className="text-sm font-medium text-slate-900 dark:text-white">
-              Học viên <span className="font-bold">Hữu Nghĩa</span> đã hoàn
-              thành bài thi thử HSK 3 đạt 280/300.
-            </p>
-          </div>
-
-          {/* Activity 3 */}
-          <div className="relative pl-8">
-            <div className="absolute left-0 top-1.5 size-[22px] bg-emerald-500 rounded-full border-4 border-white dark:border-slate-900 z-10"></div>
-            <p className="text-xs text-slate-500 mb-1">Hôm qua</p>
-            <p className="text-sm font-medium text-slate-900 dark:text-white">
-              Hệ thống đã tự động gửi báo cáo doanh thu tuần cho Admin.
-            </p>
-          </div>
-
-          {/* Activity 4 */}
-          <div className="relative pl-8">
-            <div className="absolute left-0 top-1.5 size-[22px] bg-primary rounded-full border-4 border-white dark:border-slate-900 z-10"></div>
-            <p className="text-xs text-slate-500 mb-1">Hôm qua</p>
-            <p className="text-sm font-medium text-slate-900 dark:text-white">
-              Thêm mới 12 bài viết Blog về chủ đề "Văn hóa Trung Hoa".
-            </p>
-          </div>
-
-        </div>
-
-        {/* AI Suggestion */}
-        <div className="mt-12 bg-primary/5 rounded-xl p-6 border border-primary/10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-16 h-16 opacity-10">
-            <span className="material-symbols-outlined text-6xl text-primary">
-              auto_graph
-            </span>
-          </div>
-          <h4 className="font-bold text-primary text-sm mb-2">
-            Lời khuyên AI
-          </h4>
-          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Dựa trên dữ liệu 7 ngày qua, lượng người dùng quan tâm đến{" "}
-            <b>Khóa học Giao tiếp</b> đang tăng 15%. Bạn nên xem xét chạy
-            chiến dịch khuyến mãi cho khóa học này.
-          </p>
-        </div>
-
-      </div>
-    </aside>
-        </div>
-    </>
-    )
-};
+  );
+}

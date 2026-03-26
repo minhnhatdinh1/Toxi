@@ -40,7 +40,7 @@ import AdminProduct from './Layouts/admin/AdminProduct.jsx';
 
 
 
-import AdminQuiz from "./Layouts/admin/Adminquiz";
+import AdminQuiz from "./Layouts/admin/AdminQuiz";
 import AdminStudent from './Layouts/admin/AdminStudent.jsx';
 import AdminFinance from './Layouts/admin/AdminFinance.jsx';
 import AdminAddNewCourses from './Layouts/admin/AdminAddNewCourses.jsx';
@@ -167,6 +167,7 @@ function App() {
       <Route path="/admin/products/edit/:id" element={<AdminRoute><AdminEditProduct /></AdminRoute>} />
       <Route path="/adminEditStudent/:id" element={<AdminRoute><AdminEditStudent /></AdminRoute>} />
         <Route path="/admin/blog/add" element={<AdminRoute><AdminAddNewBlog /></AdminRoute>} />
+        <Route path="/admin/blog/edit/:id" element={<AdminRoute><AdminAddNewBlog /></AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
       <Route path="/admin/editTeacher/:id" element={<AdminRoute><AdminEditTeacher /></AdminRoute>} />
          <Route path="/adminaddnewquiz" element={<AdminRoute><AdminAddNewQuiz /></AdminRoute>} />

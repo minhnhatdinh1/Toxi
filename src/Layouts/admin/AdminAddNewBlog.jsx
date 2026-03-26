@@ -1,343 +1,307 @@
-import react from "react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
-export default function AdminAddNewBlog(){
-     const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+import { uploadImage } from "./api/apiFile";
+import {
+  createAdminBlog,
+  fetchAdminBlogById,
+  updateAdminBlog,
+} from "./api/apiBlog";
 
-  const wordCount = content
-    .trim()
-    .split(/\s+/)
-    .filter((word) => word.length > 0).length;
+const INPUT_CLS =
+  "w-full rounded-lg border border-slate-200 bg-white p-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15";
 
-  const handleContentChange = (e) => {
-    setContent(e.target.innerText);
-  };
-   const [status, setStatus] = useState("DRAFT"); 
-  // DRAFT | PUBLISHED
+export default function AdminAddNewBlog() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isEdit = Boolean(id);
 
-  const handleSaveDraft = () => {
-    setStatus("DRAFT");
-    console.log("Saved as draft");
-  };
+  const [form, setForm] = useState({
+    title: "",
+    category: "",
+    summary: "",
+    content: "",
+    status: "DRAFT",
+    thumbnail: "",
+    galleryImages: [],
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(isEdit);
+  const [error, setError] = useState("");
 
-  const handlePublish = () => {
-    setStatus("PUBLISHED");
-    console.log("Post published");
-  };
- const [categories, setCategories] = useState([
-    { id: 1, name: "Ngữ pháp cơ bản", checked: false },
-    { id: 2, name: "Từ vựng HSK", checked: false },
-    { id: 3, name: "Văn hóa Trung Hoa", checked: false },
-    { id: 4, name: "Kinh nghiệm học tập", checked: false },
-  ]);
+  useEffect(() => {
+    if (!isEdit) return;
 
-  const [newCategory, setNewCategory] = useState("");
-  const [thumbnail, setThumbnail] = useState(null);
-
-  // Toggle checkbox
-  const handleToggleCategory = (id) => {
-    setCategories((prev) =>
-      prev.map((cat) =>
-        cat.id === id ? { ...cat, checked: !cat.checked } : cat
-      )
-    );
-  };
-
-  // Add new category
-  const handleAddCategory = () => {
-    if (!newCategory.trim()) return;
-
-    const newItem = {
-      id: Date.now(),
-      name: newCategory,
-      checked: true,
-    };
-
-    setCategories([...categories, newItem]);
-    setNewCategory("");
-  };
-
-  // Upload image
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      alert("Ảnh vượt quá 2MB!");
-      return;
+    async function loadBlog() {
+      try {
+        setLoading(true);
+        setError("");
+        const blog = await fetchAdminBlogById(id);
+        setForm({
+          title: blog.title || "",
+          category: blog.category || "",
+          summary: blog.description || "",
+          content: blog.content || "",
+          status: blog.status || "DRAFT",
+          thumbnail: blog.raw?.thumbnail || blog.image || "",
+          galleryImages: blog.raw?.galleryImages || blog.galleryImages || [],
+        });
+      } catch (err) {
+        console.error(err);
+        setError("Không tải được bài viết để chỉnh sửa.");
+      } finally {
+        setLoading(false);
+      }
     }
 
-    setThumbnail(URL.createObjectURL(file));
+    loadBlog();
+  }, [id, isEdit]);
+
+  const wordCount = useMemo(
+    () => form.content.trim().split(/\s+/).filter(Boolean).length,
+    [form.content]
+  );
+
+  const setField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const uploaded = await uploadImage(file);
+      setField("thumbnail", uploaded);
+    } catch (err) {
+      console.error(err);
+      setError("Không tải được ảnh thumbnail.");
+    }
   };
-    return(
-        <>
-         <div className="flex h-screen overflow-hidden ">
-                    <AdminSidebar />
- <main className="flex-1  bg-slate-50 dark:bg-background-dark min-h-screen p-8 overflow-y-auto">
-      
-      {/* Header & Breadcrumbs */}
-      <div className="mb-8">
-        <nav className="flex gap-2 text-sm text-slate-500 mb-2">
-          <a className="hover:text-primary" href="#">
-            Admin
-          </a>
-          <span>/</span>
-          <a className="hover:text-primary" href="#">
-            Blog
-          </a>
-          <span>/</span>
-          <span className="text-slate-900 dark:text-slate-200 font-medium">
-            Thêm bài viết
-          </span>
-        </nav>
 
-        <div className="flex justify-between items-center">
-          <h2 className="text-3xl font-black text-toxi-dark dark:text-white tracking-tight flex items-center gap-3">
-            Thêm bài viết mới
-            <span className="material-symbols-outlined text-toxi-gold text-2xl">
-              cloud_queue
-            </span>
-          </h2>
-        </div>
-      </div>
+  const handleGalleryUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    try {
+      const uploaded = await Promise.all(files.map((file) => uploadImage(file)));
+      setForm((prev) => ({
+        ...prev,
+        galleryImages: [...prev.galleryImages, ...uploaded],
+      }));
+    } catch (err) {
+      console.error(err);
+      setError("Không tải được ảnh trong nội dung.");
+    }
+  };
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  const handleSubmit = async (status) => {
+    try {
+      setSubmitting(true);
+      setError("");
 
-        {/* Left Column */}
-        <div className="lg:col-span-2 space-y-6">
+      const payload = {
+        title: form.title,
+        categoryName: form.category,
+        summary: form.summary,
+        content: form.content,
+        thumbnail: form.thumbnail,
+        galleryImages: form.galleryImages,
+        status,
+      };
 
-          {/* Title Input */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-              Tiêu đề bài viết
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Nhập tiêu đề hấp dẫn cho bài viết của bạn..."
-              className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg p-3 text-lg focus:ring-toxi-gold focus:border-toxi-gold transition-all"
-            />
+      if (isEdit) {
+        await updateAdminBlog(id, payload);
+      } else {
+        await createAdminBlog(payload);
+      }
+
+      navigate("/AdminBlog");
+    } catch (err) {
+      console.error(err);
+      setError("Không lưu được bài viết. Kiểm tra lại backend blog.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+      <AdminSidebar />
+
+      <main className="min-h-screen flex-1 overflow-y-auto bg-slate-50 p-8">
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <p className="mb-2 text-sm text-slate-500">
+              Admin / Blog / {isEdit ? "Chỉnh sửa bài viết" : "Thêm bài viết"}
+            </p>
+            <h2 className="text-3xl font-black tracking-tight text-slate-900">
+              {isEdit ? "Chỉnh sửa bài viết" : "Thêm bài viết mới"}
+            </h2>
           </div>
 
-          {/* Editor */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col h-[600px]">
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate("/AdminBlog")}
+              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+            >
+              Hủy
+            </button>
+            <button
+              onClick={() => handleSubmit("DRAFT")}
+              disabled={submitting || loading}
+              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"
+            >
+              Lưu nháp
+            </button>
+            <button
+              onClick={() => handleSubmit("PUBLISHED")}
+              disabled={submitting || loading}
+              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              {isEdit ? "Cập nhật" : "Đăng bài"}
+            </button>
+          </div>
+        </div>
 
-            {/* Toolbar */}
-            <div className="bg-slate-50 dark:bg-slate-900/50 p-3 border-b border-slate-200 dark:border-slate-700 flex flex-wrap gap-2">
-              <button title="In đậm"><span className="material-symbols-outlined">format_bold</span></button>
-              <button title="In nghiêng"><span className="material-symbols-outlined">format_italic</span></button>
-              <button title="Gạch chân"><span className="material-symbols-outlined">format_underlined</span></button>
+        {loading ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-10 text-center text-sm font-semibold text-slate-500 shadow-sm">
+            Đang tải bài viết...
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="space-y-6 lg:col-span-2">
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <label className="mb-2 block text-sm font-bold text-slate-700">Tiêu đề bài viết</label>
+                <input
+                  className={INPUT_CLS}
+                  value={form.title}
+                  onChange={(e) => setField("title", e.target.value)}
+                  placeholder="Nhập tiêu đề bài viết..."
+                />
+              </div>
 
-              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <label className="mb-2 block text-sm font-bold text-slate-700">Mô tả ngắn</label>
+                <textarea
+                  className={`${INPUT_CLS} min-h-28 resize-none`}
+                  value={form.summary}
+                  onChange={(e) => setField("summary", e.target.value)}
+                  placeholder="Mô tả ngắn để hiển thị ngoài danh sách blog..."
+                />
+              </div>
 
-              <button title="Danh sách số"><span className="material-symbols-outlined">format_list_numbered</span></button>
-              <button title="Danh sách dấu chấm"><span className="material-symbols-outlined">format_list_bulleted</span></button>
-
-              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
-
-              <button title="Chèn ảnh"><span className="material-symbols-outlined">image</span></button>
-              <button title="Chèn liên kết"><span className="material-symbols-outlined">link</span></button>
-              <button title="Trích dẫn"><span className="material-symbols-outlined">format_quote</span></button>
-
-              <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
-
-              <button title="Xóa định dạng"><span className="material-symbols-outlined">format_clear</span></button>
-            </div>
-
-            {/* Editable Content */}
-            <div className="flex-1 p-6 overflow-y-auto">
-              <div
-                contentEditable
-                suppressContentEditableWarning={true}
-                onInput={handleContentChange}
-                className="prose dark:prose-invert max-w-none focus:outline-none min-h-full placeholder:text-slate-400"
-              >
-                {content.length === 0 && (
-                  <p className="text-slate-400 italic">
-                    Bắt đầu viết nội dung bài viết học tiếng Trung của bạn...
-                  </p>
-                )}
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="block text-sm font-bold text-slate-700">Nội dung bài viết</label>
+                  <span className="text-xs font-semibold text-slate-400">Số từ: {wordCount}</span>
+                </div>
+                <textarea
+                  className={`${INPUT_CLS} min-h-[420px] resize-y`}
+                  value={form.content}
+                  onChange={(e) => setField("content", e.target.value)}
+                  placeholder="Nhập nội dung bài viết..."
+                />
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-500 flex justify-between">
-              <span>Số từ: {wordCount}</span>
-              <span>Lưu tự động: {new Date().toLocaleTimeString()}</span>
+            <div className="space-y-6">
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="mb-4 text-base font-bold text-slate-800">Thông tin bài viết</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-600">Chuyên mục</label>
+                    <input
+                      className={INPUT_CLS}
+                      value={form.category}
+                      onChange={(e) => setField("category", e.target.value)}
+                      placeholder="VD: Văn hóa, HSK, Kinh nghiệm..."
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-600">Trạng thái</label>
+                    <select
+                      className={INPUT_CLS}
+                      value={form.status}
+                      onChange={(e) => setField("status", e.target.value)}
+                    >
+                      <option value="DRAFT">Bản nháp</option>
+                      <option value="PUBLISHED">Xuất bản</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="mb-4 text-base font-bold text-slate-800">Thumbnail</h3>
+                <label className="flex min-h-48 cursor-pointer items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm text-slate-500">
+                  <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+                  {form.thumbnail ? (
+                    <img
+                      src={form.thumbnail.startsWith("http") ? form.thumbnail : `http://localhost:8080/api/files/${form.thumbnail}`}
+                      alt="thumbnail"
+                      className="max-h-52 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <span>Chọn ảnh thumbnail</span>
+                  )}
+                </label>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="text-base font-bold text-slate-800">Ảnh trong bài viết</h3>
+                  <label className="cursor-pointer rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white">
+                    Thêm ảnh
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleGalleryUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {form.galleryImages.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-400">
+                    Chưa có ảnh nội dung.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {form.galleryImages.map((img, index) => (
+                      <div
+                        key={`${img}-${index}`}
+                        className="relative overflow-hidden rounded-lg border border-slate-200"
+                      >
+                        <img
+                          src={img.startsWith("http") ? img : `http://localhost:8080/api/files/${img}`}
+                          alt={`gallery-${index}`}
+                          className="h-28 w-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setForm((prev) => ({
+                              ...prev,
+                              galleryImages: prev.galleryImages.filter((_, i) => i !== index),
+                            }))
+                          }
+                          className="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-1 text-[11px] font-bold text-white"
+                        >
+                          X
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {error ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-600">
+                  {error}
+                </div>
+              ) : null}
             </div>
-
           </div>
-
-        </div>
-         <div className="space-y-6">
-
-      {/* Publishing Card */}
-      <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-
-        <h3 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">
-            send
-          </span>
-          Trạng thái xuất bản
-        </h3>
-
-        <div className="space-y-4">
-
-          {/* Current Status */}
-          <div>
-            <label className="text-xs font-semibold text-slate-500 uppercase">
-              Trạng thái hiện tại
-            </label>
-
-            <div className="flex items-center gap-2 mt-1">
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  status === "PUBLISHED"
-                    ? "bg-green-500"
-                    : "bg-slate-400"
-                }`}
-              ></span>
-
-              <span className="text-sm font-medium">
-                {status === "PUBLISHED"
-                  ? "Đã xuất bản"
-                  : "Bản nháp"}
-              </span>
-            </div>
-          </div>
-
-          {/* Buttons */}
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-700 space-y-3">
-
-            <button
-              onClick={handleSaveDraft}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
-            >
-              <span className="material-symbols-outlined text-lg">
-                save
-              </span>
-              Lưu bản nháp
-            </button>
-
-            <button
-              onClick={handlePublish}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-lg text-sm font-bold shadow-lg hover:bg-slate-800 transition-all"
-            >
-              <span className="material-symbols-outlined text-lg">
-                publish
-              </span>
-              Đăng bài viết
-            </button>
-
-          </div>
-
-        </div>
-      </div>
-       <div className="space-y-6">
-
-      {/* Categories Card */}
-      <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-
-        <h3 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">
-            category
-          </span>
-          Chuyên mục
-        </h3>
-
-        <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
-          {categories.map((cat) => (
-            <label
-              key={cat.id}
-              className="flex items-center gap-2 cursor-pointer group"
-            >
-              <input
-                type="checkbox"
-                checked={cat.checked}
-                onChange={() => handleToggleCategory(cat.id)}
-                className="rounded text-yellow-500 focus:ring-yellow-500 bg-slate-50 border-slate-300"
-              />
-              <span className="text-sm text-slate-600 dark:text-slate-300 group-hover:text-slate-900 transition-colors">
-                {cat.name}
-              </span>
-            </label>
-          ))}
-        </div>
-
-        {/* Add new category */}
-        <div className="mt-4 flex gap-2">
-          <input
-            type="text"
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-            placeholder="Chuyên mục mới..."
-            className="flex-1 text-xs border border-slate-200 rounded px-2 py-1"
-          />
-          <button
-            onClick={handleAddCategory}
-            className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
-          >
-            <span className="material-symbols-outlined text-sm">
-              add
-            </span>
-            Thêm
-          </button>
-        </div>
-      </div>
-
-      {/* Featured Image Card */}
-      <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-
-        <h3 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">
-            image
-          </span>
-          Ảnh đại diện
-        </h3>
-
-        <label className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-4 text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900 transition-all">
-
-          <input
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={handleImageUpload}
-          />
-
-          <div className="aspect-video bg-slate-100 dark:bg-slate-900 rounded-lg flex flex-col items-center justify-center mb-2 overflow-hidden">
-
-            {thumbnail ? (
-              <img
-                src={thumbnail}
-                alt="Thumbnail preview"
-                className="w-full h-full object-cover rounded-lg"
-              />
-            ) : (
-              <>
-                <span className="material-symbols-outlined text-4xl text-slate-400 mb-2">
-                  add_photo_alternate
-                </span>
-                <p className="text-xs text-slate-500 font-medium">
-                  Nhấn để tải lên ảnh thumbnail
-                </p>
-                <p className="text-[10px] text-slate-400 mt-1">
-                  Hỗ trợ JPG, PNG, WEBP (Tối đa 2MB)
-                </p>
-              </>
-            )}
-
-          </div>
-        </label>
-      </div>
-
+        )}
+      </main>
     </div>
-    </div>
-      </div>
-    </main>
-                    </div>
-        </>
-    )
+  );
 }
