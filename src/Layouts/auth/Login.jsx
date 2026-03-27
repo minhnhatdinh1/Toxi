@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import toxiLogo from "../../assets/image/LOGO (1).png";
 
 import { useCart } from "../../context/CartContext"; 
@@ -13,6 +13,7 @@ export default function Login() {
  const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const navigate = useNavigate();
+  const location = useLocation();
     const toast = useToast();
 const { mergeCartAfterLogin } = useCart();
 
@@ -56,16 +57,21 @@ const { mergeCartAfterLogin } = useCart();
 
     // 🔥 Decode token để lấy role
     const decoded = jwtDecode(token);
+    const redirectFromState = location.state?.from;
+    const redirectFromSession = sessionStorage.getItem("learnRedirectAfterLogin");
 
       console.log("Login success:", res.data);
 
 
     if (decoded.role === "ADMIN") {
+      sessionStorage.removeItem("learnRedirectAfterLogin");
       navigate("/admin");
         toast.addToast('Đăng nhập thành công', 'success');
     } else {
         toast.addToast('Đăng nhập thành công', 'success');
-      navigate("/");
+      const redirectTarget = redirectFromState || redirectFromSession || "/";
+      sessionStorage.removeItem("learnRedirectAfterLogin");
+      navigate(redirectTarget, { replace: true });
 
     } }catch (err) {
       const message = err.response?.data?.message || "Đăng nhập thất bại";

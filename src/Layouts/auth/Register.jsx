@@ -1,123 +1,196 @@
-import { Link,  } from "react-router-dom";
-import { useState } from "react";
-
-
-
-
-import { useNavigate } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
 import { registerApi } from "./api/authApi";
-1
+import { useToast } from "../common/ToastContext";
+
+const INITIAL_FORM = {
+  userName: "",
+  passWord: "",
+  confirmPassword: "",
+  fullName: "",
+  email: "",
+  phone: "",
+};
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^(0|\+84)\d{9,10}$/;
+
 export default function Register() {
   const navigate = useNavigate();
+  const toast = useToast();
+  const [formData, setFormData] = useState(INITIAL_FORM);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
-    userName: "",
-    passWord: "",
-    confirmPassword: "",
-    fullName: "",
-    email: "",
-    phone: "",
-  });
+  const canSubmit = useMemo(() => !loading, [loading]);
 
-  const [Error, setError] = useState(null);
-  const [Loading, setLoading] = useState(false);
+  const validateForm = () => {
+    const nextErrors = {};
 
-  const HandleRegister = async () => {
-    if (formData.passWord !== formData.confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp");
+    if (!formData.userName.trim()) nextErrors.userName = "Vui lòng nhập tên tài khoản";
+    else if (formData.userName.trim().length < 4) nextErrors.userName = "Tên tài khoản phải có ít nhất 4 ký tự";
+
+    if (!formData.passWord) nextErrors.passWord = "Vui lòng nhập mật khẩu";
+    else if (formData.passWord.length < 5) nextErrors.passWord = "Mật khẩu phải có ít nhất 5 ký tự";
+
+    if (!formData.confirmPassword) nextErrors.confirmPassword = "Vui lòng nhập lại mật khẩu";
+    else if (formData.passWord !== formData.confirmPassword) nextErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
+
+    if (!formData.fullName.trim()) nextErrors.fullName = "Vui lòng nhập họ và tên";
+
+    if (!formData.email.trim()) nextErrors.email = "Vui lòng nhập email";
+    else if (!EMAIL_REGEX.test(formData.email.trim())) nextErrors.email = "Email không hợp lệ";
+
+    if (!formData.phone.trim()) nextErrors.phone = "Vui lòng nhập số điện thoại";
+    else if (!PHONE_REGEX.test(formData.phone.trim())) nextErrors.phone = "Số điện thoại không hợp lệ";
+
+    return nextErrors;
+  };
+
+  const handleChange = (field) => (e) => {
+    const value = e.target.value;
+
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    setSuccessMessage("");
+    setError("");
+
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  const handleRegister = async () => {
+    const nextErrors = validateForm();
+    setFieldErrors(nextErrors);
+    setSuccessMessage("");
+
+    if (Object.keys(nextErrors).length > 0) {
+      const firstError = Object.values(nextErrors)[0];
+      setError(firstError);
+      toast.addToast(firstError, "error");
       return;
     }
 
     try {
       setLoading(true);
-      setError(null);
+      setError("");
 
-     const res = await registerApi({
-      userName: formData.userName,      
-      passWord: formData.passWord,
-          confirmPassword: formData.confirmPassword,
-      fullName: formData.fullName,
-      email: formData.email,
-      phone: formData.phone,
-    });
-      alert("Đăng ký thành công");
-      navigate("/login");
+      await registerApi({
+        userName: formData.userName.trim(),
+        passWord: formData.passWord,
+        confirmPassword: formData.confirmPassword,
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+      });
+
+      const message = "Đăng ký thành công. Bạn có thể đăng nhập ngay bây giờ.";
+      setSuccessMessage(message);
+      setFieldErrors({});
+      setFormData(INITIAL_FORM);
+      toast.addToast(message, "success");
+
+      setTimeout(() => {
+        navigate("/login", { replace: true });
+      }, 1200);
     } catch (err) {
-      setError("Đăng ký thất bại");
+      const message = err.response?.data?.message || "Đăng ký thất bại";
+      setError(message);
+      setSuccessMessage("");
+      toast.addToast(message, "error");
     } finally {
       setLoading(false);
     }
- 
-}
+  };
 
- return (
+  const getInputClassName = (field) =>
+    `w-full bg-white text-slate-800 placeholder:text-slate-400 border rounded-lg px-4 py-3 pl-11 focus:outline-none focus:ring-1 transition-all shadow-sm group-hover:border-primary/50 ${
+      fieldErrors[field]
+        ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+        : "border-slate-200 focus:border-primary focus:ring-primary"
+    }`;
+
+  return (
     <>
-      <div className="font-display bg-surface text-slate-800 antialiased selection:bg-primary selection:text-white min-h-screen">
-        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden">
-          {/* Background */}
+      <div className="font-display min-h-screen bg-surface text-slate-800 antialiased selection:bg-primary selection:text-white">
+        <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
             <img
-              alt="Abstract artistic blurred background with   red and dark tones resembling ink wash painting"
-              className="w-full h-full object-cover opacity-30"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVb7we3…-g9i4aAJWEEuTK-TpTtUA2gWXKs8uDxOuP0LYhrJ_t0fPe0_pXChtkqgTGcE"
+              alt="Abstract artistic blurred background with red and dark tones resembling ink wash painting"
+              className="h-full w-full object-cover opacity-30"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVb7we3aGH3IkrV7DFvD4zM7g9i4aAJWEEuTK-TpTtUA2gWXKs8uDxOuP0LYhrJ_t0fPe0_pXChtkqgTGcE"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 to-slate-900/80"></div>
           </div>
 
-          {/* Modal */}
-          <div className="relative z-10 w-full max-w-[1000px] p-4 animate-in fade-in zoom-in duration-300">
-            <div className="relative flex flex-col w-full bg-surface/95 backdrop-blur-xl border border-secondary/40 rounded-2xl shadow-2xl overflow-hidden">
-              {/* Top gradient */}
+          <div className="relative z-10 w-full max-w-[1000px] animate-in zoom-in p-4 fade-in duration-300">
+            <div className="relative flex w-full flex-col overflow-hidden rounded-2xl border border-secondary/40 bg-surface/95 shadow-2xl backdrop-blur-xl">
               <div className="h-2 w-full bg-gradient-to-r from-primary via-secondary to-primary"></div>
 
-              {/* Close button */}
               <button
                 type="button"
                 onClick={() => navigate("/home")}
-                className="absolute top-5 right-5 text-slate-400 hover:text-primary transition-colors p-2 rounded-full hover:bg-black/5 group z-20"
+                className="group absolute right-5 top-5 z-20 rounded-full p-2 text-slate-400 transition-colors hover:bg-black/5 hover:text-primary"
               >
-                <span className="material-symbols-outlined text-2xl group-hover:rotate-90 transition-transform duration-300">
+                <span className="material-symbols-outlined text-2xl transition-transform duration-300 group-hover:rotate-90">
                   close
                 </span>
               </button>
 
-              <div className="flex flex-col md:flex-row h-full">
-                {/* Left content */}
-                <div className="flex-1 p-8 md:p-10 lg:p-12 relative">
-                  <div className="absolute top-0 left-0 w-24 h-24 border-t-[6px] border-l-[6px] border-secondary/20 pointer-events-none opacity-50"></div>
-                  <div className="absolute top-0 right-0 w-24 h-24 border-t-[6px] border-r-[6px] border-secondary/20 pointer-events-none opacity-50"></div>
+              <div className="flex h-full flex-col md:flex-row">
+                <div className="relative flex-1 p-8 md:p-10 lg:p-12">
+                  <div className="pointer-events-none absolute left-0 top-0 h-24 w-24 border-l-[6px] border-t-[6px] border-secondary/20 opacity-50"></div>
+                  <div className="pointer-events-none absolute right-0 top-0 h-24 w-24 border-r-[6px] border-t-[6px] border-secondary/20 opacity-50"></div>
 
-                  <div className="text-center mb-10 relative">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary/5 pointer-events-none select-none">
-                      <span className="material-symbols-outlined text-9xl">
-                        temple_buddhist
-                      </span>
+                  <div className="relative mb-10 text-center">
+                    <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none text-primary/5">
+                      <span className="material-symbols-outlined text-9xl">temple_buddhist</span>
                     </div>
 
-                    <h2 className="text-3xl md:text-4xl font-bold text-primary mb-2 tracking-tight">
+                    <h2 className="mb-2 text-3xl font-bold tracking-tight text-primary md:text-4xl">
                       Đăng ký tài khoản
                     </h2>
 
-                    <p className="text-secondary font-bold text-lg uppercase tracking-[0.3em] opacity-90 font-serif">
+                    <p className="font-serif text-lg font-bold uppercase tracking-[0.3em] text-secondary opacity-90">
                       注册账户
                     </p>
 
-                    <p className="text-slate-500 mt-2 text-sm font-medium">
+                    <p className="mt-2 text-sm font-medium text-slate-500">
                       Chào mừng đến với TOXI - Học để ứng dụng (学以致用)
                     </p>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+
+                  {(error || successMessage) && (
+                    <div
+                      className={`mb-6 rounded-xl border px-4 py-3 text-sm font-medium ${
+                        successMessage
+                          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          : "border-red-200 bg-red-50 text-red-600"
+                      }`}
+                    >
+                      {successMessage || error}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 gap-x-10 gap-y-6 md:grid-cols-2">
                     <div className="flex flex-col gap-5">
-                      <h3 className="text-primary text-xs font-bold uppercase tracking-wider border-b border-primary/20 pb-2 mb-1 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-lg text-secondary">
-                          manage_accounts
-                        </span>
+                      <h3 className="mb-1 flex items-center gap-2 border-b border-primary/20 pb-2 text-xs font-bold uppercase tracking-wider text-primary">
+                        <span className="material-symbols-outlined text-lg text-secondary">manage_accounts</span>
                         Thông tin tài khoản
                       </h3>
 
-                      <label className="flex flex-col group">
-                        <span className="text-slate-700 text-sm font-semibold mb-2 group-focus-within:text-primary transition-colors">
+                      <label className="group flex flex-col">
+                        <span className="mb-2 text-sm font-semibold text-slate-700 transition-colors group-focus-within:text-primary">
                           Tên tài khoản
                         </span>
                         <div className="relative">
@@ -125,22 +198,18 @@ export default function Register() {
                             type="text"
                             placeholder="Nhập tên đăng nhập"
                             value={formData.userName}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                userName: e.target.value,
-                              })
-                            }
-                            className="w-full bg-white text-slate-800 placeholder:text-slate-400 border border-slate-200 rounded-lg px-4 py-3 pl-11 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-sm group-hover:border-primary/50"
+                            onChange={handleChange("userName")}
+                            className={getInputClassName("userName")}
                           />
-                          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-[20px]">
+                          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-slate-400 transition-colors group-focus-within:text-primary">
                             person
                           </span>
                         </div>
+                        {fieldErrors.userName && <p className="mt-1 text-sm text-red-600">{fieldErrors.userName}</p>}
                       </label>
 
-                      <label className="flex flex-col group">
-                        <span className="text-slate-700 text-sm font-semibold mb-2 group-focus-within:text-primary transition-colors">
+                      <label className="group flex flex-col">
+                        <span className="mb-2 text-sm font-semibold text-slate-700 transition-colors group-focus-within:text-primary">
                           Mật khẩu
                         </span>
                         <div className="relative">
@@ -148,22 +217,18 @@ export default function Register() {
                             type="password"
                             placeholder="Tạo mật khẩu"
                             value={formData.passWord}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                passWord: e.target.value,
-                              })
-                            }
-                            className="w-full bg-white text-slate-800 placeholder:text-slate-400 border border-slate-200 rounded-lg px-4 py-3 pl-11 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-sm group-hover:border-primary/50"
+                            onChange={handleChange("passWord")}
+                            className={getInputClassName("passWord")}
                           />
-                          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-[20px]">
+                          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-slate-400 transition-colors group-focus-within:text-primary">
                             lock
                           </span>
                         </div>
+                        {fieldErrors.passWord && <p className="mt-1 text-sm text-red-600">{fieldErrors.passWord}</p>}
                       </label>
 
-                      <label className="flex flex-col group">
-                        <span className="text-slate-700 text-sm font-semibold mb-2 group-focus-within:text-primary transition-colors">
+                      <label className="group flex flex-col">
+                        <span className="mb-2 text-sm font-semibold text-slate-700 transition-colors group-focus-within:text-primary">
                           Xác nhận mật khẩu
                         </span>
                         <div className="relative">
@@ -171,30 +236,25 @@ export default function Register() {
                             type="password"
                             placeholder="Nhập lại mật khẩu"
                             value={formData.confirmPassword}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                confirmPassword: e.target.value,
-                              })
-                            }
-                            className="w-full bg-white text-slate-800 placeholder:text-slate-400 border border-slate-200 rounded-lg px-4 py-3 pl-11 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-sm group-hover:border-primary/50"
+                            onChange={handleChange("confirmPassword")}
+                            className={getInputClassName("confirmPassword")}
                           />
-                          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-[20px]">
+                          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-slate-400 transition-colors group-focus-within:text-primary">
                             lock_reset
                           </span>
                         </div>
+                        {fieldErrors.confirmPassword && <p className="mt-1 text-sm text-red-600">{fieldErrors.confirmPassword}</p>}
                       </label>
                     </div>
+
                     <div className="flex flex-col gap-5">
-                      <h3 className="text-primary text-xs font-bold uppercase tracking-wider border-b border-primary/20 pb-2 mb-1 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-lg text-secondary">
-                          badge
-                        </span>
+                      <h3 className="mb-1 flex items-center gap-2 border-b border-primary/20 pb-2 text-xs font-bold uppercase tracking-wider text-primary">
+                        <span className="material-symbols-outlined text-lg text-secondary">badge</span>
                         Thông tin cá nhân
                       </h3>
 
-                      <label className="flex flex-col group">
-                        <span className="text-slate-700 text-sm font-semibold mb-2 group-focus-within:text-primary transition-colors">
+                      <label className="group flex flex-col">
+                        <span className="mb-2 text-sm font-semibold text-slate-700 transition-colors group-focus-within:text-primary">
                           Họ và tên
                         </span>
                         <div className="relative">
@@ -202,22 +262,18 @@ export default function Register() {
                             type="text"
                             placeholder="Nhập họ và tên đầy đủ"
                             value={formData.fullName}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                fullName: e.target.value,
-                              })
-                            }
-                            className="w-full bg-white text-slate-800 placeholder:text-slate-400 border border-slate-200 rounded-lg px-4 py-3 pl-11 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-sm group-hover:border-primary/50"
+                            onChange={handleChange("fullName")}
+                            className={getInputClassName("fullName")}
                           />
-                          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-[20px]">
+                          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-slate-400 transition-colors group-focus-within:text-primary">
                             id_card
                           </span>
                         </div>
+                        {fieldErrors.fullName && <p className="mt-1 text-sm text-red-600">{fieldErrors.fullName}</p>}
                       </label>
 
-                      <label className="flex flex-col group">
-                        <span className="text-slate-700 text-sm font-semibold mb-2 group-focus-within:text-primary transition-colors">
+                      <label className="group flex flex-col">
+                        <span className="mb-2 text-sm font-semibold text-slate-700 transition-colors group-focus-within:text-primary">
                           Email
                         </span>
                         <div className="relative">
@@ -225,22 +281,18 @@ export default function Register() {
                             type="email"
                             placeholder="example@gmail.com"
                             value={formData.email}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                email: e.target.value,
-                              })
-                            }
-                            className="w-full bg-white text-slate-800 placeholder:text-slate-400 border border-slate-200 rounded-lg px-4 py-3 pl-11 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-sm group-hover:border-primary/50"
+                            onChange={handleChange("email")}
+                            className={getInputClassName("email")}
                           />
-                          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-[20px]">
+                          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-slate-400 transition-colors group-focus-within:text-primary">
                             mail
                           </span>
                         </div>
+                        {fieldErrors.email && <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>}
                       </label>
 
-                      <label className="flex flex-col group">
-                        <span className="text-slate-700 text-sm font-semibold mb-2 group-focus-within:text-primary transition-colors">
+                      <label className="group flex flex-col">
+                        <span className="mb-2 text-sm font-semibold text-slate-700 transition-colors group-focus-within:text-primary">
                           Số điện thoại
                         </span>
                         <div className="relative">
@@ -248,18 +300,14 @@ export default function Register() {
                             type="tel"
                             placeholder="09xxxxxxxx"
                             value={formData.phone}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                phone: e.target.value,
-                              })
-                            }
-                            className="w-full bg-white text-slate-800 placeholder:text-slate-400 border border-slate-200 rounded-lg px-4 py-3 pl-11 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-sm group-hover:border-primary/50"
+                            onChange={handleChange("phone")}
+                            className={getInputClassName("phone")}
                           />
-                          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-[20px]">
+                          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-slate-400 transition-colors group-focus-within:text-primary">
                             call
                           </span>
                         </div>
+                        {fieldErrors.phone && <p className="mt-1 text-sm text-red-600">{fieldErrors.phone}</p>}
                       </label>
                     </div>
                   </div>
@@ -267,44 +315,42 @@ export default function Register() {
                   <div className="mt-10 flex flex-col items-center gap-4">
                     <button
                       type="button"
-                      onClick={HandleRegister}
-                      className="w-full md:max-w-md bg-primary hover:bg-primary-dark text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-3 group border border-transparent"
+                      onClick={handleRegister}
+                      disabled={!canSubmit}
+                      className="group flex w-full items-center justify-center gap-3 rounded-xl border border-transparent bg-primary py-4 font-bold text-white shadow-lg shadow-primary/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-dark hover:shadow-primary/40 disabled:cursor-not-allowed disabled:opacity-70 md:max-w-md"
                     >
-                      <span className="tracking-wide text-lg">
-                        Đăng ký ngay
+                      <span className="text-lg tracking-wide">
+                        {loading ? "Đang xử lý..." : "Đăng ký ngay"}
                       </span>
-
-                      <span className="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform">
+                      <span className="material-symbols-outlined text-xl transition-transform group-hover:translate-x-1">
                         arrow_forward
                       </span>
                     </button>
 
-                    <div className="flex items-center gap-2 text-sm mt-2">
-                      <span className="text-slate-500">
-                        Bạn đã có tài khoản?
-                      </span>
-                      <a
-                        href="/login"
-                        className="text-primary hover:text-secondary font-bold hover:underline decoration-1 underline-offset-4 transition-colors"
+                    <div className="mt-2 flex items-center gap-2 text-sm">
+                      <span className="text-slate-500">Bạn đã có tài khoản?</span>
+                      <Link
+                        to="/login"
+                        className="font-bold text-primary transition-colors hover:text-secondary hover:underline decoration-1 underline-offset-4"
                       >
                         Đăng nhập ngay
-                      </a>
+                      </Link>
                     </div>
                   </div>
 
-                  <div className="mt-8 text-center px-4">
-                    <p className="text-xs text-slate-400 leading-relaxed">
+                  <div className="mt-8 px-4 text-center">
+                    <p className="text-xs leading-relaxed text-slate-400">
                       Bằng việc đăng ký, bạn đồng ý với{" "}
                       <a
                         href="#"
-                        className="hover:text-primary transition-colors underline decoration-slate-300 underline-offset-2"
+                        className="underline decoration-slate-300 underline-offset-2 transition-colors hover:text-primary"
                       >
                         Điều khoản dịch vụ
                       </a>{" "}
                       và{" "}
                       <a
                         href="#"
-                        className="hover:text-primary transition-colors underline decoration-slate-300 underline-offset-2"
+                        className="underline decoration-slate-300 underline-offset-2 transition-colors hover:text-primary"
                       >
                         Chính sách bảo mật
                       </a>{" "}
@@ -312,8 +358,8 @@ export default function Register() {
                     </p>
                   </div>
 
-                  <div className="absolute bottom-0 left-0 w-20 h-20 border-b-[6px] border-l-[6px] border-secondary/20 pointer-events-none opacity-50"></div>
-                  <div className="absolute bottom-0 right-0 w-20 h-20 border-b-[6px] border-r-[6px] border-secondary/20 pointer-events-none opacity-50"></div>
+                  <div className="pointer-events-none absolute bottom-0 left-0 h-20 w-20 border-b-[6px] border-l-[6px] border-secondary/20 opacity-50"></div>
+                  <div className="pointer-events-none absolute bottom-0 right-0 h-20 w-20 border-b-[6px] border-r-[6px] border-secondary/20 opacity-50"></div>
                 </div>
               </div>
             </div>

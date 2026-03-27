@@ -5,6 +5,28 @@ import { useNavigate } from "react-router-dom";
 import { getHomeBooks, getBookDetail } from "./api/apiProduct";
 import { useCart } from "../../context/CartContext";
 import { useState, useEffect, useRef } from "react";
+
+const PRODUCT_FALLBACK_IMAGE = "https://via.placeholder.com/300x400?text=No+Image";
+
+const buildProductImageUrl = (value) => {
+  if (!value || typeof value !== "string") return "";
+  if (value.startsWith("http://") || value.startsWith("https://")) return value;
+  return `http://localhost:8080/api/files/${value.replace(/^\/+/, "")}`;
+};
+
+const normalizeProductImages = (raw = {}) => {
+  const rawImages = [
+    ...(Array.isArray(raw.imageUrls) ? raw.imageUrls : []),
+    ...(Array.isArray(raw.images) ? raw.images : []),
+    raw.thumbnailUrl,
+    raw.thumbnail,
+    raw.imageUrl,
+    raw.image,
+  ];
+
+  return [...new Set(rawImages.map(buildProductImageUrl).filter(Boolean))];
+};
+
 export default function Productdetail() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
@@ -37,14 +59,15 @@ const handleAddToCart = () => {
     const fetchProduct = async () => {
       try {
         const data = await getBookDetail(id);
+        const imageUrls = normalizeProductImages(data);
 
         const mappedProduct = {
           id: data.bookId,
           bookId: data.bookId,
           title: data.title,
           name: data.title,
-          image: data.imageUrls?.[0] || "https://via.placeholder.com/300",
-          imageUrls: data.imageUrls || [],
+          image: imageUrls[0] || PRODUCT_FALLBACK_IMAGE,
+          imageUrls,
           categories: data.categories || [],
           price: data.discountPrice,
           originalPrice: data.price,
@@ -60,12 +83,11 @@ const handleAddToCart = () => {
         const books = allBooks || [];
 
         const mappedProducts = books.map((book) => ({
-          id: book.id,
-          name: book.name,
-          image:
-            book.image || "https://via.placeholder.com/300x400?text=No+Image",
+          id: book.id || book.bookId,
+          name: book.name || book.title,
+          image: normalizeProductImages(book)[0] || PRODUCT_FALLBACK_IMAGE,
           categories: book.categories || [],
-          price: book.price,
+          price: book.price || book.discountPrice,
         }));
 
         const currentCategories = mappedProduct.categories
@@ -142,7 +164,7 @@ useEffect(() => {
       : 0;
 
   const images = product.imageUrls || [];
-  const activeImage = images[activeIndex] || product.image;
+  const activeImage = images[activeIndex] || product.image || PRODUCT_FALLBACK_IMAGE;
 
   return (
     <>
@@ -314,6 +336,9 @@ useEffect(() => {
                     src={activeImage}
                     alt="Product Main"
                     className="w-full h-auto aspect-square object-cover rounded-lg group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => {
+                      e.currentTarget.src = PRODUCT_FALLBACK_IMAGE;
+                    }}
                   />
                 </div>
 
@@ -343,6 +368,9 @@ useEffect(() => {
                         src={img}
                         alt={`thumb-${index}`}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = PRODUCT_FALLBACK_IMAGE;
+                        }}
                       />
                     </button>
                   ))}
@@ -534,7 +562,14 @@ useEffect(() => {
                         </li>
                       </ul>
                     </div>
-                    <img src={activeImage} alt={product?.title} className="w-full h-auto aspect-square object-cover rounded-lg" onError={(e) => (e.target.src = "/no-image.png")} />
+                    <img
+                      src={activeImage}
+                      alt={product?.title}
+                      className="w-full h-auto aspect-square object-cover rounded-lg"
+                      onError={(e) => {
+                        e.currentTarget.src = PRODUCT_FALLBACK_IMAGE;
+                      }}
+                    />
                   </>
                 )}
 
@@ -637,10 +672,9 @@ useEffect(() => {
                         src={product.image}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        onError={(e) =>
-                          (e.target.src =
-                            "https://via.placeholder.com/300x400?text=No+Image")
-                        }
+                        onError={(e) => {
+                          e.currentTarget.src = PRODUCT_FALLBACK_IMAGE;
+                        }}
                       />
                       <div className="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button className="bg-white text-primary p-4 rounded-full shadow-2xl hover:bg-secondary transition-colors">

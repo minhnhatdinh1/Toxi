@@ -2,7 +2,7 @@ const API = "http://localhost:8080/api";
 
 /**
  * Fetch có đính kèm Authorization header tự động.
- * Nếu nhận 401 → thử refresh token → retry request.
+ * Nếu nhận 401/403 → thử refresh token → retry request.
  * Nếu refresh thất bại → redirect về /login.
  */
 export async function fetchWithAuth(url, options = {}) {
@@ -19,8 +19,8 @@ export async function fetchWithAuth(url, options = {}) {
 
   const res = await fetch(`${API}${url}`, { ...options, headers });
 
-  // Token hết hạn → thử refresh
-  if (res.status === 401) {
+  // Một số endpoint backend đang trả 403 thay cho 401 khi token hết hạn/không hợp lệ.
+  if (res.status === 401 || res.status === 403) {
     const refreshed = await tryRefreshToken();
     if (!refreshed) {
       handleSessionExpired();

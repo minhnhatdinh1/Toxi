@@ -12,6 +12,7 @@ export default function AdminEditCourses() {
 
     courseId: "TOXI-HSK1-001",
     title: "HSK 1 Standard Course",
+    courseType: "HSK Preparation",
     type: "HSK Preparation",
     price: 49.99,
     discountPrice: 39.99,
@@ -44,13 +45,17 @@ export default function AdminEditCourses() {
         );
 
         if (detailRes.ok) {
-          course = await detailRes.json();
+          const detailPayload = await detailRes.json();
+          course = detailPayload?.data || detailPayload;
         } else {
           const listRes = await fetch("http://localhost:8080/api/admin/courses", {
             headers,
           });
           if (listRes.ok) {
-            const list = await listRes.json();
+            const listPayload = await listRes.json();
+            const list = Array.isArray(listPayload)
+              ? listPayload
+              : listPayload?.data || listPayload?.content || [];
             course = (list || []).find((c) => String(c.courseId) === String(routeCourseId));
           }
         }
@@ -60,16 +65,18 @@ export default function AdminEditCourses() {
         const mappedData = {
           courseId: course.courseId || routeCourseId,
           title: course.title || "",
+          courseType: course.courseType || course.type || "",
           type: course.courseType || course.type || "",
           price: course.price ?? 0,
           discountPrice: course.discountPrice ?? 0,
           introVideoUrl:
             course.introVideoUrl || course.videoUrl || course.introUrl || "",
         };
+        const nextDescription = course.description || "";
 
         setFormData(mappedData);
         setOriginalFormData(mappedData);
-        setDescription(course.description || "");
+        setDescription(nextDescription);
         setThumbnail(
           course.thumbnailUrl ||
             course.thumbnail ||
@@ -105,7 +112,13 @@ export default function AdminEditCourses() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const updatedData = { ...formData, [name]: value };
+    const updatedData = {
+      ...formData,
+      [name]: value,
+      ...(name === "type" || name === "courseType"
+        ? { type: value, courseType: value }
+        : {}),
+    };
     setFormData(updatedData);
     const isModified = JSON.stringify(updatedData) !== JSON.stringify(originalFormData);
     setHasChanges(isModified);
@@ -113,11 +126,12 @@ export default function AdminEditCourses() {
   };
 
   const validateForm = () => {
+    const selectedCourseType = formData.courseType || formData.type || "";
     if (!formData.title || formData.title.trim() === "") {
       setError("Course title is required");
       return false;
     }
-    if (!formData.type || formData.type.trim() === "") {
+    if (!selectedCourseType || selectedCourseType.trim() === "") {
       setError("Course type is required");
       return false;
     }
@@ -156,6 +170,9 @@ export default function AdminEditCourses() {
 
       const updatedFormData = {
         ...formData,
+        courseType: formData.courseType || formData.type,
+        type: formData.courseType || formData.type,
+        description,
         introVideoUrl,
         thumbnailUrl,
       };
@@ -432,10 +449,11 @@ const handleIntroVideoFileChange = (e) => {
                     </label>
                     <select
                       name="type"
-                      value={formData.type}
+                      value={formData.courseType || formData.type || ""}
                       onChange={handleChange}
                       className="w-full rounded-lg border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2.5"
                     >
+                      <option value="">Select course type</option>
                       <option>Business Chinese</option>
                       <option>HSK Preparation</option>
                       <option>Conversational</option>
@@ -529,7 +547,10 @@ const handleIntroVideoFileChange = (e) => {
         <textarea
           rows="6"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {
+            setDescription(e.target.value);
+            setHasChanges(true);
+          }}
           className="w-full border-none bg-slate-50 dark:bg-slate-950 px-4 py-3 focus:ring-0 text-slate-600 dark:text-slate-400"
         />
       </div>
