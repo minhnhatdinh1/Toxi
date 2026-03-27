@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
 import { createAdminStudent } from "./api/apiStudent";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^(0|\+84)\d{9,10}$/;
+
 export default function AdminAddNewStudent() {
   const navigate = useNavigate();
 
@@ -33,13 +36,42 @@ export default function AdminAddNewStudent() {
   };
 
   const validateForm = () => {
-    if (!formData.username.trim()) return setError("Username không được để trống."), false;
-    if (!formData.fullName.trim()) return setError("Họ tên không được để trống."), false;
-    if (!formData.email.trim()) return setError("Email không được để trống."), false;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) return setError("Email không đúng định dạng."), false;
-    if (formData.password.length < 6) return setError("Mật khẩu phải có ít nhất 6 ký tự."), false;
-    if (formData.password !== formData.confirmPassword) return setError("Mật khẩu xác nhận không khớp."), false;
+    if (!formData.username.trim()) {
+      setError("Username không được để trống.");
+      return false;
+    }
+    if (formData.username.trim().length < 4) {
+      setError("Username phải có ít nhất 4 ký tự.");
+      return false;
+    }
+    if (!formData.fullName.trim()) {
+      setError("Họ tên không được để trống.");
+      return false;
+    }
+    if (!formData.email.trim()) {
+      setError("Email không được để trống.");
+      return false;
+    }
+    if (!EMAIL_REGEX.test(formData.email.trim())) {
+      setError("Email không đúng định dạng.");
+      return false;
+    }
+    if (!formData.phone.trim()) {
+      setError("Số điện thoại không được để trống.");
+      return false;
+    }
+    if (!PHONE_REGEX.test(formData.phone.trim())) {
+      setError("Số điện thoại không hợp lệ.");
+      return false;
+    }
+    if (formData.password.length < 5) {
+      setError("Mật khẩu phải có ít nhất 5 ký tự.");
+      return false;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError("Mật khẩu xác nhận không khớp.");
+      return false;
+    }
     return true;
   };
 
@@ -52,18 +84,26 @@ export default function AdminAddNewStudent() {
       setSaving(true);
       await createAdminStudent({
         username: formData.username.trim(),
+        userName: formData.username.trim(),
         fullName: formData.fullName.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim(),
         address: formData.address.trim(),
         password: formData.password,
+        passWord: formData.password,
+        confirmPassword: formData.confirmPassword,
         status: formData.status,
+        roleName: "USER",
       });
       window.alert("Tạo học viên thành công.");
       navigate("/adminStudent");
     } catch (err) {
       console.error(err);
-      setError(err?.response?.data?.message || "Không thể tạo học viên.");
+      const backendMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        (typeof err?.response?.data === "string" ? err.response.data : "");
+      setError(backendMessage || "Không thể tạo học viên.");
     } finally {
       setSaving(false);
     }
@@ -84,15 +124,23 @@ export default function AdminAddNewStudent() {
         <div className="mx-auto max-w-5xl px-8 py-10">
           <div className="mb-10 flex flex-col gap-2">
             <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-              <button type="button" onClick={() => navigate("/adminStudent")} className="hover:underline">
+              <button
+                type="button"
+                onClick={() => navigate("/adminStudent")}
+                className="hover:underline"
+              >
                 Quản lý học viên
               </button>
               <span className="material-symbols-outlined text-xs">chevron_right</span>
               <span className="text-slate-500">Thêm học viên</span>
             </div>
 
-            <h2 className="text-3xl font-black tracking-tight text-slate-900">Thêm học viên mới</h2>
-            <p className="text-slate-500">Tạo tài khoản học viên mới và mặc định kích hoạt truy cập.</p>
+            <h2 className="text-3xl font-black tracking-tight text-slate-900">
+              Thêm học viên mới
+            </h2>
+            <p className="text-slate-500">
+              Tạo tài khoản học viên mới và mặc định kích hoạt truy cập.
+            </p>
           </div>
 
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -108,54 +156,111 @@ export default function AdminAddNewStudent() {
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="col-span-2 flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <span className="material-symbols-outlined text-primary">account_circle</span>
-                    <h3 className="text-lg font-bold text-slate-900">Thông tin tài khoản</h3>
+                    <span className="material-symbols-outlined text-primary">
+                      account_circle
+                    </span>
+                    <h3 className="text-lg font-bold text-slate-900">
+                      Thông tin tài khoản
+                    </h3>
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm font-bold text-slate-700">Username</label>
-                    <input name="username" value={formData.username} onChange={handleChange} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-primary/30" />
+                    <label className="text-sm font-bold text-slate-700">
+                      Username
+                    </label>
+                    <input
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-primary/30"
+                    />
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm font-bold text-slate-700">Họ tên</label>
-                    <input name="fullName" value={formData.fullName} onChange={handleChange} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-primary/30" />
+                    <label className="text-sm font-bold text-slate-700">
+                      Họ tên
+                    </label>
+                    <input
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-primary/30"
+                    />
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm font-bold text-slate-700">Email</label>
-                    <input name="email" type="email" value={formData.email} onChange={handleChange} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-primary/30" />
+                    <label className="text-sm font-bold text-slate-700">
+                      Email
+                    </label>
+                    <input
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-primary/30"
+                    />
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm font-bold text-slate-700">Số điện thoại</label>
-                    <input name="phone" value={formData.phone} onChange={handleChange} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-primary/30" />
+                    <label className="text-sm font-bold text-slate-700">
+                      Số điện thoại
+                    </label>
+                    <input
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-primary/30"
+                    />
                   </div>
 
                   <div className="col-span-2 flex flex-col gap-2">
-                    <label className="text-sm font-bold text-slate-700">Địa chỉ</label>
-                    <textarea rows={3} name="address" value={formData.address} onChange={handleChange} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-primary/30" />
+                    <label className="text-sm font-bold text-slate-700">
+                      Địa chỉ
+                    </label>
+                    <textarea
+                      rows={3}
+                      name="address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-primary/30"
+                    />
                   </div>
 
                   <div className="col-span-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                     <label className="flex items-center justify-between gap-4">
                       <div>
-                        <p className="font-semibold text-slate-900">Kích hoạt ngay sau khi tạo</p>
-                        <p className="text-sm text-slate-500">Tài khoản mới mặc định hoạt động.</p>
+                        <p className="font-semibold text-slate-900">
+                          Kích hoạt ngay sau khi tạo
+                        </p>
+                        <p className="text-sm text-slate-500">
+                          Tài khoản mới mặc định hoạt động.
+                        </p>
                       </div>
-                      <input type="checkbox" name="status" checked={formData.status} onChange={handleChange} className="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary" />
+                      <input
+                        type="checkbox"
+                        name="status"
+                        checked={formData.status}
+                        onChange={handleChange}
+                        className="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary"
+                      />
                     </label>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="col-span-2 flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <span className="material-symbols-outlined text-primary">lock</span>
-                    <h3 className="text-lg font-bold text-slate-900">Mật khẩu</h3>
+                    <span className="material-symbols-outlined text-primary">
+                      lock
+                    </span>
+                    <h3 className="text-lg font-bold text-slate-900">
+                      Mật khẩu
+                    </h3>
                   </div>
 
                   <div className="relative flex flex-col gap-2">
-                    <label className="text-sm font-bold text-slate-700">Mật khẩu</label>
+                    <label className="text-sm font-bold text-slate-700">
+                      Mật khẩu
+                    </label>
                     <input
                       name="password"
                       type={showPassword ? "text" : "password"}
@@ -163,13 +268,21 @@ export default function AdminAddNewStudent() {
                       onChange={handleChange}
                       className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 outline-none transition focus:border-primary/30"
                     />
-                    <button type="button" onClick={() => setShowPassword((prev) => !prev)} className="absolute bottom-3 right-4 text-slate-400">
-                      <span className="material-symbols-outlined text-sm">{showPassword ? "visibility_off" : "visibility"}</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute bottom-3 right-4 text-slate-400"
+                    >
+                      <span className="material-symbols-outlined text-sm">
+                        {showPassword ? "visibility_off" : "visibility"}
+                      </span>
                     </button>
                   </div>
 
                   <div className="relative flex flex-col gap-2">
-                    <label className="text-sm font-bold text-slate-700">Xác nhận mật khẩu</label>
+                    <label className="text-sm font-bold text-slate-700">
+                      Xác nhận mật khẩu
+                    </label>
                     <input
                       name="confirmPassword"
                       type={showConfirm ? "text" : "password"}
@@ -177,19 +290,36 @@ export default function AdminAddNewStudent() {
                       onChange={handleChange}
                       className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 outline-none transition focus:border-primary/30"
                     />
-                    <button type="button" onClick={() => setShowConfirm((prev) => !prev)} className="absolute bottom-3 right-4 text-slate-400">
-                      <span className="material-symbols-outlined text-sm">{showConfirm ? "visibility_off" : "visibility"}</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirm((prev) => !prev)}
+                      className="absolute bottom-3 right-4 text-slate-400"
+                    >
+                      <span className="material-symbols-outlined text-sm">
+                        {showConfirm ? "visibility_off" : "visibility"}
+                      </span>
                     </button>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-end gap-4 border-t border-slate-100 pt-6">
-                  <button type="button" onClick={handleCancel} disabled={saving} className="rounded-xl px-6 py-3 font-semibold text-slate-600 transition hover:bg-slate-100 disabled:opacity-50">
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={saving}
+                    className="rounded-xl px-6 py-3 font-semibold text-slate-600 transition hover:bg-slate-100 disabled:opacity-50"
+                  >
                     Hủy
                   </button>
 
-                  <button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-primary px-10 py-3 font-bold text-white shadow-lg shadow-primary/25 transition hover:bg-primary/90 disabled:opacity-50">
-                    <span className="material-symbols-outlined text-lg">person_add</span>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-10 py-3 font-bold text-white shadow-lg shadow-primary/25 transition hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    <span className="material-symbols-outlined text-lg">
+                      person_add
+                    </span>
                     {saving ? "Đang lưu..." : "Lưu học viên"}
                   </button>
                 </div>
