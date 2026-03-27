@@ -48,6 +48,45 @@ const hasShippingItems = (order) =>
   Boolean(order?.hasPhysical) ||
   (order?.items || []).some((item) => item.type === "BOOK" || item.type === "COMBO");
 
+const isPaidOrder = (order) => ["PAID", "APPROVED"].includes(order?.status);
+
+const isAwaitingShipping = (order) =>
+  hasShippingItems(order) &&
+  isPaidOrder(order) &&
+  ["NONE", "PREPARING"].includes((order?.shippingStatus || "NONE").toUpperCase());
+
+const getShippingBadge = (order) => {
+  if (!hasShippingItems(order) || !isPaidOrder(order)) return null;
+
+  const shippingStatus = (order.shippingStatus || "NONE").toUpperCase();
+
+  if (shippingStatus === "DELIVERED") {
+    return {
+      label: "Giao thành công",
+      className: "border border-green-100 bg-green-50 text-green-700",
+    };
+  }
+
+  if (shippingStatus === "CANCELLED") {
+    return {
+      label: "Giao thất bại",
+      className: "border border-red-100 bg-red-50 text-red-700",
+    };
+  }
+
+  if (shippingStatus === "SHIPPING") {
+    return {
+      label: "Đã bàn giao ship",
+      className: "border border-amber-100 bg-amber-50 text-amber-700",
+    };
+  }
+
+  return {
+    label: "Cần giao hàng",
+    className: "border border-emerald-100 bg-emerald-50 text-emerald-700",
+  };
+};
+
 const formatMoney = (value) => `${Number(value || 0).toLocaleString("vi-VN")}đ`;
 const formatDateTime = (value) => {
   if (!value) return "--";
@@ -224,7 +263,7 @@ export default function AdminOrderPage() {
           tab === "all" ||
           (tab === "pending_confirm" && o.status === "AWAITING_CONFIRMATION") ||
           (tab === "approved" && ["PAID", "APPROVED"].includes(o.status)) ||
-          (tab === "shipping" && hasShippingItems(o) && ["PAID", "APPROVED"].includes(o.status)) ||
+          (tab === "shipping" && isAwaitingShipping(o)) ||
           (tab === "delivered" && o.shippingStatus === "DELIVERED") ||
           (tab === "shipping_failed" && o.shippingStatus === "CANCELLED");
         const keyword = search.toLowerCase();
@@ -243,9 +282,10 @@ export default function AdminOrderPage() {
   const paidCount = orders.filter((o) => ["PAID", "APPROVED"].includes(o.status)).length;
   const revenue = orders.filter((o) => ["PAID", "APPROVED"].includes(o.status)).reduce((sum, o) => sum + Number(o.amount), 0);
   const newOrdersToday = orders.filter((o) => isToday(o.createdAt));
-  const shippableOrders = orders.filter((o) => hasShippingItems(o) && ["PAID", "APPROVED"].includes(o.status));
-  const shippableToday = shippableOrders.filter((o) => isToday(o.createdAt));
-  const awaitingShipCount = shippableOrders.length;
+  const shippableOrders = orders.filter((o) => hasShippingItems(o) && isPaidOrder(o));
+  const awaitingShippingOrders = orders.filter(isAwaitingShipping);
+  const shippableToday = awaitingShippingOrders.filter((o) => isToday(o.createdAt));
+  const awaitingShipCount = awaitingShippingOrders.length;
   const deliveredCount = orders.filter((o) => o.shippingStatus === "DELIVERED").length;
   const failedShippingCount = orders.filter((o) => o.shippingStatus === "CANCELLED").length;
 
@@ -314,7 +354,7 @@ export default function AdminOrderPage() {
               <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
                 <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">Đơn mới hôm nay</p>
                 <p className="mt-2 text-3xl font-black text-slate-900">{newOrdersToday.length}</p>
-                <p className="mt-1 text-sm text-slate-600">Có {newOrdersToday.filter((o) => hasShippingItems(o)).length} đơn có sản phẩm cần giao.</p>
+                <p className="mt-1 text-sm text-slate-600">Có {newOrdersToday.filter((o) => isAwaitingShipping(o)).length} đơn có sản phẩm cần giao.</p>
               </div>
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
                 <p className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700">Đơn cần giao</p>
@@ -373,7 +413,7 @@ export default function AdminOrderPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => printOrders("Phiếu giao hàng cần xử lý", shippableOrders)}
+                    onClick={() => printOrders("Phiếu giao hàng cần xử lý", awaitingShippingOrders)}
                     className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white hover:bg-primary/90"
                   >
                     In tất cả đơn cần giao
@@ -466,7 +506,12 @@ export default function AdminOrderPage() {
                               <div>
                                 <div className="text-sm font-semibold text-slate-700">{order.student}</div>
                                 {order.email && <div className="text-[11px] text-slate-400">{order.email}</div>}
-                                {hasShippingItems(order) && <div className="mt-1 inline-flex items-center gap-1 rounded-full border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700"><span className="material-symbols-outlined text-[12px]">local_shipping</span>Cần giao hàng</div>}
+                                {getShippingBadge(order) && (
+                                  <div className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${getShippingBadge(order).className}`}>
+                                    <span className="material-symbols-outlined text-[12px]">local_shipping</span>
+                                    {getShippingBadge(order).label}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </td>
