@@ -1,4 +1,4 @@
-
+﻿
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toxiLogo from "../../assets/image/LOGO (1).png";
@@ -21,10 +21,10 @@ const { mergeCartAfterLogin } = useCart();
     e.preventDefault();
   setError('');
     const errors = {};
-    if (!userName.trim()) errors.userName = 'Vui lòng nhập tài khoản';
+    if (!userName.trim()) errors.userName = 'Vui lòng nhập tài khoản '
     if (!passWord) errors.passWord = 'Vui lòng nhập mật khẩu';
 
-    if (passWord && passWord.length < 5) errors.passWord = 'Mật khẩu phải có ít nhất 5 ký tự';
+    if (passWord && passWord.length < 5) errors.passWord = 'Mật khẩu ít nhất 5 kí tự';
 
 
     setFieldErrors(errors);
@@ -54,7 +54,7 @@ const { mergeCartAfterLogin } = useCart();
        await mergeCartAfterLogin(token);
 
 
-    // 🔥 Decode token để lấy role
+    // Decode token để lấy role
     const decoded = jwtDecode(token);
 
       console.log("Login success:", res.data);
@@ -62,7 +62,7 @@ const { mergeCartAfterLogin } = useCart();
 
     if (decoded.role === "ADMIN") {
       navigate("/admin");
-        toast.addToast('Đăng nhập thành công', 'success');
+        toast.addToast('Đăng nhập thành công ', 'success');
     } else {
         toast.addToast('Đăng nhập thành công', 'success');
       navigate("/");
@@ -314,3 +314,4 @@ const { mergeCartAfterLogin } = useCart();
     </>
   );
 }
+
