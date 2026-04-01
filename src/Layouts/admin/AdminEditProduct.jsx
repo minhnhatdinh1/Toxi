@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
 
 import { useNavigate, useLocation, useParams } from "react-router-dom";
@@ -17,6 +17,16 @@ export default function AdminEditProduct() {
   const [categories, setCategories] = useState([]);
   const queryParams = new URLSearchParams(location.search);
   const currentPage = queryParams.get("page") || 1;
+  const buildEditableImages = (sources = []) =>
+    [...new Set((Array.isArray(sources) ? sources : []).filter((value) => typeof value === "string" && value.trim()))]
+      .slice(0, 1)
+      .map((url, idx) => ({
+        id: `existing-${idx}`,
+        name: "Anh bia chinh",
+        size: "",
+        preview: url,
+        isExisting: true,
+      }));
 
   const formatCurrency = (value) => {
     if (!value) return "";
@@ -56,19 +66,15 @@ export default function AdminEditProduct() {
         description: data.description,
       });
 
-      // Load tất cả ảnh hiện có thành array
-      if (data.imageUrls && data.imageUrls.length > 0) {
-        const existing = data.imageUrls.map((url, idx) => ({
-          id: `existing-${idx}`,
-          name: `Image ${idx + 1}`,
-          size: "",
-          preview: url,
-          isExisting: true,
-        }));
-        setImages(existing);
-      } else {
-        setImages([]);
-      }
+      // Load táº¥t cáº£ áº£nh hiá»‡n cÃ³ thÃ nh array
+      const existingImages = buildEditableImages([
+        ...(Array.isArray(data.imageUrls) ? data.imageUrls : []),
+        data.thumbnailUrl,
+        data.imageUrl,
+        data.image,
+      ]);
+      setImages(existingImages);
+      setNewFileMap({});
     } catch (err) {
       console.error("Error loading product:", err);
     }
@@ -94,22 +100,27 @@ export default function AdminEditProduct() {
     const file = e.target.files[0];
     if (!file) return;
 
-
     const tempId = `new-${Date.now()}`;
     const previewUrl = URL.createObjectURL(file);
 
-    setImages((prev) => [
-      ...prev,
-      {
-        id: tempId,
-        name: file.name,
-        size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-        preview: previewUrl,
-        isExisting: false,
-      },
-    ]);
+    setImages((prev) => {
+      prev.forEach((img) => {
+        if (!img.isExisting && img.preview) {
+          URL.revokeObjectURL(img.preview);
+        }
+      });
+      return [
+        {
+          id: tempId,
+          name: file.name,
+          size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+          preview: previewUrl,
+          isExisting: false,
+        },
+      ];
+    });
 
-    setNewFileMap((prev) => ({ ...prev, [tempId]: file }));
+    setNewFileMap({ [tempId]: file });
     e.target.value = "";
   };
 
@@ -130,11 +141,11 @@ export default function AdminEditProduct() {
 
   const handleDeleteAll = async (bookId) => {
     try {
-      if (!window.confirm("Xóa tất cả ảnh của sản phẩm này?")) return;
+      if (!window.confirm("Xóa ảnh hiện tại của sản phẩm này?")) return;
       await deleteImagesByBook(bookId);
       setImages([]);
       setNewFileMap({});
-      alert("Đã xóa tất cả ảnh");
+      alert("Đã xóa ảnh thành công");
     } catch (error) {
       console.error(error);
     }
@@ -170,7 +181,7 @@ export default function AdminEditProduct() {
       setLoading(true);
       const finalUrls = await Promise.all(
         images.map(async (img) => {
-          if (img.isExisting) return img.preview; // URL gốc từ server
+          if (img.isExisting) return img.preview; // URL gá»‘c tá»« server
           const file = newFileMap[img.id];
           if (file) return await uploadImage(file);
           return null;
@@ -334,7 +345,7 @@ export default function AdminEditProduct() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                       <div className="flex flex-col gap-2">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                          Giá gốc (VNĐ)
+                          Giá gốc (VND)
                         </label>
                         <input
                           type="text"
@@ -351,7 +362,7 @@ export default function AdminEditProduct() {
                       </div>
                       <div className="flex flex-col gap-2">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                          Giá khuyến mãi (VNĐ)
+                          Giá khuyến mãi (VND)
                         </label>
                         <input
                           type="text"
@@ -362,7 +373,7 @@ export default function AdminEditProduct() {
                               parseCurrency(e.target.value),
                             )
                           }
-                          placeholder="Nhập giá khuyến mại..."
+                          placeholder="Nhập giá khuyến mãi..."
                           className="w-full rounded-xl border border-cyan-200/30 bg-gradient-to-br dark:bg-slate-900 focus:ring-primary dark:text-white transition-all p-3"
                         />
                       </div>
@@ -410,13 +421,13 @@ export default function AdminEditProduct() {
 
               {/* Right Sidebar */}
               <div className="space-y-8">
-                {/* ── Thumbnail Card ── */}
+                {/* â”€â”€ Thumbnail Card â”€â”€ */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-8">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
                       Ảnh bìa sản phẩm
                     </h3>
-                    {/* Badge số lượng ảnh */}
+                    {/* Badge sá»‘ lÆ°á»£ng áº£nh */}
                     {images.length > 0 && (
                       <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                         {images.length} ảnh
@@ -424,7 +435,14 @@ export default function AdminEditProduct() {
                     )}
                   </div>
 
-                  {/* Upload Area — luôn hiển thị để thêm ảnh mới */}
+                  {/* Upload Area â€” luÃ´n hiá»ƒn thá»‹ Ä‘á»ƒ thÃªm áº£nh má»›i */}
+                  {images.length > 0 ? (
+                    <div
+                      className="aspect-square w-full rounded-2xl border border-slate-200 bg-slate-50 bg-contain bg-center bg-no-repeat"
+                      style={{ backgroundImage: `url(${images[0].preview})` }}
+                    />
+                  ) : null}
+                  {images.length === 0 && (
                   <label className="aspect-square w-full rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center bg-slate-50 group cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
                     <input
                       type="file"
@@ -438,12 +456,28 @@ export default function AdminEditProduct() {
                       </span>
                     </div>
                     <p className="text-sm text-slate-900 font-bold text-center px-4">
-                      + Thêm ảnh
+                      + Thêm ảnh bìa
                     </p>
                     <p className="text-xs text-slate-400 mt-1">
                       PNG, JPG tối đa 5MB
                     </p>
                   </label>
+                  )}
+
+                  {images.length > 0 && (
+                  <label className="mt-4 flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-primary/15 bg-primary/5 px-4 py-3 text-sm font-semibold text-primary transition-all hover:bg-primary/10">
+                    <input
+                      type="file"
+                      accept="image/png, image/jpeg"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                    <span className="material-symbols-outlined text-[20px]">
+                      add_photo_alternate
+                    </span>
+                    Đổi ảnh bìa
+                  </label>
+                  )}
 
                   {/* Danh sách ảnh hiện có */}
                   {images.length > 0 && (
@@ -453,17 +487,17 @@ export default function AdminEditProduct() {
                           key={img.id}
                           className="p-3 rounded-xl bg-primary/5 border border-primary/10 flex items-center gap-3"
                         >
-                          {/* Thumbnail nhỏ */}
+                          {/* Thumbnail nhá» */}
                           <div
-                            className="size-10 rounded bg-slate-200 bg-cover bg-center flex-shrink-0"
+                            className="size-14 rounded-xl bg-slate-200 bg-cover bg-center flex-shrink-0"
                             style={{ backgroundImage: `url(${img.preview})` }}
                           />
 
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-slate-700 truncate">
-                              {img.name}
+                            <p className="text-sm font-bold text-slate-700 truncate">
+                              {index === 0 ? "Ảnh bìa chính" : img.name}
                             </p>
-                            <p className="text-[10px] text-slate-400">
+                            <p className="text-xs text-slate-400">
                               {img.isExisting
                                 ? "Ảnh hiện tại"
                                 : `Mới • ${img.size}`}
@@ -475,7 +509,7 @@ export default function AdminEditProduct() {
                             #{index + 1}
                           </span>
 
-                          {/* Nút xóa từng ảnh */}
+                          {/* Nút xóa ảnh */}
                           <button
                             type="button"
                             onClick={() => handleRemoveImage(img.id)}
@@ -489,13 +523,13 @@ export default function AdminEditProduct() {
                         </div>
                       ))}
 
-                      {/* Nút xóa tất cả ảnh trên server */}
+                      {/* Nút xóa ảnh hiện tại trên server */}
                       <button
                         type="button"
                         onClick={() => handleDeleteAll(formData.bookId)}
                         className="w-full mt-2 py-2 text-xs font-semibold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl border border-red-100 transition-all"
                       >
-                        Xóa tất cả ảnh trên server
+                        Xóa ảnh hiện tại trên server
                       </button>
                     </div>
                   )}
@@ -540,3 +574,4 @@ export default function AdminEditProduct() {
     </>
   );
 }
+

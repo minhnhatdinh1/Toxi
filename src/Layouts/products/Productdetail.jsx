@@ -3,8 +3,11 @@ import { useParams, Link } from "react-router-dom";
 import logo from "../../assets/image/LOGO (1).png";
 import { useNavigate } from "react-router-dom";
 import { getHomeBooks, getBookDetail } from "./api/apiProduct";
+import { createBookReview, getBookReviews } from "./api/apiBookReview";
 import { useCart } from "../../context/CartContext";
 import { useState, useEffect, useRef } from "react";
+import LoginModal from "../../components/LoginModal";
+import { pushNotification } from "../../utils/notificationCenter";
 
 const PRODUCT_FALLBACK_IMAGE = "https://via.placeholder.com/300x400?text=No+Image";
 
@@ -37,11 +40,10 @@ export default function Productdetail() {
 const { addToCart ,cartCount } = useCart();
 const [menuOpen, setMenuOpen] = useState(false);
 const menuRef = useRef(null);
-const reviews = [
-  { id: 1, name: "Nguyen Thu Ha", rating: 5, date: "2 ngay truoc", comment: "Noi dung de hieu, in dep va giup minh nho tu vung nhanh hon rat nhieu." },
-  { id: 2, name: "Tran Minh Tuan", rating: 4, date: "1 tuan truoc", comment: "Sach chat luong, bo cuc ro rang. Neu them nhieu bai tap hon nua thi rat tot." },
-  { id: 3, name: "Le Ngoc Anh", rating: 5, date: "2 tuan truoc", comment: "Phu hop cho nguoi moi bat dau va ca nguoi can on lai kien thuc nen tang." },
-];
+const [productReviews, setProductReviews] = useState([]);
+const [reviewForm, setReviewForm] = useState({ rating: 0, content: "" });
+const [reviewSubmitting, setReviewSubmitting] = useState(false);
+const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const saved =
     product?.originalPrice && product?.price
       ? product.originalPrice - product.price
@@ -52,7 +54,12 @@ const reviews = [
   };
   const [relatedProducts, setRelatedProducts] = useState([]);
 const handleAddToCart = () => {
-  addToCart(product.bookId, "BOOK", quantity);
+  addToCart(product.bookId, "BOOK", quantity, {
+    title: product.title,
+    imageUrl: product.image,
+    originalPrice: product.originalPrice,
+    discountPrice: product.discountPrice,
+  });
   alert("Đã thêm vào giỏ hàng!");
 };
   useEffect(() => {
@@ -135,6 +142,73 @@ const handleAddToCart = () => {
     fetchProduct();
   }, [id]);
 
+useEffect(() => {
+  loadProductReviews();
+}, [id]);
+
+const loadProductReviews = async () => {
+  try {
+    const items = await getBookReviews(id);
+    setProductReviews(Array.isArray(items) ? items : []);
+  } catch (error) {
+    console.error("Error loading product reviews:", error);
+    setProductReviews([]);
+  }
+};
+
+const formatReviewDate = (value) => {
+  if (!value) return "--";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "--";
+  return date.toLocaleDateString("vi-VN");
+};
+
+const getInitials = (name) => {
+  const text = String(name || "U").trim();
+  return text ? text.charAt(0).toUpperCase() : "U";
+};
+
+const handleReviewSubmit = async (event) => {
+  event.preventDefault();
+
+  const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+  if (!token) {
+    setIsLoginModalOpen(true);
+    return;
+  }
+
+  if (!reviewForm.rating || !String(reviewForm.content).trim()) {
+    alert("Vui long chon so sao va nhap noi dung danh gia.");
+    return;
+  }
+
+  try {
+    setReviewSubmitting(true);
+    await createBookReview({
+      bookId: Number(id),
+      rating: Number(reviewForm.rating),
+      content: reviewForm.content.trim(),
+    });
+    pushNotification({
+      audience: "admin",
+      type: "review",
+      title: "Danh gia sach moi",
+      message: `${localStorage.getItem("userName") || "Khach hang"} vua gui danh gia cho ${product?.title || "san pham"}.`,
+      entityId: Number(id),
+      entityType: "book-review",
+      actor: localStorage.getItem("userName") || "Khach hang",
+    });
+    setReviewForm({ rating: 0, content: "" });
+    await loadProductReviews();
+    alert("Gui danh gia thanh cong.");
+  } catch (error) {
+    console.error("Error creating product review:", error);
+    alert("Khong the gui danh gia luc nay.");
+  } finally {
+    setReviewSubmitting(false);
+  }
+};
+
 
 useEffect(() => {
   const handleClickOutside = (e) => {
@@ -165,9 +239,24 @@ useEffect(() => {
 
   const images = product.imageUrls || [];
   const activeImage = images[activeIndex] || product.image || PRODUCT_FALLBACK_IMAGE;
+  const averageRating =
+    productReviews.length > 0
+      ? (
+          productReviews.reduce((sum, item) => sum + Number(item.rating || 0), 0) /
+          productReviews.length
+        ).toFixed(1)
+      : "0.0";
+  const reviewCount = productReviews.length;
 
   return (
     <>
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onSuccess={() => setIsLoginModalOpen(false)}
+        title="Dang nhap de gui danh gia"
+        description="Dang nhap de gui nhan xet va dong bo danh gia san pham cua ban."
+      />
       {/* Header */}
 <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
   <div className="absolute inset-0 bg-chinese-pattern opacity-10 pointer-events-none"></div>
@@ -260,16 +349,20 @@ useEffect(() => {
 
               {/* Logout */}
               <div className="border-t border-slate-100 py-2">
-                <button
-                  onClick={() => {
-                    localStorage.removeItem("token");
-                    localStorage.removeItem("userId");
-                    localStorage.removeItem("userName");
-                    localStorage.removeItem("email");
-                    setMenuOpen(false);
-                    navigate("/Home");
-                    window.location.reload();
-                  }}
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem("token");
+                      localStorage.removeItem("accessToken");
+                      localStorage.removeItem("refreshToken");
+                      localStorage.removeItem("userId");
+                      localStorage.removeItem("userName");
+                      localStorage.removeItem("email");
+                      localStorage.removeItem("phone");
+                      localStorage.removeItem("role");
+                      setMenuOpen(false);
+                      navigate("/Home");
+                      window.location.reload();
+                    }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors text-red-500 text-sm"
                 >
                   <span className="material-symbols-outlined text-[20px]">logout</span>
@@ -393,19 +486,16 @@ useEffect(() => {
 
               <div className="flex items-center gap-6 mb-6">
                 <div className="flex items-center">
-                  {[1, 2, 3, 4].map((i) => (
+                  {[1, 2, 3, 4, 5].map((i) => (
                     <span
                       key={i}
-                      className="material-symbols-outlined text-secondary fill-1"
+                      className={`material-symbols-outlined ${i <= Math.round(Number(averageRating)) ? "text-secondary fill-1" : "text-slate-300"}`}
                     >
                       star
                     </span>
                   ))}
-                  <span className="material-symbols-outlined text-secondary fill-1">
-                    star_half
-                  </span>
                   <span className="ml-2 text-sm font-bold text-slate-700">
-                    4.8 (124 đánh giá)
+                    {averageRating} ({reviewCount} đánh giá)
                   </span>
                 </div>
                 <div className="h-4 w-px bg-slate-300"></div>
@@ -540,7 +630,7 @@ useEffect(() => {
                 </button>
                 <button type="button" onClick={() => setActiveTab("reviews")} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm uppercase tracking-widest whitespace-nowrap transition-colors ${activeTab === "reviews" ? "bg-primary text-white font-bold" : "bg-slate-100 text-slate-500 hover:text-primary font-medium"}`}>
                   <span className="material-symbols-outlined text-[16px]">star</span>
-                  Danh gia hoc vien (124)
+                  Danh gia hoc vien ({reviewCount})
                 </button>
               </div>
             </div>
@@ -592,25 +682,99 @@ useEffect(() => {
 
                 {activeTab === "reviews" && (
                   <div className="space-y-6">
+                    <form onSubmit={handleReviewSubmit} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+                      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="max-w-2xl">
+                          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-primary/60">
+                            Danh gia san pham
+                          </p>
+                          <h4 className="mt-2 text-2xl font-black text-primary">Viet danh gia cua ban</h4>
+                          <p className="mt-2 text-sm text-slate-500">
+                            Chia se cam nhan cua ban de nguoi mua sau co them thong tin tham khao.
+                          </p>
+                          <div className="mt-5 flex flex-wrap gap-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button
+                                key={star}
+                                type="button"
+                                onClick={() => setReviewForm((prev) => ({ ...prev, rating: star }))}
+                                className="rounded-full border border-slate-200 bg-white px-3 py-2 text-left transition hover:border-secondary hover:bg-secondary/10"
+                              >
+                                <span className={`material-symbols-outlined align-middle ${star <= reviewForm.rating ? "fill-1 text-secondary" : "text-slate-300"}`}>
+                                  star
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="w-full lg:max-w-xl">
+                          <textarea
+                            value={reviewForm.content}
+                            onChange={(event) =>
+                              setReviewForm((prev) => ({ ...prev, content: event.target.value }))
+                            }
+                            rows={5}
+                            placeholder="Chia se trai nghiem cua ban ve san pham nay..."
+                            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+                          />
+                          <div className="mt-4 flex justify-end">
+                            <button
+                              type="submit"
+                              disabled={reviewSubmitting}
+                              className="rounded-2xl bg-secondary px-6 py-3 text-sm font-bold text-primary transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {reviewSubmitting ? "Dang gui..." : "Gui danh gia"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+
                     <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                       <div className="flex items-center justify-between">
                         <h4 className="text-xl font-bold text-primary">Danh gia hoc vien</h4>
-                        <div className="text-sm font-bold text-slate-700">4.8/5 (124 danh gia)</div>
+                        <div className="text-sm font-bold text-slate-700">{averageRating}/5 ({reviewCount} danh gia)</div>
                       </div>
                       <div className="mt-3 flex text-secondary">
-                        {[1, 2, 3, 4].map((i) => (<span key={i} className="material-symbols-outlined fill-1">star</span>))}
-                        <span className="material-symbols-outlined fill-1">star_half</span>
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <span
+                            key={i}
+                            className={`material-symbols-outlined ${i <= Math.round(Number(averageRating)) ? "fill-1" : "text-slate-300"}`}
+                          >
+                            star
+                          </span>
+                        ))}
                       </div>
                     </div>
-                    {reviews.map((item) => (
+                    {productReviews.length === 0 && (
+                      <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+                        Chua co danh gia nao cho san pham nay.
+                      </div>
+                    )}
+                    {productReviews.map((item) => (
                       <div key={item.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
                         <div className="flex items-start justify-between gap-4">
-                          <div><p className="font-bold text-slate-900">{item.name}</p><p className="text-xs text-slate-400 mt-1">{item.date}</p></div>
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                              {getInitials(item.userName)}
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-900">{item.userName}</p>
+                              <p className="text-xs text-slate-400 mt-1">{formatReviewDate(item.createdAt)}</p>
+                            </div>
+                          </div>
                           <div className="flex text-secondary">
                             {[1, 2, 3, 4, 5].map((star) => (<span key={star} className={`material-symbols-outlined ${star <= item.rating ? "fill-1" : "text-slate-300"}`}>star</span>))}
                           </div>
                         </div>
-                        <p className="text-slate-600 mt-4 leading-relaxed">{item.comment}</p>
+                        <p className="text-slate-600 mt-4 leading-relaxed">{item.content}</p>
+                        {item.adminReply && (
+                          <div className="mt-4 rounded-2xl border border-primary/10 bg-primary/5 p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/60">Phan hoi tu TOXI</p>
+                            <p className="mt-2 text-sm text-slate-600">{item.adminReply}</p>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

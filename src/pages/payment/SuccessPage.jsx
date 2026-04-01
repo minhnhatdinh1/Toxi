@@ -3,7 +3,39 @@ import { useLocation, useNavigate } from "react-router-dom";
 export default function SuccessPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const order = location.state?.order || { orderCode: "TX-88291", courseName: "Han ngu Giao tiep So cap: Chinh phuc HSK 1-2", amount: 1250000, paidAt: "24/05/2024" };
+  const persistedMetaRaw = localStorage.getItem("paymentOrderMeta");
+  let persistedMeta = null;
+
+  try {
+    persistedMeta = persistedMetaRaw ? JSON.parse(persistedMetaRaw) : null;
+  } catch (error) {
+    persistedMeta = null;
+  }
+
+  const stateOrder = location.state?.order || {};
+  const shouldUsePersistedMeta =
+    persistedMeta &&
+    (!stateOrder.orderCode || persistedMeta.orderCode === stateOrder.orderCode);
+
+  const mergedOrder = shouldUsePersistedMeta
+    ? { ...persistedMeta, ...stateOrder }
+    : stateOrder;
+
+  const order = {
+    orderCode: mergedOrder.orderCode || "TX-88291",
+    itemType: mergedOrder.itemType || "COURSE",
+    itemTitle:
+      mergedOrder.itemTitle ||
+      mergedOrder.courseName ||
+      mergedOrder.items?.[0]?.title ||
+      "Han ngu Giao tiep So cap: Chinh phuc HSK 1-2",
+    amount: mergedOrder.amount || 1250000,
+    paidAt: mergedOrder.paidAt || "24/05/2024",
+    quantity: mergedOrder.quantity || 1,
+  };
+  const isCourseOrder = String(order.itemType || "").toUpperCase() === "COURSE";
+  const cardTitle = isCourseOrder ? "THONG TIN KHOA HOC" : "THONG TIN SAN PHAM";
+  const itemBadge = isCourseOrder ? "C" : "B";
 
   return (
     <div style={{ minHeight: "100vh", fontFamily: "sans-serif", display: "flex", flexDirection: "column" }}>
@@ -56,14 +88,15 @@ export default function SuccessPage() {
 
           {/* Order */}
           <div style={{ margin: "0 24px 24px", border: "1.5px solid #e8e4dc", borderRadius: 16, overflow: "hidden" }}>
-            <div style={{ padding: "10px 16px", background: "#f7f5f0", fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "#8b7d5e", textTransform: "uppercase" }}>THONG TIN DON HANG</div>
+            <div style={{ padding: "10px 16px", background: "#f7f5f0", fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "#8b7d5e", textTransform: "uppercase" }}>{cardTitle}</div>
             <div style={{ padding: "16px", display: "flex", gap: 14, alignItems: "center" }}>
-              <div style={{ width: 52, height: 52, borderRadius: 12, background: "linear-gradient(135deg, #c4956a, #8b6d4a)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>S</div>
+              <div style={{ width: 52, height: 52, borderRadius: 12, background: "linear-gradient(135deg, #c4956a, #8b6d4a)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{itemBadge}</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#1a2b5e", lineHeight: 1.4, marginBottom: 6 }}>{order.courseName}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#1a2b5e", lineHeight: 1.4, marginBottom: 6 }}>{order.itemTitle}</div>
                 <div style={{ display: "flex", gap: 12, fontSize: 11, color: "#8b7d5e" }}>
                   <span>Ma: <strong style={{ color: "#1a2b5e" }}>#{order.orderCode}</strong></span>
                   <span>Ngay: {order.paidAt}</span>
+                  {!isCourseOrder ? <span>SL: {order.quantity}</span> : null}
                 </div>
               </div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "#4a7c59", whiteSpace: "nowrap" }}>{order.amount.toLocaleString("vi-VN")}d</div>
@@ -79,9 +112,11 @@ export default function SuccessPage() {
             <button onClick={() => navigate("/")} style={{ flex: 1, padding: 13, borderRadius: 12, border: "1.5px solid #d5cfc4", background: "#fff", color: "#1a2b5e", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
               Ve trang chu
             </button>
-            <button onClick={() => navigate("/video")} style={{ flex: 1, padding: 13, borderRadius: 12, background: "#4a7c59", border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 16px rgba(74,124,89,0.3)" }}>
-              Vao hoc ngay
-            </button>
+            {isCourseOrder ? (
+              <button onClick={() => navigate("/MyCourse")} style={{ flex: 1, padding: 13, borderRadius: 12, background: "#4a7c59", border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 16px rgba(74,124,89,0.3)" }}>
+                Vao hoc ngay
+              </button>
+            ) : null}
           </div>
 
           <div style={{ textAlign: "center", fontSize: 11, color: "#a09080", padding: "16px 24px 24px", lineHeight: 1.7 }}>

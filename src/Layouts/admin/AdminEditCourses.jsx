@@ -200,11 +200,14 @@ export default function AdminEditCourses() {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to update course");
+        const message = await response.text().catch(() => "");
+        throw new Error(message || "Failed to update course");
       }
 
       setThumbnail(thumbnailUrl || thumbnail);
       setThumbnailFile(null);
+      setIntroVideoFile(null);
+      setIntroVideoName("");
       setFormData(updatedFormData);
       setOriginalFormData(updatedFormData);
       setHasChanges(false);
@@ -277,7 +280,8 @@ const handleIntroVideoFileChange = (e) => {
 
   const updatedData = { ...formData, introVideoUrl: "" };
   setFormData(updatedData);
-  setHasChanges(JSON.stringify(updatedData) !== JSON.stringify(originalFormData));
+  setHasChanges(true);
+  setError("");
 };
   const [status, setStatus] = useState("Drafting");
   const [lastSaved, setLastSaved] = useState("2 mins ago");

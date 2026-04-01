@@ -3,6 +3,12 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import logo from '../../../assets/image/LOGO (1).png';
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import {
+  createLessonComment,
+  getLessonDiscussion,
+  likeLessonComment,
+  seedLessonDiscussionMeta,
+} from "../api/apiLessonDiscussion";
 
 // ===== MOCK DOCUMENTS DATA =====
 const mockLessonDocuments = [
@@ -132,19 +138,19 @@ export default function VideoMain() {
     const prevLessonId = Number(orderedLessons[idx - 1]?.lesson?.lessonId);
     return !completedLessons.map(Number).includes(prevLessonId);
   };
-  const [comments, setComments] = useState([
-    { id: 1, author: 'Trần Hạnh', avatar: 'TH', time: '10 phút trước', content: 'Video giảng rất dễ hiểu ạ! Thầy có thể hướng dẫn kỹ hơn về thanh điệu không ạ?', likes: 0, replies: [] },
-    { id: 2, author: 'Lý Minh', avatar: 'LM', time: '2 giờ trước', content: 'Từ 你好 dùng cho bạn bè, còn 您好 dùng cho người lớn tuổi đúng không thầy?', likes: 1, replies: [] }
-  ]);
+  const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [sendingComment, setSendingComment] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(localStorage.getItem("avatarUrl") || null);
+  const [highlightedCommentId, setHighlightedCommentId] = useState(null);
 
   const videoRef = useRef(null);
   const progressBarRef = useRef(null);
   const lastSentRef = useRef(0);
   const isCompletingRef = useRef(false);
   const menuRef = useRef(null);
+  const commentRefs = useRef({});
   const { courseId, lessonId } = useParams();
   const navigate = useNavigate();
   const getAuthConfig = () => {
@@ -171,6 +177,46 @@ export default function VideoMain() {
     setCourse(null);
     fetchData();
   }, [lessonId]);
+
+  useEffect(() => {
+    const loadDiscussion = async () => {
+      try {
+        const discussion = await getLessonDiscussion(lessonId);
+        setComments(Array.isArray(discussion) ? discussion : []);
+      } catch (error) {
+        console.error("Load discussion error:", error);
+      }
+    };
+
+    if (lessonId) {
+      loadDiscussion();
+    }
+  }, [lessonId]);
+
+  useEffect(() => {
+    if (lessonId && lesson) {
+      seedLessonDiscussionMeta(lessonId, {
+        lessonTitle: lesson.title,
+        courseId: Number(courseId),
+        courseTitle: course?.title || "",
+      });
+    }
+  }, [lessonId, lesson, course, courseId]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const focusCommentId = params.get("focusComment");
+    if (!focusCommentId || comments.length === 0) return;
+
+    const target = commentRefs.current[String(focusCommentId)];
+    if (!target) return;
+
+    setHighlightedCommentId(String(focusCommentId));
+    target.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    const timer = window.setTimeout(() => setHighlightedCommentId(null), 2500);
+    return () => window.clearTimeout(timer);
+  }, [comments, location.search]);
 
   useEffect(() => {
   axios
@@ -473,14 +519,54 @@ const handleVideoEnd = () => {
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
+    const content = newComment.trim();
+    if (!content || sendingComment) return;
+
+    try {
+      setSendingComment(true);
+      const createdComment = await createLessonComment(lessonId, content);
+      setComments((prev) => [...prev, createdComment]);
+      setNewComment('');
+      return;
+    } catch (error) {
+      console.error("Create discussion error:", error);
+      alert("Khong the gui thao luan luc nay.");
+      return;
+    } finally {
+      setSendingComment(false);
+    }
     if (newComment.trim()) {
       setComments([...comments, { id: comments.length + 1, author: 'Bạn', avatar: 'BA', time: 'Vừa xong', content: newComment, likes: 0, replies: [] }]);
       setNewComment('');
     }
   };
 
-  const handleLikeComment = (commentId) => {
+  const handleLikeComment = async (commentId) => {
+    setComments((prev) =>
+      prev.map((comment) =>
+        String(comment.id) === String(commentId)
+          ? { ...comment, likes: Number(comment.likes || 0) + 1 }
+          : comment
+      )
+    );
+
+    try {
+      const updated = await likeLessonComment(lessonId, commentId);
+      if (updated) {
+        setComments((prev) =>
+          prev.map((comment) =>
+            String(comment.id) === String(commentId)
+              ? { ...comment, likes: Number(updated.likes || updated.likeCount || comment.likes || 0) }
+              : comment
+          )
+        );
+      }
+      return;
+    } catch (error) {
+      console.error("Like discussion error:", error);
+      return;
+    }
     setComments(comments.map(c => c.id === commentId ? { ...c, likes: c.likes + 1 } : c));
   };
 
@@ -586,9 +672,13 @@ const handleVideoEnd = () => {
                       <button
                         onClick={() => {
                           localStorage.removeItem("token");
+                          localStorage.removeItem("accessToken");
+                          localStorage.removeItem("refreshToken");
                           localStorage.removeItem("userId");
                           localStorage.removeItem("userName");
                           localStorage.removeItem("email");
+                          localStorage.removeItem("phone");
+                          localStorage.removeItem("role");
                           setMenuOpen(false);
                           navigate("/home");
                           window.location.reload();
@@ -945,8 +1035,18 @@ const handleVideoEnd = () => {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-5">
-            {comments.map((comment) => (
-              <div key={comment.id} className="flex gap-3">
+            {comments.length > 0 ? comments.map((comment) => (
+              <div
+                key={comment.id}
+                ref={(node) => {
+                  if (node) {
+                    commentRefs.current[String(comment.id)] = node;
+                  }
+                }}
+                className={`flex gap-3 rounded-xl px-2 py-2 transition-all ${
+                  highlightedCommentId === String(comment.id) ? "bg-amber-50 ring-2 ring-amber-200" : ""
+                }`}
+              >
                 <div className="size-8 rounded-full bg-primary/20 shrink-0 flex items-center justify-center text-primary font-bold text-[10px]">{comment.avatar}</div>
                 <div className="flex flex-col gap-1 flex-1">
                   <div className="flex items-center gap-2">
@@ -965,14 +1065,18 @@ const handleVideoEnd = () => {
                   </div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                Chua co thao luan nao cho bai hoc nay. Ban co the nhan tin dau tien.
+              </div>
+            )}
           </div>
           <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-surface-light dark:bg-surface-dark">
             <div className="relative">
               <textarea value={newComment} onChange={(e) => setNewComment(e.target.value)}
                 className="w-full p-3 pr-10 text-[11px] bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-primary focus:border-primary resize-none placeholder-slate-400 custom-scrollbar"
                 placeholder="Viết bình luận của bạn..." rows={2} />
-              <button onClick={handleAddComment} disabled={!newComment.trim()}
+              <button onClick={handleAddComment} disabled={!newComment.trim() || sendingComment}
                 className="absolute right-2 bottom-2 size-8 bg-primary text-white rounded-lg flex items-center justify-center hover:bg-primary-dark transition-colors disabled:opacity-50">
                 <span className="material-symbols-outlined text-[18px]">send</span>
               </button>

@@ -121,6 +121,25 @@ const buildEnrollmentMap = (orders = [], courses = []) => {
   );
 };
 
+const buildCourseUpdatePayload = (course, nextStatus) => ({
+  courseId: course.courseId,
+  title: course.title || "",
+  courseType: course.courseType || course.type || "",
+  type: course.courseType || course.type || "",
+  price: Number(course.price || 0),
+  discountPrice: Number(course.discountPrice || 0),
+  description: course.description || "",
+  introVideoUrl:
+    course.introVideoUrl || course.videoUrl || course.introUrl || "",
+  thumbnailUrl:
+    course.thumbnailUrl ||
+    course.thumbnail ||
+    course.imageUrl ||
+    course.image ||
+    "",
+  status: nextStatus,
+});
+
 export default function AdminCourse() {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
@@ -128,7 +147,8 @@ export default function AdminCourse() {
   const [activeTab, setActiveTab] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const [updatingStatusId, setUpdatingStatusId] = useState(null);
-  const token = localStorage.getItem("token");
+  const token =
+    localStorage.getItem("token") || localStorage.getItem("accessToken");
   const headers = { Authorization: `Bearer ${token}` };
   const coursesPerPage = 5;
 
@@ -177,30 +197,26 @@ export default function AdminCourse() {
 
     setUpdatingStatusId(course.courseId);
     try {
+      let latestCourse = course;
+      try {
+        const detailResponse = await fetch(
+          `http://localhost:8080/api/admin/courses/${course.courseId}`,
+          { headers }
+        );
+
+        if (detailResponse.ok) {
+          const detailPayload = await detailResponse.json();
+          latestCourse = detailPayload?.data || detailPayload || course;
+        }
+      } catch (detailError) {
+        console.warn("Skip course detail fetch before toggle:", detailError);
+      }
+
       const payload = new FormData();
       payload.append(
         "course",
         new Blob(
-          [
-            JSON.stringify({
-              courseId: course.courseId,
-              title: course.title || "",
-              courseType: course.courseType || course.type || "",
-              type: course.courseType || course.type || "",
-              price: Number(course.price || 0),
-              discountPrice: Number(course.discountPrice || 0),
-              description: course.description || "",
-              introVideoUrl:
-                course.introVideoUrl || course.videoUrl || course.introUrl || "",
-              thumbnailUrl:
-                course.thumbnailUrl ||
-                course.thumbnail ||
-                course.imageUrl ||
-                course.image ||
-                "",
-              status: nextStatus,
-            }),
-          ],
+          [JSON.stringify(buildCourseUpdatePayload(latestCourse, nextStatus))],
           { type: "application/json" }
         )
       );
@@ -218,13 +234,7 @@ export default function AdminCourse() {
         throw new Error("Không thể cập nhật trạng thái khóa học");
       }
 
-      setCourses((prev) =>
-        prev.map((item) =>
-          String(item.courseId) === String(course.courseId)
-            ? { ...item, status: nextStatus }
-            : item
-        )
-      );
+      await fetchCourses();
     } catch (err) {
       console.error(err);
       alert(err.message || "Cập nhật trạng thái thất bại");
@@ -247,10 +257,10 @@ export default function AdminCourse() {
 
   return (
     <>
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex min-h-screen overflow-hidden">
         <AdminSidebar />
         <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-          <header className="h-20 bg-white dark:bg-background-dark border-b border-gray-200 dark:border-white/10 flex items-center justify-between px-8 shrink-0">
+          <header className="min-h-20 shrink-0 border-b border-gray-200 bg-white px-4 py-4 dark:border-white/10 dark:bg-background-dark sm:px-6 lg:flex lg:items-center lg:justify-between lg:px-8">
             <div className="flex flex-col">
               <h2 className="text-2xl font-black text-primary dark:text-accent tracking-tight uppercase">
                 Course Management
@@ -260,10 +270,10 @@ export default function AdminCourse() {
               </p>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="mt-4 flex items-center gap-4 lg:mt-0">
               <Link
                 to="/addnewCourse"
-                className="bg-accent hover:bg-yellow-400 text-primary px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-accent/20 transition-all active:scale-95"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-6 py-2.5 font-bold text-primary shadow-lg shadow-accent/20 transition-all hover:bg-yellow-400 active:scale-95 sm:w-auto"
               >
                 <span className="material-symbols-outlined font-bold">add</span>
                 Add New Course
@@ -271,8 +281,8 @@ export default function AdminCourse() {
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto p-8">
-            <div className="flex gap-8 mb-6 border-b border-gray-200 dark:border-white/10">
+          <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+            <div className="mb-6 flex gap-4 overflow-x-auto border-b border-gray-200 dark:border-white/10 sm:gap-8">
               {[
                 { key: "ALL", label: "All Courses", count: courses.length },
                 {
@@ -293,7 +303,7 @@ export default function AdminCourse() {
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`pb-4 font-medium transition-colors flex items-center gap-2 border-b-2 ${
+                  className={`flex shrink-0 items-center gap-2 border-b-2 pb-4 font-medium transition-colors ${
                     activeTab === tab.key
                       ? "text-primary dark:text-accent font-bold border-primary dark:border-accent"
                       : "text-gray-400 border-transparent hover:text-primary dark:hover:text-accent"
@@ -313,8 +323,9 @@ export default function AdminCourse() {
               ))}
             </div>
 
-            <div className="bg-white dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm overflow-hidden">
-              <table className="w-full text-left border-collapse">
+            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[960px] text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-white/5">
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
@@ -478,15 +489,16 @@ export default function AdminCourse() {
                   })}
                 </tbody>
               </table>
+              </div>
             </div>
 
-            <div className="p-4 bg-gray-50 border-t border-[#e7ebf3] flex items-center justify-between">
+            <div className="flex flex-col gap-3 border-t border-[#e7ebf3] bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-[#4c669a]">
                 Page <span className="font-bold text-[#0d121b]">{currentPage}</span>{" "}
                 of <span className="font-bold text-[#0d121b]">{totalPages}</span>
               </p>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}

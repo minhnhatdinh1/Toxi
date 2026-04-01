@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../../context/CartContext";
 import logo from "../../../assets/image/LOGO (1).png";
+import NotificationBell from "../../../components/NotificationBell";
 
 export default function AdminTopHeader() {
   const navigate = useNavigate();
@@ -53,6 +54,8 @@ export default function AdminTopHeader() {
         </div>
 
         <div className="flex items-center gap-4 shrink-0">
+          <NotificationBell audience="admin" />
+
           <button onClick={() => navigate("/cart")} className="relative cursor-pointer p-2">
             <span className="material-symbols-outlined text-[28px] text-secondary hover:text-white transition-colors">
               shopping_cart

@@ -4,6 +4,131 @@ const CartContext = createContext();
 
 
 const API = "http://localhost:8080/api";
+const CART_PRICE_OVERRIDES_KEY = "cartPriceOverrides";
+
+const buildFileUrl = (value) => {
+  if (!value || typeof value !== "string") return "";
+  if (value.startsWith("http://") || value.startsWith("https://")) return value;
+  return `${API}/files/${value.replace(/^\/+/, "")}`;
+};
+
+const pickCatalogItem = (item = {}) =>
+  item.book ||
+  item.course ||
+  item.combo ||
+  item.product ||
+  item.item ||
+  {};
+
+const toNumber = (...values) => {
+  for (const value of values) {
+    const num = Number(value);
+    if (Number.isFinite(num) && num > 0) return num;
+  }
+  return 0;
+};
+
+const readPriceOverrides = () => {
+  try {
+    const raw = localStorage.getItem(CART_PRICE_OVERRIDES_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (error) {
+    console.error("readPriceOverrides error:", error);
+    return {};
+  }
+};
+
+const writePriceOverrides = (overrides) => {
+  try {
+    localStorage.setItem(CART_PRICE_OVERRIDES_KEY, JSON.stringify(overrides));
+  } catch (error) {
+    console.error("writePriceOverrides error:", error);
+  }
+};
+
+const buildOverrideKey = (itemType, itemId) => `${itemType || ""}:${itemId || ""}`;
+
+const fetchItemDiscountMeta = async (itemType, itemId) => {
+  if (!itemType || !itemId) return null;
+
+  let url = "";
+  if (itemType === "BOOK") {
+    url = `${API}/books/${itemId}`;
+  } else if (itemType === "COURSE") {
+    url = `${API}/courses/${itemId}`;
+  } else {
+    return null;
+  }
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return {
+      title: data.title || data.name || "",
+      imageUrl: data.thumbnailUrl || data.thumbnail || data.imageUrl || data.image || "",
+      originalPrice: toNumber(data.price, data.originalPrice),
+      discountPrice: toNumber(data.discountPrice, data.finalPrice),
+    };
+  } catch (error) {
+    console.error("fetchItemDiscountMeta error:", error);
+    return null;
+  }
+};
+
+const normalizeCartItem = (item = {}, overrides = {}) => {
+  const catalog = pickCatalogItem(item);
+  const itemType =
+    item.itemType ||
+    item.type ||
+    (item.book ? "BOOK" : item.course ? "COURSE" : item.combo ? "COMBO" : "");
+  const itemId =
+    item.itemId || catalog.bookId || catalog.courseId || catalog.comboId || catalog.id;
+  const override = overrides[buildOverrideKey(itemType, itemId)] || {};
+  const originalPrice = toNumber(
+    override.originalPrice,
+    item.originalPrice,
+    catalog.originalPrice,
+    catalog.price,
+    item.unitPrice,
+    item.price
+  );
+  const discountPrice = toNumber(
+    override.discountPrice,
+    item.discountPrice,
+    item.finalPrice,
+    catalog.discountPrice,
+    catalog.finalPrice
+  );
+  const displayPrice =
+    discountPrice > 0 && (originalPrice <= 0 || discountPrice < originalPrice)
+      ? discountPrice
+      : toNumber(item.price, item.unitPrice, catalog.price, discountPrice);
+
+  return {
+    ...item,
+    cartItemId: item.cartItemId || item.id,
+    itemId,
+    itemType,
+    title: override.title || item.title || item.name || catalog.title || catalog.name || "Sản phẩm",
+    imageUrl: buildFileUrl(
+      override.imageUrl ||
+        item.imageUrl ||
+        item.thumbnailUrl ||
+        catalog.thumbnailUrl ||
+        catalog.thumbnail ||
+        catalog.imageUrl ||
+        catalog.image
+    ),
+    quantity: Number(item.quantity || item.qty || 1),
+    price: displayPrice,
+    originalPrice,
+    discountPrice,
+    finalPrice: discountPrice || displayPrice,
+  };
+};
+
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
     const getToken = () => localStorage.getItem("token");
@@ -34,7 +159,58 @@ export const CartProvider = ({ children }) => {
       const res = await fetch(url, { headers: authHeaders() });
       if (!res.ok) return;
       const data = await res.json();
-      setCartItems(data);
+      const overrides = readPriceOverrides();
+      const missingDiscountItems = Array.isArray(data)
+        ? data.filter((item) => {
+            const catalog = pickCatalogItem(item);
+            const itemType =
+              item.itemType ||
+              item.type ||
+              (item.book ? "BOOK" : item.course ? "COURSE" : item.combo ? "COMBO" : "");
+            const itemId =
+              item.itemId || catalog.bookId || catalog.courseId || catalog.comboId || catalog.id;
+            const override = overrides[buildOverrideKey(itemType, itemId)];
+            const currentDiscount = toNumber(
+              override?.discountPrice,
+              item.discountPrice,
+              item.finalPrice,
+              catalog.discountPrice,
+              catalog.finalPrice
+            );
+            return (itemType === "BOOK" || itemType === "COURSE") && itemId && currentDiscount <= 0;
+          })
+        : [];
+
+      if (missingDiscountItems.length > 0) {
+        const detailOverrides = await Promise.all(
+          missingDiscountItems.map(async (item) => {
+            const catalog = pickCatalogItem(item);
+            const itemType =
+              item.itemType ||
+              item.type ||
+              (item.book ? "BOOK" : item.course ? "COURSE" : item.combo ? "COMBO" : "");
+            const itemId =
+              item.itemId || catalog.bookId || catalog.courseId || catalog.comboId || catalog.id;
+            const meta = await fetchItemDiscountMeta(itemType, itemId);
+            return meta ? [buildOverrideKey(itemType, itemId), meta] : null;
+          })
+        );
+
+        detailOverrides.forEach((entry) => {
+          if (!entry) return;
+          const [key, value] = entry;
+          overrides[key] = {
+            ...(overrides[key] || {}),
+            ...value,
+          };
+        });
+        writePriceOverrides(overrides);
+      }
+
+      const normalizedItems = Array.isArray(data)
+        ? data.map((item) => normalizeCartItem(item, overrides))
+        : [];
+      setCartItems(normalizedItems);
     } catch (err) {
       console.error("fetchCart error:", err);
     }
@@ -44,9 +220,20 @@ export const CartProvider = ({ children }) => {
     fetchCart();
   }, []);
 
-  const addToCart = async (itemId, itemType, quantity = 1) => {
+  const addToCart = async (itemId, itemType, quantity = 1, itemMeta = null) => {
     const token = getToken();
     const guestId = getGuestId();
+
+  if (itemMeta) {
+    const overrides = readPriceOverrides();
+    overrides[buildOverrideKey(itemType, itemId)] = {
+      title: itemMeta.title || itemMeta.name || "",
+      imageUrl: itemMeta.imageUrl || itemMeta.image || itemMeta.thumbnailUrl || "",
+      originalPrice: toNumber(itemMeta.originalPrice, itemMeta.price),
+      discountPrice: toNumber(itemMeta.discountPrice, itemMeta.finalPrice),
+    };
+    writePriceOverrides(overrides);
+  }
 
   const payload = {
     itemId,

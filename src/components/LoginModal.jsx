@@ -79,6 +79,7 @@ export default function LoginModal({
       const token = res.data.accessToken;
 
       localStorage.setItem("token", token);
+      localStorage.setItem("accessToken", token);
       localStorage.setItem("userId", res.data.userId);
       localStorage.setItem("refreshToken", res.data.refreshToken);
       localStorage.setItem("userName", res.data.userName);

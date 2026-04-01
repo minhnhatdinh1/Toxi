@@ -61,7 +61,7 @@ const parseDurationToSeconds = (value) => {
 };
 
 // ─── FILE UPLOAD ZONE ──────────────────────────────────────────────────────────
-function FileUploadZone({ files, onChange }) {
+function FileUploadZone({ files, onChange, existingFiles = [], onRemoveExisting }) {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
 
@@ -110,6 +110,37 @@ function FileUploadZone({ files, onChange }) {
         <p className="text-sm font-bold text-slate-600">{dragging ? 'Thả file vào đây...' : 'Kéo & thả file, hoặc nhấn để chọn'}</p>
         <p className="text-xs text-slate-400 mt-1">Hỗ trợ: MP4, PDF, DOCX, XLSX, JPG, PNG</p>
       </div>
+      {existingFiles && existingFiles.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {existingFiles.map((file, idx) => {
+            const iconData = getFileIcon({ type: file.type || "video/mp4" });
+            return (
+              <div key={`existing-${idx}`} className="flex items-center gap-3 px-4 py-3 bg-blue-50/60 rounded-xl border border-blue-100 group/file">
+                <div className={`w-9 h-9 rounded-lg ${iconData.bg} flex items-center justify-center flex-shrink-0`}>
+                  <span className={`material-symbols-outlined text-base ${iconData.color}`}>{iconData.icon}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-700 truncate">{file.name}</p>
+                  <p className="text-xs text-slate-400 truncate">Đang dùng</p>
+                </div>
+                {onRemoveExisting ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemoveExisting(file.key);
+                    }}
+                    className="p-1.5 opacity-0 group-hover/file:opacity-100 hover:bg-red-50 hover:text-red-500 rounded-lg transition-all"
+                    title="Bỏ file hiện tại"
+                  >
+                    <span className="material-symbols-outlined text-base">close</span>
+                  </button>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      )}
       {files && files.length > 0 && (
         <div className="mt-3 space-y-2">
           {files.map((file, idx) => {
@@ -575,6 +606,24 @@ function EditModal({ type, data, onClose, onSave }) {
   };
 
   const cfg = config[type];
+  const existingFiles = type === "lesson"
+    ? [
+        form.videoUrl
+          ? {
+              key: "videoUrl",
+              name: String(form.videoUrl).split("/").pop(),
+              type: "video/mp4",
+            }
+          : null,
+        form.attachmentUrl
+          ? {
+              key: "attachmentUrl",
+              name: String(form.attachmentUrl).split("/").pop(),
+              type: "application/octet-stream",
+            }
+          : null,
+      ].filter(Boolean)
+    : [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -614,7 +663,16 @@ function EditModal({ type, data, onClose, onSave }) {
           ))}
           <div className="pt-1">
             <div className="border-t border-slate-100 mb-5"></div>
-            <FileUploadZone files={attachedFiles} onChange={setAttachedFiles} />
+            <FileUploadZone
+              files={attachedFiles}
+              onChange={setAttachedFiles}
+              existingFiles={existingFiles}
+              onRemoveExisting={
+                type === "lesson"
+                  ? (key) => setForm((prev) => ({ ...prev, [key]: "" }))
+                  : undefined
+              }
+            />
           </div>
         </div>
         <div className="px-8 py-5 border-t bg-slate-50/60 flex items-center justify-end gap-3">
@@ -885,7 +943,31 @@ export default function AdminCourseContent() {
     if (!modal) return;
     try {
       const { files, ...cleanData } = updated;
-      if (modal.type === 'lesson')  await updateLessonApi(modal.data.id, cleanData);
+      if (modal.type === 'lesson') {
+        const lessonFiles = Array.isArray(files) ? files : [];
+        const videoFile = lessonFiles.find((file) => file.type?.startsWith("video/"));
+        const documentFile = lessonFiles.find((file) => !file.type?.startsWith("video/"));
+
+        let nextVideoUrl = cleanData.videoUrl?.trim?.() || modal.data.videoUrl || "";
+        let nextAttachmentUrl = cleanData.attachmentUrl || modal.data.attachmentUrl || null;
+
+        if (videoFile) {
+          const uploadedVideo = await uploadImage(videoFile);
+          nextVideoUrl = resolveUploadedPath(uploadedVideo);
+        }
+
+        if (documentFile) {
+          const uploadedAttachment = await uploadImage(documentFile);
+          nextAttachmentUrl = resolveUploadedPath(uploadedAttachment);
+        }
+
+        await updateLessonApi(modal.data.id, {
+          ...cleanData,
+          videoUrl: nextVideoUrl,
+          duration: parseDurationToSeconds(cleanData.duration),
+          attachmentUrl: nextAttachmentUrl,
+        });
+      }
       if (modal.type === 'chapter') await updateChapterApi(modal.data.id, cleanData);
       if (modal.type === 'quiz')    await updateQuizApi(modal.data.id, cleanData);
       await fetchCourse();
@@ -1093,7 +1175,8 @@ export default function AdminCourseContent() {
                     onEditLesson={(item, ci, li) => openEdit('lesson', {
                       id: item.lesson?.lessonId,
                       title: item.lesson?.title || '', videoUrl: item.lesson?.videoUrl || '',
-                      duration: item.lesson?.duration || '', description: item.lesson?.description || ''
+                      duration: item.lesson?.duration || '', description: item.lesson?.description || '',
+                      attachmentUrl: item.lesson?.attachmentUrl || ''
                     }, ci, li)}
                     onEditQuiz={(item, ci, qi) => openEdit('quiz', {
                       id: item.quiz?.quizId,

@@ -47,6 +47,7 @@ const { mergeCartAfterLogin } = useCart();
       });
       const token = res.data.accessToken;  
     localStorage.setItem("token", res.data.accessToken);
+    localStorage.setItem("accessToken", res.data.accessToken);
     localStorage.setItem("userId", res.data.userId);
     localStorage.setItem("refreshToken", res.data.refreshToken);
     localStorage.setItem("userName", res.data.userName);
@@ -232,9 +233,7 @@ const { mergeCartAfterLogin } = useCart();
                     type="button"
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-secondary dark:hover:text-primary transition-colors flex items-center"
                   >
-                    <span className="material-symbols-outlined text-[20px]">
-                      visibility
-                    </span>
+                   
                   </button>
                 </div>
               </div>
@@ -268,36 +267,7 @@ const { mergeCartAfterLogin } = useCart();
                 <div className="flex-grow border-t border-gray-200 dark:border-white/10"></div>
               </div>
 
-              {/* SOCIAL LOGIN */}
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  className="flex items-center justify-center gap-2 h-11 border border-gray-200 dark:border-white/10 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group"
-                >
-                 <svg className="w-5 h-5" viewBox="0 0 48 48">
-  <path fill="#EA4335" d="M24 9.5c3.4 0 6.5 1.2 8.9 3.2l6.6-6.6C35.6 2.2 30.1 0 24 0 14.6 0 6.6 5.6 2.7 13.7l7.7 6C12.3 13.4 17.7 9.5 24 9.5z"/>
-  <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.5 2.7-2 5-4.3 6.6l6.6 5.1C43.8 36.4 46.5 30.9 46.5 24.5z"/>
-  <path fill="#FBBC05" d="M10.4 28.3c-.5-1.4-.8-2.9-.8-4.3s.3-2.9.8-4.3l-7.7-6C1 17.1 0 20.4 0 24s1 6.9 2.7 10.3l7.7-6z"/>
-  <path fill="#34A853" d="M24 48c6.5 0 12-2.1 16-5.7l-6.6-5.1c-2 1.4-4.6 2.3-9.4 2.3-6.3 0-11.7-3.9-13.6-9.2l-7.7 6C6.6 42.4 14.6 48 24 48z"/>
-</svg>
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                    Google
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  className="flex items-center justify-center gap-2 h-11 border border-gray-200 dark:border-white/10 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group"
-                >
-                 <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-  <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.093 10.125 24v-8.437H7.078v-3.49h3.047V9.845c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953h-1.513c-1.49 0-1.953.926-1.953 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.093 24 18.1 24 12.073z"/>
-</svg>
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                    Facebook
-                  </span>
-                </button>
-              </div>
-
+            
               {/* REGISTER */}
               <div className="mt-2 text-center">
                 <p className="text-sm text-gray-500 dark:text-gray-400">

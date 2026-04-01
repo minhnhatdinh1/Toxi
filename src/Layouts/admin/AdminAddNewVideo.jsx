@@ -5,11 +5,13 @@ import { useParams } from "react-router-dom";
 import {
   createLessonApi,
   addLessonToChapterApi,
+  addQuizToChapterApi,
   fetchChaptersApi,
   createChapterApi,
   deleteContentApi,
   deleteChapterApi,
 } from "./api/apiCourseContent.js";
+import { fetchQuizzes } from "./api/apiquiz";
 import { uploadImage } from "./api/apiFile";
 import toxiLogo from "../../assets/image/LOGO (1).png";
 import { useEffect } from 'react';
@@ -37,6 +39,8 @@ export default function AdminCourseContent() {
   ];
 
   const [chapters, setChapters] = useState(DEFAULT_CHAPTERS);
+  const [quizLibrary, setQuizLibrary] = useState([]);
+  const [quizLibraryLoading, setQuizLibraryLoading] = useState(false);
 
   useEffect(() => {
     if (!courseId) return;
@@ -49,6 +53,46 @@ export default function AdminCourseContent() {
       })
       .catch(console.error);
   }, [courseId]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadQuizLibrary = async () => {
+      try {
+        setQuizLibraryLoading(true);
+        const response = await fetchQuizzes({});
+        const rawQuizzes = response?.data?.data || response?.data || [];
+        const normalizedQuizzes = (Array.isArray(rawQuizzes) ? rawQuizzes : [])
+          .map((quiz) => ({
+            id: quiz.quizId ?? quiz.id,
+            title: quiz.title || quiz.name || "Quiz chua dat ten",
+            hsk: quiz.hsklevel ? `HSK ${quiz.hsklevel}` : quiz.hsk || "",
+            type: quiz.quizType || quiz.type || "",
+            status: quiz.status || "DRAFT",
+          }))
+          .filter((quiz) => quiz.id);
+
+        if (isMounted) {
+          setQuizLibrary(normalizedQuizzes);
+        }
+      } catch (error) {
+        console.error("LOAD QUIZ LIBRARY ERROR:", error);
+        if (isMounted) {
+          setQuizLibrary([]);
+        }
+      } finally {
+        if (isMounted) {
+          setQuizLibraryLoading(false);
+        }
+      }
+    };
+
+    loadQuizLibrary();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const [course, setCourse] = useState("Luyện thi HSK 3 Cấp tốc - Chinh phục 600 từ vựng");
   const [progress] = useState(85);
@@ -279,6 +323,73 @@ export default function AdminCourseContent() {
     }
   };
 
+  const handleSaveChapter = async (chapterId) => {
+    try {
+      if (!courseId) {
+        alert("Chua co courseId.");
+        return;
+      }
+
+      const chapter = chapters.find((c) => c.id === chapterId);
+      if (!chapter) return;
+
+      const videoItems = chapter.items.filter((i) => i.type === "video" && i.title);
+      const quizItems = chapter.items.filter((i) => i.type === "quiz" && i.selectedExam);
+
+      if (videoItems.length === 0 && quizItems.length === 0) {
+        alert("Chua co bai giang hoac quiz nao de luu.");
+        return;
+      }
+
+      let realChapterId = chapter.chapterId;
+      if (!realChapterId) {
+        const res = await createChapterApi(courseId, { title: chapter.title });
+        realChapterId = res.data.chapterId;
+        setChapters((prev) =>
+          prev.map((c) => (c.id === chapterId ? { ...c, chapterId: realChapterId } : c))
+        );
+      }
+
+      for (const item of videoItems) {
+        let videoUrl = item.url?.trim();
+        let attachmentUrl = item.files[0] || null;
+
+        if (!videoUrl && item.videoFile) {
+          const uploadedVideo = await uploadImage(item.videoFile);
+          videoUrl = resolveUploadedPath(uploadedVideo);
+        }
+
+        if ((!attachmentUrl || attachmentUrl === item.files[0]) && item.fileUploads?.[0]) {
+          const uploadedAttachment = await uploadImage(item.fileUploads[0]);
+          attachmentUrl = resolveUploadedPath(uploadedAttachment) || item.files[0] || null;
+        }
+
+        const lessonRes = await createLessonApi({
+          title: item.title,
+          videoUrl,
+          duration: 120,
+          isFree: item.visibility === "free",
+          attachmentUrl,
+        });
+
+        await addLessonToChapterApi(realChapterId, lessonRes.data.lessonId);
+      }
+
+      for (const item of quizItems) {
+        await addQuizToChapterApi(realChapterId, Number(item.selectedExam));
+      }
+
+      alert(`Da luu ${videoItems.length} bai giang va ${quizItems.length} quiz vao "${chapter.title}"`);
+
+      setChapters((prev) =>
+        prev.map((c) => (c.id === chapterId ? { ...c, items: [] } : c))
+      );
+    } catch (error) {
+      console.error("SAVE CONTENT ERROR:", error.response?.data || error);
+      alert("Co loi xay ra, vui long thu lai.");
+    }
+  };
+
   return (
     <div className="relative flex min-h-screen w-full flex-row chinese-pattern">
 
@@ -503,13 +614,15 @@ export default function AdminCourseContent() {
                             onRemoveFile={removeFileFromItem}
                           />
                         ) : (
-                          <QuizForm
-                            key={item.id}
-                            item={item}
-                            chapterId={chapter.id}
-                            onUpdate={updateItem}
-                            onDelete={deleteItem}
-                          />
+                            <QuizPickerForm
+                              key={item.id}
+                              item={item}
+                              chapterId={chapter.id}
+                              quizLibrary={quizLibrary}
+                              quizLibraryLoading={quizLibraryLoading}
+                              onUpdate={updateItem}
+                              onDelete={deleteItem}
+                            />
                         )
                       )}
 
@@ -534,7 +647,7 @@ export default function AdminCourseContent() {
                       {chapter.items.length > 0 && (
                         <div className="flex justify-end pt-2">
                           <button
-                            onClick={() => handleSave(chapter.id)}
+                            onClick={() => handleSaveChapter(chapter.id)}
                             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-blue-600 transition-all shadow"
                           >
                             <span className="material-symbols-outlined text-base">save</span>
@@ -649,6 +762,94 @@ function VideoLessonForm({ item, chapterId, onUpdate, onDelete, onAddFile, onRem
             onChange={(e) => { if (e.target.files[0]) onAddFile(chapterId, item.id, e.target.files[0]); }}
             className="hidden" accept=".pdf,.doc,.docx" />
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ===== QUIZ PICKER FORM =====
+function QuizPickerForm({ item, chapterId, quizLibrary, quizLibraryLoading, onUpdate, onDelete }) {
+  const selectedQuiz = quizLibrary.find((quiz) => String(quiz.id) === String(item.selectedExam));
+
+  return (
+    <div className="border-2 border-yellow-100 rounded-2xl p-6 bg-yellow-50/20 relative">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="size-10 bg-yellow-100 text-yellow-600 rounded-xl flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: '"FILL" 1' }}>quiz</span>
+          </div>
+          <span className="text-[10px] font-black text-yellow-600 uppercase tracking-[0.15em]">Quiz co san</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Trang thai</label>
+            <select
+              value={item.status}
+              onChange={(e) => onUpdate(chapterId, item.id, "status", e.target.value)}
+              className="block w-36 rounded-xl border border-slate-100 bg-white text-[11px] font-bold py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary/10"
+            >
+              <option value="public">Cong khai</option>
+              <option value="hidden">An bai tap</option>
+            </select>
+          </div>
+          <button onClick={() => onDelete(chapterId, item.id)} className="size-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all">
+            <span className="material-symbols-outlined text-xl">close</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Ten quiz hien thi trong chuong..."
+          value={item.title}
+          onChange={(e) => onUpdate(chapterId, item.id, "title", e.target.value)}
+          className="w-full bg-white border-2 border-slate-100 rounded-xl text-slate-900 px-4 py-2.5 font-bold focus:border-yellow-400 focus:outline-none transition-all"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+          <span className="material-symbols-outlined text-sm">assignment</span>
+          Chon quiz tu ngan hang de
+        </label>
+        <div className="relative">
+          <select
+            value={item.selectedExam}
+            onChange={(e) => {
+              const value = e.target.value;
+              const matchedQuiz = quizLibrary.find((quiz) => String(quiz.id) === value);
+              onUpdate(chapterId, item.id, "selectedExam", value);
+              if (matchedQuiz) {
+                onUpdate(chapterId, item.id, "title", matchedQuiz.title);
+              }
+            }}
+            className="block w-full rounded-xl border border-slate-100 bg-white px-4 py-3 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+          >
+            <option value="">{quizLibraryLoading ? "-- Dang tai danh sach quiz --" : "-- Chon quiz da tao --"}</option>
+            {quizLibrary.map((quiz) => (
+              <option key={quiz.id} value={quiz.id}>
+                {quiz.title}{quiz.hsk ? ` - ${quiz.hsk}` : ""}{quiz.type ? ` - ${quiz.type}` : ""}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-yellow-500">
+            <span className="material-symbols-outlined">account_balance_wallet</span>
+          </div>
+        </div>
+        {selectedQuiz && (
+          <div className="rounded-xl border border-yellow-100 bg-white px-4 py-3 text-xs text-slate-500">
+            <p className="font-bold text-slate-800">{selectedQuiz.title}</p>
+            <p className="mt-1">
+              {selectedQuiz.hsk || "Khong ro cap do"}
+              {selectedQuiz.type ? ` • ${selectedQuiz.type}` : ""}
+              {selectedQuiz.status ? ` • ${selectedQuiz.status}` : ""}
+            </p>
+          </div>
+        )}
+        <p className="text-[11px] text-slate-400 font-medium italic">
+          Ban co the tao them quiz moi trong trang quan ly quiz, sau do quay lai day de gan vao chuong.
+        </p>
       </div>
     </div>
   );

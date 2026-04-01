@@ -139,13 +139,13 @@ result = result.filter((p) => p.category === selectedCategory);
   };
   return (
     <>
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex min-h-screen overflow-hidden">
         <AdminSidebar />
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto bg-background-light">
           {/* Top Header */}
-          <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-[#e7ebf3] px-8 py-4 flex items-center justify-between">
+          <header className="sticky top-0 z-10 flex flex-col gap-4 border-b border-[#e7ebf3] bg-white/80 px-4 py-4 backdrop-blur-md sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
             <div>
               <div className="flex items-center gap-2 text-sm text-[#4c669a] mb-1">
                 <span>Store Management</span>
@@ -159,10 +159,10 @@ result = result.filter((p) => p.category === selectedCategory);
               </h2>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex w-full items-center gap-4 lg:w-auto">
               <Link
                 to="/addnewProduct"
-                className="flex items-center gap-2 px-4 py-2.5 bg-accent-yellow hover:bg-accent-yellow-hover text-black font-bold rounded-lg transition-all shadow-sm"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent-yellow px-4 py-2.5 font-bold text-black shadow-sm transition-all hover:bg-accent-yellow-hover sm:w-auto"
               >
                 <span className="material-symbols-outlined">add</span>
                 <span>Add New Product</span>
@@ -171,7 +171,7 @@ result = result.filter((p) => p.category === selectedCategory);
           </header>
 
 
-          <div className="p-8 space-y-6">
+          <div className="space-y-6 p-4 sm:p-6 lg:p-8">
             {error && (
               <div
                 className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
@@ -225,10 +225,10 @@ result = result.filter((p) => p.category === selectedCategory);
             {/* Product Table Container */}
             <div className="bg-white rounded-xl border border-[#e7ebf3] shadow-sm overflow-hidden">
               {/* Filters & Search */}
-              <div className="p-4 border-b border-[#e7ebf3] flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-4 flex-1 min-w-[300px]">
+              <div className="flex flex-col gap-4 border-b border-[#e7ebf3] p-4 xl:flex-row xl:items-center xl:justify-between">
+                <div className="flex min-w-0 flex-1 flex-col gap-4 lg:flex-row lg:items-center">
                   {/* Search */}
-                  <div className="relative flex-1 max-w-md">
+                  <div className="relative flex-1">
                     <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#4c669a] text-xl">
                       search
                     </span>
@@ -285,7 +285,7 @@ result = result.filter((p) => p.category === selectedCategory);
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleExport}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg shadow-sm hover:bg-blue-700 transition"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 sm:w-auto"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -308,9 +308,9 @@ result = result.filter((p) => p.category === selectedCategory);
 
               <div ref={tableRef}>
                 {/* Table */}
-                <div className="border border-[#e7ebf3] rounded-xl bg-white">
-                  <div className="h-[500px] overflow-y-auto">
-                    <table className="w-full text-left">
+                <div className="rounded-xl border border-[#e7ebf3] bg-white">
+                  <div className="h-[500px] overflow-auto">
+                    <table className="w-full min-w-[760px] text-left">
                       {/* HEADER */}
                       <thead className="bg-gray-50 border-b border-[#e7ebf3] sticky top-0 z-10">
                         <tr>
@@ -430,7 +430,7 @@ result = result.filter((p) => p.category === selectedCategory);
                 </div>
               </div>
               {/* Pagination */}
-              <div className="p-4 bg-gray-50 border-t border-[#e7ebf3] flex items-center justify-between">
+              <div className="flex flex-col gap-3 border-t border-[#e7ebf3] bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-[#4c669a]">
                   Page{" "}
                   <span className="font-bold text-[#0d121b]">
@@ -440,7 +440,7 @@ result = result.filter((p) => p.category === selectedCategory);
                   <span className="font-bold text-[#0d121b]">{totalPages}</span>
                 </p>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {/* Prev */}
                   <button
                     disabled={currentPage === 1}

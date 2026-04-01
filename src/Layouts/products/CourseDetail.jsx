@@ -1,16 +1,35 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import logo from "../../assets/image/LOGO (1).png";
 import LoginModal from "../../components/LoginModal";
 import StarRating from "../../components/StarRating";
 import { useCart } from "../../context/CartContext";
 import LoadingSpinner from "../common/LoadingSpinner";
+import StoreTopHeader from "../common/StoreTopHeader";
+import { createCourseReview, getCourseReviews } from "./api/apiCourseReview";
+import { getNotifications, pushNotification } from "../../utils/notificationCenter";
+
+const COURSE_REVIEW_REPLY_SEEN_KEY = "toxi_course_review_reply_seen";
+
+const readSeenReviewReplies = () => {
+  try {
+    const raw = localStorage.getItem(COURSE_REVIEW_REPLY_SEEN_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeSeenReviewReplies = (items) => {
+  localStorage.setItem(COURSE_REVIEW_REPLY_SEEN_KEY, JSON.stringify(items));
+};
 
 export default function CourseDetail() {
   const { id: courseId } = useParams();
   const navigate = useNavigate();
-  const { addToCart, cartCount } = useCart();
+  const location = useLocation();
+  const { addToCart } = useCart();
+  const reviewRefs = useRef({});
 
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,6 +37,10 @@ export default function CourseDetail() {
   const [hasAccess, setHasAccess] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [pendingLesson, setPendingLesson] = useState(null);
+  const [courseReviews, setCourseReviews] = useState([]);
+  const [reviewForm, setReviewForm] = useState({ rating: 0, content: "" });
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [highlightedReviewId, setHighlightedReviewId] = useState(null);
 
   useEffect(() => {
     fetchCourse();
@@ -44,6 +67,10 @@ export default function CourseDetail() {
 
   useEffect(() => {
     refreshAccess();
+  }, [courseId]);
+
+  useEffect(() => {
+    loadCourseReviews();
   }, [courseId]);
 
   const fetchCourse = async () => {
@@ -75,8 +102,72 @@ export default function CourseDetail() {
     }
   };
 
+  const loadCourseReviews = async () => {
+    try {
+      const response = await getCourseReviews(courseId);
+      const payload = Array.isArray(response) ? response : response?.data || response?.content || [];
+      const currentUserName = String(localStorage.getItem("userName") || "").trim().toLowerCase();
+      const currentUserEmail = String(localStorage.getItem("email") || "").trim().toLowerCase();
+      const seenReplies = readSeenReviewReplies();
+      const nextSeenReplies = { ...seenReplies };
+
+      payload.forEach((review) => {
+        const reviewOwnerName = String(review.userName || review.fullName || "").trim().toLowerCase();
+        const reviewOwnerEmail = String(review.email || "").trim().toLowerCase();
+        const isOwnedByCurrentUser =
+          (!!currentUserName && reviewOwnerName === currentUserName) ||
+          (!!currentUserEmail && reviewOwnerEmail === currentUserEmail);
+
+        if (!isOwnedByCurrentUser || !review.adminReply) {
+          return;
+        }
+
+        const reviewId = String(
+          review.id || review.reviewId || `${courseId}-${reviewOwnerEmail || reviewOwnerName}-${review.createdAt || ""}`
+        );
+        const replySignature = JSON.stringify({
+          adminReply: review.adminReply,
+          repliedAt: review.repliedAt || review.updatedAt || review.updated_at || null,
+        });
+        const existingReplyNotification = getNotifications("user").some(
+          (item) =>
+            item.type === "review-reply" &&
+            String(item.contextId || "") === reviewId &&
+            String(item.entityId || "") === String(courseId)
+        );
+
+        if (seenReplies[reviewId] !== replySignature && !existingReplyNotification) {
+          pushNotification({
+            audience: "user",
+            type: "review-reply",
+            title: "Admin da phan hoi danh gia",
+            message: `Danh gia cua ban cho ${course?.title || "khoa hoc"} da co phan hoi moi.`,
+            entityId: Number(courseId),
+            entityType: "course-review-reply",
+            contextId: reviewId,
+            actor: "Admin",
+            path: `/courses/${courseId}?focusReview=${encodeURIComponent(reviewId)}`,
+          });
+        }
+
+        nextSeenReplies[reviewId] = replySignature;
+      });
+
+      writeSeenReviewReplies(nextSeenReplies);
+      setCourseReviews(payload);
+    } catch (error) {
+      console.error("Error loading course reviews:", error);
+      setCourseReviews([]);
+    }
+  };
+
   const handleAddToCart = () => {
-    addToCart(course.courseId, "COURSE", 1);
+    addToCart(course.courseId, "COURSE", 1, {
+      title: course.title,
+      imageUrl: course.thumbnailUrl,
+      originalPrice: course.price,
+      discountPrice: course.discountPrice,
+    });
     alert("Đã thêm vào giỏ hàng!");
   };
 
@@ -125,10 +216,102 @@ export default function CourseDetail() {
     if (!url) return "";
     if (/^https?:\/\//i.test(url)) return url;
     const normalized = String(url).replace(/\\/g, "/").replace(/^\/+/, "");
-    if (normalized.startsWith("upload/") || normalized.startsWith("uploads/")) {
+    if (
+      normalized.startsWith("upload/") ||
+      normalized.startsWith("uploads/") ||
+      normalized.startsWith("api/files/") ||
+      normalized.startsWith("files/")
+    ) {
       return `http://localhost:8080/${normalized}`;
     }
     return `http://localhost:8080/uploads/${normalized}`;
+  };
+
+  const formatReviewDate = (value) => {
+    if (!value) return "--";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "--";
+    return date.toLocaleDateString("vi-VN");
+  };
+
+  const getInitials = (name) => {
+    const text = String(name || "U").trim();
+    return text ? text.charAt(0).toUpperCase() : "U";
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const focusReviewId = params.get("focusReview");
+    if (!focusReviewId || courseReviews.length === 0) return;
+
+    const target = reviewRefs.current[focusReviewId];
+    if (!target) return;
+
+    setHighlightedReviewId(focusReviewId);
+    target.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    const timer = window.setTimeout(() => setHighlightedReviewId(null), 2500);
+    return () => window.clearTimeout(timer);
+  }, [location.search, courseReviews]);
+
+  const averageRating =
+    courseReviews.length > 0
+      ? (
+          courseReviews.reduce((sum, item) => sum + Number(item.rating || 0), 0) / courseReviews.length
+        ).toFixed(1)
+      : course?.rating
+        ? course.rating.toFixed(1)
+        : "0.0";
+
+  const reviewCount = courseReviews.length || Number(course?.reviewCount || 0);
+
+  const ratingDistribution = [5, 4, 3, 2, 1].map((star) => {
+    const count = courseReviews.filter((item) => Number(item.rating) === star).length;
+    const percent = reviewCount > 0 ? Math.round((count / reviewCount) * 100) : 0;
+    return { label: `${star} sao`, percent };
+  });
+
+  const handleReviewSubmit = async (event) => {
+    event.preventDefault();
+
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    if (!token) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    if (!reviewForm.rating || !String(reviewForm.content).trim()) {
+      alert("Vui long chon so sao va nhap noi dung danh gia.");
+      return;
+    }
+
+    try {
+      setReviewSubmitting(true);
+      await createCourseReview({
+        courseId: Number(courseId),
+        rating: Number(reviewForm.rating),
+        content: reviewForm.content.trim(),
+      });
+      pushNotification({
+        audience: "admin",
+        type: "review",
+        title: "Danh gia khoa hoc moi",
+        message: `${localStorage.getItem("userName") || "Hoc vien"} vua gui danh gia cho ${course?.title || "khoa hoc"}.`,
+        entityId: Number(courseId),
+        entityType: "course-review",
+        contextId: `${courseId}-${localStorage.getItem("email") || localStorage.getItem("userName") || "hoc-vien"}`,
+        actor: localStorage.getItem("userName") || "Hoc vien",
+        path: "/adminCourseComment",
+      });
+      setReviewForm({ rating: 0, content: "" });
+      await loadCourseReviews();
+      alert("Gui danh gia thanh cong.");
+    } catch (error) {
+      console.error("Error creating review:", error);
+      alert("Khong the gui danh gia luc nay. Kiem tra backend API /api/course-reviews.");
+    } finally {
+      setReviewSubmitting(false);
+    }
   };
 
   if (loading) return <LoadingSpinner fullScreen text="Dang tai khoa hoc..." />;
@@ -139,7 +322,19 @@ export default function CourseDetail() {
   const discountPercent = hasDiscount
     ? Math.round(100 - (course.discountPrice / course.price) * 100)
     : 0;
-  const introVideoUrl = getMediaUrl(course?.introVideoUrl);
+  const introVideoUrl = getMediaUrl(
+    course?.introVideoUrl ||
+      course?.videoUrl ||
+      course?.introUrl ||
+      course?.introVideo ||
+      course?.video
+  );
+  const thumbnailUrl = getMediaUrl(
+    course?.thumbnailUrl ||
+      course?.thumbnail ||
+      course?.imageUrl ||
+      course?.image
+  );
 
   return (
     <>
@@ -154,7 +349,8 @@ export default function CourseDetail() {
         description="Khi đăng nhập xong, hệ thống sẽ đưa bạn trở lại nội dung khóa học bạn vừa chọn."
       />
 
-      <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
+      <StoreTopHeader />
+      {false && <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
         <div className="absolute inset-0 bg-chinese-pattern opacity-10 pointer-events-none"></div>
 
         <div className="relative z-10 mx-auto flex max-w-[1920px] items-center justify-between gap-8 px-4 py-4 md:px-8">
@@ -208,7 +404,7 @@ export default function CourseDetail() {
             </button>
           </div>
         </div>
-      </header>
+      </header>}
 
       <main className="ml-auto mr-auto flex-grow w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:pl-0">
         <div className="mb-6 flex flex-wrap items-center gap-2 text-sm">
@@ -240,7 +436,7 @@ export default function CourseDetail() {
                   <span className="font-bold text-[#0d141b] dark:text-white">
                     {course.rating ? course.rating.toFixed(1) : "–"}
                   </span>
-                  <span>({course.reviewCount || "1,250"} đánh giá)</span>
+                  <span>({reviewCount || 0} đánh giá)</span>
                 </div>
 
                 <div className="flex items-center gap-1.5">
@@ -265,7 +461,7 @@ export default function CourseDetail() {
                 <video
                   controls
                   preload="metadata"
-                  poster={course?.thumbnailUrl || undefined}
+                  poster={thumbnailUrl || undefined}
                   className="h-full w-full object-cover"
                   src={introVideoUrl}
                 />
@@ -406,27 +602,36 @@ export default function CourseDetail() {
               <div className="mb-10 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 dark:border-slate-600 dark:bg-slate-900/50">
                 <h4 className="mb-4 text-lg font-bold text-[#0d141b] dark:text-white">Viết đánh giá của bạn</h4>
 
-                <form className="space-y-4">
+                <form className="space-y-4" onSubmit={handleReviewSubmit}>
                   <div>
                     <p className="mb-2 text-sm text-slate-500 dark:text-slate-400">Chọn số sao của bạn:</p>
 
-                    <div className="star-rating flex flex-row-reverse justify-end gap-1">
-                      {[5, 4, 3, 2, 1].map((star) => (
-                        <div key={star}>
-                          <input id={`star${star}`} name="rating" type="radio" value={star} className="hidden" />
-                          <label
-                            htmlFor={`star${star}`}
-                            className="material-symbols-outlined filled cursor-pointer text-[32px]"
-                          >
-                            star
-                          </label>
-                        </div>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setReviewForm((prev) => ({ ...prev, rating: star }))}
+                          className={`material-symbols-outlined cursor-pointer text-[32px] transition ${
+                            star <= Number(reviewForm.rating || 0)
+                              ? "filled text-secondary"
+                              : "text-slate-300 hover:text-secondary"
+                          }`}
+                          aria-label={`Chon ${star} sao`}
+                        >
+                          star
+                        </button>
                       ))}
+                      <span className="ml-2 text-sm font-medium text-slate-500">
+                        {reviewForm.rating ? `${reviewForm.rating}/5 sao` : "Chua chon sao"}
+                      </span>
                     </div>
                   </div>
 
                   <div>
                     <textarea
+                      value={reviewForm.content}
+                      onChange={(event) => setReviewForm((prev) => ({ ...prev, content: event.target.value }))}
                       className="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800"
                       placeholder="Chia sẻ trải nghiệm của bạn về khóa học này..."
                       rows={4}
@@ -444,7 +649,8 @@ export default function CourseDetail() {
 
                     <button
                       type="submit"
-                      className="w-full rounded-lg bg-secondary px-8 py-3 font-bold text-primary shadow-md transition-all active:scale-95 hover:bg-[#e6b400] sm:w-auto"
+                      disabled={reviewSubmitting}
+                      className="w-full rounded-lg bg-secondary px-8 py-3 font-bold text-primary shadow-md transition-all active:scale-95 hover:bg-[#e6b400] disabled:opacity-60 sm:w-auto"
                     >
                       Gửi đánh giá
                     </button>
@@ -454,24 +660,22 @@ export default function CourseDetail() {
 
               <div className="flex flex-wrap gap-x-12 gap-y-8">
                 <div className="flex min-w-[150px] flex-col gap-2">
-                  <p className="text-5xl font-black leading-tight tracking-[-0.033em] text-[#0d141b] dark:text-white">4.8+</p>
+                  <p className="text-5xl font-black leading-tight tracking-[-0.033em] text-[#0d141b] dark:text-white">{averageRating}+</p>
                   <div className="flex gap-1 text-secondary">
-                    {[1, 2, 3, 4].map((_, i) => (
-                      <span key={i} className="material-symbols-outlined filled">
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <span
+                        key={i}
+                        className={`material-symbols-outlined ${i < Math.round(Number(averageRating || 0)) ? "filled" : "text-slate-300 dark:text-slate-600"}`}
+                      >
                         star
                       </span>
                     ))}
-                    <span className="material-symbols-outlined text-slate-300 dark:text-slate-600">star</span>
                   </div>
-                  <p className="text-sm font-normal text-slate-500">1,250 nhận xét</p>
+                  <p className="text-sm font-normal text-slate-500">{reviewCount} nhận xét</p>
                 </div>
 
                 <div className="min-w-[280px] flex-1">
-                  {[
-                    { label: "5 sao", percent: 72 },
-                    { label: "4 sao", percent: 20 },
-                    { label: "3 sao", percent: 5 },
-                  ].map((item, index) => (
+                  {ratingDistribution.map((item, index) => (
                     <div key={index} className="mb-2 flex items-center gap-3">
                       <div className="w-8 text-right text-xs font-medium dark:text-slate-300">{item.label}</div>
                       <div className="flex h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
@@ -483,60 +687,66 @@ export default function CourseDetail() {
                 </div>
 
                 <div className="mt-8 flex flex-col gap-6 border-t border-slate-100 pt-8 dark:border-slate-700">
-                  <div className="flex gap-4">
-                    <div className="flex size-10 items-center justify-center rounded-full bg-slate-200 font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
-                      M
-                    </div>
+                  {courseReviews.length > 0 ? (
+                    courseReviews.map((review) => {
+                      const reviewId = String(
+                        review.id ||
+                          review.reviewId ||
+                          `${courseId}-${review.email || review.userName || "hoc-vien"}-${review.createdAt || ""}`
+                      );
 
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="text-sm font-bold dark:text-white">Minh Hoàng</p>
-                          <div className="mt-0.5 flex text-[14px] text-secondary">
-                            {[...Array(5)].map((_, i) => (
-                              <span key={i} className="material-symbols-outlined filled">
-                                star
-                              </span>
-                            ))}
-                          </div>
+                      return (
+                      <div
+                        key={reviewId}
+                        ref={(node) => {
+                          if (node) {
+                            reviewRefs.current[reviewId] = node;
+                          }
+                        }}
+                        className={`flex gap-4 rounded-xl px-2 py-2 transition-all ${
+                          highlightedReviewId === reviewId ? "bg-amber-50 ring-2 ring-amber-200" : ""
+                        }`}
+                      >
+                        <div className="flex size-10 items-center justify-center rounded-full bg-slate-200 font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                          {getInitials(review.userName)}
                         </div>
-                        <span className="text-xs text-slate-400">2 ngày trước</span>
-                      </div>
 
-                      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                        Khóa học rất hay, cô dạy dễ hiểu. Mình mất gốc mà học xong 3 chương đầu đã thấy
-                        tự tin hơn hẳn khi phát âm.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <div className="flex size-10 items-center justify-center rounded-full bg-pink-100 font-bold text-pink-600">
-                      L
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="text-sm font-bold dark:text-white">Lan Anh</p>
-                          <div className="mt-0.5 flex text-[14px] text-secondary">
-                            {[...Array(4)].map((_, i) => (
-                              <span key={i} className="material-symbols-outlined filled">
-                                star
-                              </span>
-                            ))}
-                            <span className="material-symbols-outlined text-slate-300">star</span>
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p className="text-sm font-bold dark:text-white">
+                                {review.userName || review.email || "Học viên"}
+                              </p>
+                              <div className="mt-0.5 flex text-[14px] text-secondary">
+                                {Array.from({ length: 5 }, (_, i) => (
+                                  <span
+                                    key={i}
+                                    className={`material-symbols-outlined ${i < Number(review.rating || 0) ? "filled" : "text-slate-300 dark:text-slate-600"}`}
+                                  >
+                                    star
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <span className="text-xs text-slate-400">{formatReviewDate(review.createdAt)}</span>
                           </div>
-                        </div>
-                        <span className="text-xs text-slate-400">1 tuần trước</span>
-                      </div>
 
-                      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                        Nội dung thực tế, không lý thuyết suông. Giá như có thêm nhiều bài tập tương tác
-                        hơn nữa thì tuyệt vời.
-                      </p>
-                    </div>
-                  </div>
+                          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{review.content}</p>
+
+                          {review.adminReply ? (
+                            <div className="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                              <p className="mb-1 font-semibold text-primary">Phản hồi từ admin</p>
+                              <p>{review.adminReply}</p>
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    )})
+                  ) : (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Chưa có đánh giá nào cho khóa học này.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

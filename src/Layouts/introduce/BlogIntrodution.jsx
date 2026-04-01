@@ -43,7 +43,7 @@ export default function BlogIntrodution() {
 </Link>
 
 <Link
-  to="/contact"
+  to="/Introduction"
   className="bg-white/10 border border-white/30 py-3 px-8 rounded-xl inline-block"
 >
   Liên hệ tư vấn

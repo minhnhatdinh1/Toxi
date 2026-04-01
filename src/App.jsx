@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import ReactLogo from './assets/react.svg'
 import ViteLogo from '/vite.svg'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -28,7 +28,7 @@ import MyCoursePage from './Layouts/mycourse/MyCoursePage.jsx'
 import MyInformationPage from './Layouts/mycourse/MyInformationPage.jsx'
 import MyProductMain from './Layouts/mycourse/component/MyProductMain.jsx'
 import MyVocabularyPage from './Layouts/mycourse/MyVocabularyPage.jsx'
-import Course from './Layouts/products/Course.jsx'
+import Course from './Layouts/products/CoursePage.jsx'
 import StepEmail from './Layouts/auth/ForgotPassword/StepEmail.jsx'
 import './App.css'
 import Product from './Layouts/products/Product.jsx';
@@ -36,6 +36,7 @@ import StepCode from './Layouts/auth/ForgotPassword/StepCode.jsx';
 import StepReset from './Layouts/auth/ForgotPassword/StepReset.jsx';
 import AdminPage from './Layouts/admin/AdminPage.jsx';
 import AdminCourse from './Layouts/admin/AdminCourse.jsx';
+import AdminCourseComment from './Layouts/admin/AdminCourseComment.jsx';
 import AdminProduct from './Layouts/admin/AdminProduct.jsx';
 
 
@@ -151,6 +152,7 @@ function App() {
 
       <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
       <Route path="/adminCourse" element={<AdminRoute><AdminCourse /></AdminRoute>} />
+      <Route path="/adminCourseComment" element={<AdminRoute><AdminCourseComment /></AdminRoute>} />
       <Route path="/adminProduct" element={<AdminRoute><AdminProduct /></AdminRoute>} />
 
       <Route path="/adminQuiz" element={<AdminRoute><AdminQuiz /></AdminRoute>} />
@@ -203,3 +205,4 @@ function App() {
 };
 
 export default App;
+
