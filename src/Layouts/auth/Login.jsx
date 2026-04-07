@@ -45,17 +45,23 @@ const { mergeCartAfterLogin } = useCart();
         passWord,
       });
       const token = res.data.accessToken;  
-    localStorage.setItem("token", res.data.accessToken);
-    localStorage.setItem("userId", res.data.userId);
-    localStorage.setItem("refreshToken", res.data.refreshToken);
-    localStorage.setItem("userName", res.data.userName);
-    localStorage.setItem("email", res.data.email); 
-       localStorage.setItem("phone", res.data.phone); 
-       await mergeCartAfterLogin(token);
+      localStorage.setItem("token", res.data.accessToken);
+      localStorage.setItem("userId", res.data.userId);
+      localStorage.setItem("refreshToken", res.data.refreshToken);
+      localStorage.setItem("userName", res.data.userName);
+      localStorage.setItem("email", res.data.email); 
+      localStorage.setItem("phone", res.data.phone); 
 
 
     // Decode token để lấy role
     const decoded = jwtDecode(token);
+      if (decoded.role === "ADMIN") {
+        localStorage.setItem("authToken", token);
+      } else {
+        localStorage.removeItem("authToken");
+      }
+
+      await mergeCartAfterLogin(token);
 
       console.log("Login success:", res.data);
 
