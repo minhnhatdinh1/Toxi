@@ -1,10 +1,12 @@
 import axios from 'axios';
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 // central axios instance for the app.  
 // you can add interceptors to attach auth tokens or handle global errors.
 
 const API = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: `${BASE_URL}/api`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -12,7 +14,9 @@ const API = axios.create({
 
 // request interceptor for auth header
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
+  const token =
+    localStorage.getItem('accessToken') ||
+    localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

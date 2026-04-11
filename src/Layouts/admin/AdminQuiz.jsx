@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
+import LoadingSpinner from "../common/LoadingSpinner";
 import {
   fetchQuizzes,
   fetchQuizStatistics,
@@ -18,6 +19,15 @@ const HSK_BADGE = {
 };
 const HSK_BAR_COLORS = ["#10b981","#3b82f6","#8b5cf6","#f97316","#ef4444","#475569"];
 const inputCls = "border border-slate-200 rounded-xl px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition bg-white";
+
+function getHskLevel(value, fallback = 1) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const match = value.match(/\d+/);
+    if (match) return parseInt(match[0], 10);
+  }
+  return fallback;
+}
 
 function StatusDot({ s }) {
   const cfg = s==="ACTIVE"
@@ -229,7 +239,7 @@ useEffect(() => {
   const maxPlays = Math.max(...data.map(d=>d.playCount || 0), 1);
   const hskCounts = ["HSK 1","HSK 2","HSK 3","HSK 4","HSK 5","HSK 6"].map(l=>({
     l,
-    c: data.filter(d=>d.hsklevel === parseInt(l.split(" ")[1])).length
+    c: data.filter(d=>getHskLevel(d.hsklevel ?? d.hsk) === getHskLevel(l)).length
   }));
   const maxHsk = Math.max(...hskCounts.map(h=>h.c),1);
 
@@ -245,7 +255,7 @@ useEffect(() => {
     try {
       const response = await createQuiz({
         title: form.name,
-        hsklevel: parseInt(form.hsk.split(" ")[1]),
+        hsklevel: getHskLevel(form.hsk),
         quizType: form.type,
         timeLimit: form.time,
         passScore: form.pass,
@@ -271,7 +281,7 @@ useEffect(() => {
     try {
       const response = await updateQuiz(editItem.quizId || editItem.id, {
         title: form.name,
-        hsklevel: parseInt(form.hsk.split(" ")[1]),
+        hsklevel: getHskLevel(form.hsk),
         quizType: form.type,
         timeLimit: form.time,
         passScore: form.pass,
@@ -319,7 +329,7 @@ useEffect(() => {
   };
 
   const openEdit = (item) => {
-    const hskNum = item.hsklevel || parseInt(item.hsk.split(" ")[1]);
+    const hskNum = getHskLevel(item.hsklevel ?? item.hsk);
     setForm({
       name: item.title || item.name,
       hsk: `HSK ${hskNum}`,
@@ -339,7 +349,7 @@ useEffect(() => {
 
   return () => clearTimeout(delay);
 }, [searchInput]);
-  if (loading) return <div className="flex h-screen items-center justify-center">Đang tải dữ liệu...</div>;
+  if (loading) return <LoadingSpinner fullScreen text="Dang tai du lieu..." />;
   if (error) return <div className="flex h-screen items-center justify-center text-red-600 text-center max-w-md"><p>{error}</p></div>;
 
   return (
@@ -462,7 +472,9 @@ onChange={e => setSearchInput(e.target.value)}
                         {(d.description || d.desc) && <div className="text-xs text-slate-400 mt-0.5">{d.description || d.desc}</div>}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${HSK_BADGE[`HSK ${d.hsklevel || parseInt(d.hsk.split(" ")[1])}`]}`}>HSK {d.hsklevel || parseInt(d.hsk.split(" ")[1])}</span>
+                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${HSK_BADGE[`HSK ${getHskLevel(d.hsklevel ?? d.hsk)}`]}`}>
+                          HSK {getHskLevel(d.hsklevel ?? d.hsk)}
+                        </span>
                       </td>
                       <td className="px-4 py-3">
                         <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 whitespace-nowrap">{d.quizType || d.type}</span>
@@ -561,3 +573,6 @@ onChange={e => setSearchInput(e.target.value)}
     </div>
   );
 }
+
+
+

@@ -3,6 +3,10 @@ import { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
 import { Link , useNavigate } from "react-router-dom";
 import { useApi } from "../service/useApi";
+import { uploadImage } from "./api/apiFile";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+
 export default function AdminAddNewCourses() {
   
     const navigate = useNavigate();
@@ -15,19 +19,44 @@ export default function AdminAddNewCourses() {
     price: "",
     discountPrice: "",
     description: "",
+    introVideoUrl: "",
   });
   
     const handleCancel = () => {
     console.log("Cancel clicked");
   };
+  const handleAddVideo = () => {
+  if (!formData.courseId) {
+    alert("❌ Bạn chưa nhập courseId");
+    return;
+  }
+
+  navigate(`/admin/add-video`);
+};
 
   const handleSave = () => {
-    console.log("Save Course clicked");
+    handleSubmit("PUBLISHED");
   };
 
 
   const [ThumbnailFile, setThumbnailFile] = useState(null);
   const [ThumbnailPreview, setThumbnailPreview] = useState("");
+  const [introVideoFile, setIntroVideoFile] = useState(null);
+  const [introVideoName, setIntroVideoName] = useState("");
+
+  const resolveUploadedPath = (uploaded) => {
+    if (!uploaded) return "";
+    if (typeof uploaded === "string") return uploaded;
+    return (
+      uploaded.url ||
+      uploaded.path ||
+      uploaded.fileUrl ||
+      uploaded.downloadUrl ||
+      uploaded.data?.url ||
+      uploaded.data?.path ||
+      ""
+    );
+  };
 
 const handleChange = (e) => {
     setFormData({
@@ -45,13 +74,34 @@ const handleChange = (e) => {
       setThumbnailPreview(URL.createObjectURL(file));
     }
   };
+  const handleIntroVideoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setIntroVideoFile(file);
+      setIntroVideoName(file.name);
+      setFormData((prev) => ({
+        ...prev,
+        introVideoUrl: "",
+      }));
+    }
+  };
+  // Handle form submission
+  
+
   // Submit to backend
   const handleSubmit = async (status) => {
     try {
       const data = new FormData();
 
+      let introVideoUrl = formData.introVideoUrl?.trim() || "";
+      if (!introVideoUrl && introVideoFile) {
+        const uploadedVideo = await uploadImage(introVideoFile);
+        introVideoUrl = resolveUploadedPath(uploadedVideo);
+      }
+
       const courseData = {
         ...formData,
+        introVideoUrl,
         status: status,
       };
 
@@ -66,7 +116,7 @@ const handleChange = (e) => {
       }
 
       const response = await fetch(
-        "http://localhost:8080/api/admin/courses",
+        `${BASE_URL}/api/admin/courses`,
         {
           method: "POST",
           headers: {
@@ -245,7 +295,7 @@ const handleChange = (e) => {
             type="url"
             placeholder="https://example.com/thumbnail.jpg"
             value={ThumbnailPreview}
-            onChange={(e) => setThumbnailUrl(e.target.value)}
+            onChange={(e) => setThumbnailPreview(e.target.value)}
             className="w-full rounded-xl border border-primary/10 bg-slate-50 dark:bg-primary/5 focus:border-primary focus:ring-primary dark:text-white transition-all p-3"
           />
 
@@ -273,6 +323,44 @@ const handleChange = (e) => {
               type="file"
               accept="image/*"
               onChange={handleFileUpload}
+              className="hidden"
+            />
+          </label>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+          Video giới thiệu khóa học
+        </label>
+
+        <div className="flex flex-col gap-3">
+          <input
+            type="url"
+            name="introVideoUrl"
+            placeholder="https://example.com/intro-video.mp4"
+            value={formData.introVideoUrl}
+            onChange={handleChange}
+            className="w-full rounded-xl border border-primary/10 bg-slate-50 dark:bg-primary/5 focus:border-primary focus:ring-primary dark:text-white transition-all p-3"
+          />
+
+          <label className="rounded-xl border-2 border-dashed border-primary/20 flex flex-col items-center justify-center bg-slate-50 dark:bg-primary/5 group cursor-pointer hover:border-primary hover:bg-primary/10 transition-all p-6 text-center">
+            <span className="material-symbols-outlined text-4xl text-primary/40 group-hover:text-primary transition-colors">
+              video_file
+            </span>
+            <p className="text-sm text-slate-500 mt-2 font-medium">
+              Tải lên video giới thiệu ngắn
+            </p>
+            {introVideoName && (
+              <p className="text-xs text-primary mt-2 font-semibold">
+                {introVideoName}
+              </p>
+            )}
+
+            <input
+              type="file"
+              accept="video/*"
+              onChange={handleIntroVideoUpload}
               className="hidden"
             />
           </label>

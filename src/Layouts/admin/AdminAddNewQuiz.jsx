@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
@@ -6,6 +7,7 @@ import { createQuiz } from "./api/apiquiz";
 const inputCls = "border border-slate-200 rounded-xl px-3 py-2.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition bg-white";
 
 export default function AdminAddNewQuiz() {
+
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initStep = Number(searchParams.get("step")) || 1;

@@ -3,6 +3,11 @@ import logo from "../../assets/image/LOGO (1).png";
 import { Link, useNavigate } from "react-router-dom";
 import { getHomeBooks, getAllCategories } from "./api/apiProduct";
 import { useCart } from "../../context/CartContext";
+import LoadingSpinner from "../common/LoadingSpinner";
+import FlyToCartAnimation from "../common/FlyToCartAnimation";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+
 // Quick filter chips
 const QUICK_FILTERS = [
   { id: "all", label: "Tất cả" },
@@ -28,8 +33,55 @@ const formatCurrency = (value) => {
 const parseCurrency = (value) => {
   return value.replace(/\./g, "").replace(/[^\d]/g, "");
 };
+
+const PRODUCT_FALLBACK_IMAGE = "https://via.placeholder.com/200?text=No+Image";
+
+const buildProductImageUrl = (value) => {
+  if (!value || typeof value !== "string") return "";
+  if (value.startsWith("http://") || value.startsWith("https://")) return value;
+  return `${BASE_URL}/api/files/${value.replace(/^\/+/, "")}`;
+};
+
+const normalizeProductImages = (raw = {}) => {
+  const rawImages = [
+    ...(Array.isArray(raw.imageUrls) ? raw.imageUrls : []),
+    ...(Array.isArray(raw.images) ? raw.images : []),
+    raw.thumbnailUrl,
+    raw.thumbnail,
+    raw.imageUrl,
+    raw.image,
+  ];
+
+  return [...new Set(rawImages.map(buildProductImageUrl).filter(Boolean))];
+};
+const toTimestamp = (value) => {
+  if (!value) return 0;
+  const timestamp = new Date(value).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+};
+
+const getPurchaseCount = (book = {}) =>
+  Number(
+    book.soldCount ??
+      book.orderCount ??
+      book.purchaseCount ??
+      book.totalSold ??
+      book.totalOrders ??
+      book.boughtCount ??
+      0
+  );
+
+const getCreatedTimestamp = (book = {}) =>
+  toTimestamp(
+    book.createdAt ??
+      book.created_at ??
+      book.createdDate ??
+      book.publishDate ??
+      book.dateCreated ??
+      0
+  );
 // Product Card Component
-function ProductCard({ product, selectedCategories }) {
+function ProductCard({ product, selectedCategories, onAddToCart }) {
   const getBadgeContent = () => {
     if (product.discount) return product.discount;
     if (product.badge === "new") return "Mới";
@@ -50,7 +102,11 @@ function ProductCard({ product, selectedCategories }) {
         <img
           src={product.image}
           alt={product.name}
+          data-product-image="true"
           className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+          onError={(e) => {
+            e.currentTarget.src = PRODUCT_FALLBACK_IMAGE;
+          }}
         />
         {getBadgeContent() && (
           <div
@@ -59,7 +115,15 @@ function ProductCard({ product, selectedCategories }) {
             {getBadgeContent()}
           </div>
         )}
-        <button className="absolute bottom-3 right-3 size-10 rounded-full bg-white/90 backdrop-blur text-text-main shadow-sm flex items-center justify-center hover:bg-primary hover:text-white transition-colors translate-y-14 group-hover:translate-y-0 duration-300">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onAddToCart(product, e.currentTarget);
+          }}
+          className="absolute bottom-3 right-3 size-10 rounded-full bg-white/90 backdrop-blur text-text-main shadow-sm flex items-center justify-center hover:bg-primary hover:text-white transition-colors translate-y-14 group-hover:translate-y-0 duration-300"
+        >
           <span className="material-symbols-outlined">shopping_cart</span>
         </button>
       </div>
@@ -118,15 +182,21 @@ export default function Product() {
   const sortRef = useRef(null);
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const navigate = useNavigate();
-const { cartCount } = useCart();
+const { cartCount, addToCart } = useCart();
 const [menuOpen, setMenuOpen] = useState(false);
 const menuRef = useRef(null);
+const cartIconRef = useRef(null);
+const flyTimerRef = useRef(null);
+const searchRef = useRef(null);
 const [avatarUrl, setAvatarUrl] = useState(
   localStorage.getItem("avatarUrl") || null
 );
+const [flyToCart, setFlyToCart] = useState(null);
 useEffect(() => {
   const handleAvatarUpdated = (e) => {
     setAvatarUrl(e.detail);
@@ -144,7 +214,23 @@ useEffect(() => {
       try {
         const data = await getHomeBooks();
 
-        const mappedProducts = data.map((book) => {
+        const books = Array.isArray(data) ? data : [];
+        const bestsellerIds = new Set(
+          [...books]
+            .sort((a, b) => getPurchaseCount(b) - getPurchaseCount(a))
+            .filter((book) => getPurchaseCount(book) > 0)
+            .slice(0, 8)
+            .map((book) => String(book.id || book.bookId))
+        );
+        const newIds = new Set(
+          [...books]
+            .sort((a, b) => getCreatedTimestamp(b) - getCreatedTimestamp(a))
+            .filter((book) => getCreatedTimestamp(book) > 0)
+            .slice(0, 8)
+            .map((book) => String(book.id || book.bookId))
+        );
+
+        const mappedProducts = books.map((book) => {
           const discount =
             book.originalPrice && book.price
               ? Math.round(
@@ -153,10 +239,12 @@ useEffect(() => {
                 )
               : 0;
 
+          const productId = String(book.id || book.bookId);
+
           return {
-            id: book.id,
-            name: book.name,
-            image: book.image || "https://via.placeholder.com/200",
+            id: book.id || book.bookId,
+            name: book.name || book.title,
+            image: normalizeProductImages(book)[0] || PRODUCT_FALLBACK_IMAGE,
             categories: book.categories || [],
             category: book.categories?.[0] || "Khác",
             price: book.price,
@@ -166,7 +254,13 @@ useEffect(() => {
 
             description: book.description || "",
 
-            badge: discount > 30 ? "bestseller" : "new",
+            badge: bestsellerIds.has(productId)
+              ? "bestseller"
+              : newIds.has(productId)
+              ? "new"
+              : null,
+            purchaseCount: getPurchaseCount(book),
+            createdAt: getCreatedTimestamp(book),
           };
         });
 
@@ -198,10 +292,47 @@ useEffect(() => {
     if (menuRef.current && !menuRef.current.contains(e.target)) {
       setMenuOpen(false);
     }
+    if (searchRef.current && !searchRef.current.contains(e.target)) {
+      setSuggestionsOpen(false);
+    }
   };
   document.addEventListener("mousedown", handleClickOutside);
   return () => document.removeEventListener("mousedown", handleClickOutside);
 }, []);
+
+  useEffect(() => {
+    return () => {
+      if (flyTimerRef.current) {
+        clearTimeout(flyTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const keyword = searchTerm.trim().toLowerCase();
+
+    if (!keyword) {
+      setSearchSuggestions([]);
+      return;
+    }
+
+    const suggestions = products
+      .filter((product) =>
+        [product.name, product.description, ...(product.categories || [])]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(keyword)
+      )
+      .sort((a, b) => {
+        const aStarts = a.name.toLowerCase().startsWith(keyword) ? 0 : 1;
+        const bStarts = b.name.toLowerCase().startsWith(keyword) ? 0 : 1;
+        return aStarts - bStarts || a.name.length - b.name.length;
+      })
+      .slice(0, 6);
+
+    setSearchSuggestions(suggestions);
+  }, [products, searchTerm]);
 
   // Filter and sort products
   let filteredProducts = products.filter((p) => {
@@ -253,12 +384,14 @@ useEffect(() => {
   // Apply sorting
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
+      case "newest":
+        return (b.createdAt || 0) - (a.createdAt || 0);
       case "price-asc":
         return a.price - b.price;
       case "price-desc":
         return b.price - a.price;
       case "bestselling":
-        return (b.discount ? 1 : 0) - (a.discount ? 1 : 0);
+        return (b.purchaseCount || 0) - (a.purchaseCount || 0);
       default:
         return 0;
     }
@@ -276,9 +409,78 @@ useEffect(() => {
     setCurrentPage(1);
   }, [selectedCategories, priceRange, searchTerm, selectedQuickFilter]);
 
+  const handleAddProductToCart = (product, triggerEl) => {
+    addToCart(product.id, "BOOK", 1, {
+      title: product.name,
+      imageUrl: product.image,
+      originalPrice: product.originalPrice,
+      discountPrice: product.price,
+    });
+
+    const cartRect = cartIconRef.current?.getBoundingClientRect();
+    const imageRect =
+      triggerEl
+        ?.closest(".group")
+        ?.querySelector('[data-product-image="true"]')
+        ?.getBoundingClientRect() || triggerEl?.getBoundingClientRect();
+
+    if (!cartRect || !imageRect) return;
+
+    if (flyTimerRef.current) {
+      clearTimeout(flyTimerRef.current);
+    }
+
+    setFlyToCart({
+      src: product.image || PRODUCT_FALLBACK_IMAGE,
+      start: {
+        x: imageRect.left,
+        y: imageRect.top,
+        width: imageRect.width,
+        height: imageRect.height,
+        opacity: 0.95,
+        scale: 1,
+      },
+      end: {
+        x: cartRect.left + cartRect.width / 2 - 18,
+        y: cartRect.top + cartRect.height / 2 - 18,
+        width: 36,
+        height: 36,
+        opacity: 0.15,
+        scale: 0.2,
+      },
+      active: false,
+    });
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setFlyToCart((prev) => (prev ? { ...prev, active: true } : prev));
+      });
+    });
+
+    flyTimerRef.current = setTimeout(() => {
+      setFlyToCart(null);
+    }, 1300);
+  };
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    setSuggestionsOpen(false);
+  };
+
+  const handleSuggestionSelect = (product) => {
+    if (!product?.id) return;
+    setSearchTerm(product.name || "");
+    setSuggestionsOpen(false);
+    navigate(`/products/${product.id}`);
+  };
+
   return (
     <>
       <div className="relative flex h-auto min-h-screen w-full flex-col bg-chinese-pattern overflow-x-hidden">
+        <FlyToCartAnimation
+          animation={flyToCart}
+          fallbackImage={PRODUCT_FALLBACK_IMAGE}
+        />
         {/* Header */}
         <div className="w-full bg-white dark:bg-surface-dark shadow-sm z-50 sticky top-0">
      {/* Header */}
@@ -297,15 +499,64 @@ useEffect(() => {
 
     {/* SEARCH */}
     <div className="flex-1 max-w-2xl hidden md:block">
-      <div className="relative group">
+      <div ref={searchRef} className="relative group">
+        <form onSubmit={handleSearchSubmit}>
         <input
           type="text"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onFocus={() => setSuggestionsOpen(true)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setSuggestionsOpen(true);
+          }}
           placeholder="Tìm kiếm sản phẩm..."
           className="w-full pl-12 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-full text-sm focus:ring-2 focus:ring-secondary focus:bg-white focus:text-primary transition-all placeholder-white/60"
         />
+        </form>
         <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/60 group-focus-within:text-primary">search</span>
+        {suggestionsOpen && searchTerm.trim() ? (
+          <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-[80] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+            {searchSuggestions.length > 0 ? (
+              <>
+                <div className="border-b border-slate-100 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                  Goi y san pham
+                </div>
+                {searchSuggestions.map((product) => (
+                  <button
+                    key={product.id}
+                    type="button"
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      handleSuggestionSelect(product);
+                    }}
+                    className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
+                  >
+                    <img
+                      src={product.image || PRODUCT_FALLBACK_IMAGE}
+                      alt={product.name}
+                      className="h-12 w-12 rounded-xl object-cover"
+                      onError={(event) => {
+                        event.currentTarget.src = PRODUCT_FALLBACK_IMAGE;
+                      }}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-slate-700">
+                        {product.name}
+                      </span>
+                      <span className="block truncate text-xs text-slate-400">
+                        {(product.categories || []).join(" - ") || "San pham TOXI"}
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </>
+            ) : (
+              <div className="px-4 py-4 text-sm text-slate-500">
+                Khong tim thay san pham phu hop voi <span className="font-bold text-primary">"{searchTerm.trim()}"</span>
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
     </div>
 
@@ -313,7 +564,7 @@ useEffect(() => {
     <div className="flex items-center gap-4 shrink-0">
 
       {/* CART */}
-      <Link to="/cart" className="relative cursor-pointer p-2">
+      <Link to="/cart" ref={cartIconRef} className="relative cursor-pointer p-2">
         <span className="material-symbols-outlined text-[28px] text-secondary hover:text-white transition-colors">shopping_cart</span>
         {cartCount > 0 && (
           <span className="absolute -top-0 -right-0 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-primary shadow-sm">
@@ -387,16 +638,20 @@ useEffect(() => {
 
               {/* Logout */}
               <div className="border-t border-slate-100 py-2">
-                <button
-                  onClick={() => {
-                    localStorage.removeItem("token");
-                    localStorage.removeItem("userId");
-                    localStorage.removeItem("userName");
-                    localStorage.removeItem("email");
-                    setMenuOpen(false);
-                    navigate("/home");
-                    window.location.reload();
-                  }}
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem("token");
+                      localStorage.removeItem("accessToken");
+                      localStorage.removeItem("refreshToken");
+                      localStorage.removeItem("userId");
+                      localStorage.removeItem("userName");
+                      localStorage.removeItem("email");
+                      localStorage.removeItem("phone");
+                      localStorage.removeItem("role");
+                      setMenuOpen(false);
+                      navigate("/home");
+                      window.location.reload();
+                    }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors text-red-500 text-sm"
                 >
                   <span className="material-symbols-outlined text-[20px]">logout</span>
@@ -616,12 +871,7 @@ useEffect(() => {
               </div>
 
               {loading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                    <p className="text-text-muted mt-4">Đang tải sản phẩm...</p>
-                  </div>
-                </div>
+                <LoadingSpinner text="Dang tai san pham..." />
               ) : filteredProducts.length === 0 ? (
                 <div className="flex justify-center items-center h-64">
                   <div className="text-center">
@@ -637,6 +887,7 @@ useEffect(() => {
                       key={product.id}
                       product={product}
                       selectedCategories={selectedCategories}
+                      onAddToCart={handleAddProductToCart}
                     />
                   ))}
                 </div>
@@ -735,3 +986,6 @@ useEffect(() => {
     </>
   );
 }
+
+
+

@@ -1,17 +1,25 @@
 import react from "react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { uploadImage } from "./api/apiFile";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+
 export default function AdminEditCourses() {
   const navigate = useNavigate();
+  const { id: routeCourseId } = useParams();
+  const token = localStorage.getItem("token");
 
   const initialFormData = {
 
     courseId: "TOXI-HSK1-001",
     title: "HSK 1 Standard Course",
+    courseType: "HSK Preparation",
     type: "HSK Preparation",
     price: 49.99,
     discountPrice: 39.99,
+    introVideoUrl: "",
 
   };
 
@@ -21,10 +29,98 @@ export default function AdminEditCourses() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
+  const [introVideoFile, setIntroVideoFile] = useState(null);
+  const [introVideoName, setIntroVideoName] = useState("");
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const introVideoInputRef = useRef(null);
+  useEffect(() => {
+    const loadCourse = async () => {
+      if (!routeCourseId) return;
+
+      try {
+        const headers = { Authorization: `Bearer ${token}` };
+        let course = null;
+
+        const detailRes = await fetch(
+          `${BASE_URL}/api/admin/courses/${routeCourseId}`,
+          { headers }
+        );
+
+        if (detailRes.ok) {
+          const detailPayload = await detailRes.json();
+          course = detailPayload?.data || detailPayload;
+        } else {
+          const listRes = await fetch(  `${BASE_URL}/api/admin/courses`, {
+            headers,
+          });
+          if (listRes.ok) {
+            const listPayload = await listRes.json();
+            const list = Array.isArray(listPayload)
+              ? listPayload
+              : listPayload?.data || listPayload?.content || [];
+            course = (list || []).find((c) => String(c.courseId) === String(routeCourseId));
+          }
+        }
+
+        if (!course) return;
+
+        const mappedData = {
+          courseId: course.courseId || routeCourseId,
+          title: course.title || "",
+          courseType: course.courseType || course.type || "",
+          type: course.courseType || course.type || "",
+          price: course.price ?? 0,
+          discountPrice: course.discountPrice ?? 0,
+          introVideoUrl:
+            course.introVideoUrl || course.videoUrl || course.introUrl || "",
+        };
+        const nextDescription = course.description || "";
+
+        setFormData(mappedData);
+        setOriginalFormData(mappedData);
+        setDescription(nextDescription);
+        setThumbnail(
+          course.thumbnailUrl ||
+            course.thumbnail ||
+            course.imageUrl ||
+            course.image ||
+            ""
+        );
+        setStatus(course.status || "Drafting");
+        setHasChanges(false);
+        setError("");
+      } catch (err) {
+        console.error("Load course error:", err);
+        setError("Không tải được dữ liệu khóa học");
+      }
+    };
+
+    loadCourse();
+  }, [routeCourseId, token]);
+
+  const resolveUploadedPath = (uploaded) => {
+    if (!uploaded) return "";
+    if (typeof uploaded === "string") return uploaded;
+    return (
+      uploaded.url ||
+      uploaded.path ||
+      uploaded.fileUrl ||
+      uploaded.downloadUrl ||
+      uploaded.data?.url ||
+      uploaded.data?.path ||
+      ""
+    );
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const updatedData = { ...formData, [name]: value };
+    const updatedData = {
+      ...formData,
+      [name]: value,
+      ...(name === "type" || name === "courseType"
+        ? { type: value, courseType: value }
+        : {}),
+    };
     setFormData(updatedData);
     const isModified = JSON.stringify(updatedData) !== JSON.stringify(originalFormData);
     setHasChanges(isModified);
@@ -32,11 +128,12 @@ export default function AdminEditCourses() {
   };
 
   const validateForm = () => {
+    const selectedCourseType = formData.courseType || formData.type || "";
     if (!formData.title || formData.title.trim() === "") {
       setError("Course title is required");
       return false;
     }
-    if (!formData.type || formData.type.trim() === "") {
+    if (!selectedCourseType || selectedCourseType.trim() === "") {
       setError("Course type is required");
       return false;
     }
@@ -61,8 +158,60 @@ export default function AdminEditCourses() {
 
     setSaving(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setOriginalFormData(formData);
+      let introVideoUrl = formData.introVideoUrl?.trim() || "";
+      if (!introVideoUrl && introVideoFile) {
+        const uploadedVideo = await uploadImage(introVideoFile);
+        introVideoUrl = resolveUploadedPath(uploadedVideo);
+      }
+
+      let thumbnailUrl = thumbnail?.trim?.() ? thumbnail.trim() : "";
+      if (thumbnailFile) {
+        const uploadedThumbnail = await uploadImage(thumbnailFile);
+        thumbnailUrl = resolveUploadedPath(uploadedThumbnail);
+      }
+
+      const updatedFormData = {
+        ...formData,
+        courseType: formData.courseType || formData.type,
+        type: formData.courseType || formData.type,
+        description,
+        introVideoUrl,
+        thumbnailUrl,
+      };
+
+      const payload = new FormData();
+      payload.append(
+        "course",
+        new Blob([JSON.stringify(updatedFormData)], {
+          type: "application/json",
+        })
+      );
+      if (thumbnailFile) {
+        payload.append("thumbnail", thumbnailFile);
+      }
+
+      const response = await fetch(
+        `${BASE_URL}/api/admin/courses/${routeCourseId || formData.courseId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: payload,
+        }
+      );
+
+      if (!response.ok) {
+        const message = await response.text().catch(() => "");
+        throw new Error(message || "Failed to update course");
+      }
+
+      setThumbnail(thumbnailUrl || thumbnail);
+      setThumbnailFile(null);
+      setIntroVideoFile(null);
+      setIntroVideoName("");
+      setFormData(updatedFormData);
+      setOriginalFormData(updatedFormData);
       setHasChanges(false);
       setSuccessMessage("Cập nhật khóa học thành công ");
       setTimeout(() => setSuccessMessage(""), 3000);
@@ -102,7 +251,7 @@ export default function AdminEditCourses() {
 const fileInputRef = useRef(null);
 
 const handleChangeImage = () => {
-  fileInputRef.current.click();
+  fileInputRef.current?.click();
 };
 
 const handleFileChange = (e) => {
@@ -117,8 +266,25 @@ const handleFileChange = (e) => {
 
   const previewUrl = URL.createObjectURL(file);
   setThumbnail(previewUrl);
+  setThumbnailFile(file);
+  setHasChanges(true);
 };
- const [courseId] = useState("TOXI-HSK1-001");
+const handleChangeIntroVideo = () => {
+  introVideoInputRef.current?.click();
+};
+
+const handleIntroVideoFileChange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  setIntroVideoFile(file);
+  setIntroVideoName(file.name);
+
+  const updatedData = { ...formData, introVideoUrl: "" };
+  setFormData(updatedData);
+  setHasChanges(true);
+  setError("");
+};
   const [status, setStatus] = useState("Drafting");
   const [lastSaved, setLastSaved] = useState("2 mins ago");
 
@@ -289,10 +455,11 @@ const handleFileChange = (e) => {
                     </label>
                     <select
                       name="type"
-                      value={formData.type}
+                      value={formData.courseType || formData.type || ""}
                       onChange={handleChange}
                       className="w-full rounded-lg border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2.5"
                     >
+                      <option value="">Select course type</option>
                       <option>Business Chinese</option>
                       <option>HSK Preparation</option>
                       <option>Conversational</option>
@@ -386,7 +553,10 @@ const handleFileChange = (e) => {
         <textarea
           rows="6"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {
+            setDescription(e.target.value);
+            setHasChanges(true);
+          }}
           className="w-full border-none bg-slate-50 dark:bg-slate-950 px-4 py-3 focus:ring-0 text-slate-600 dark:text-slate-400"
         />
       </div>
@@ -416,7 +586,7 @@ const handleFileChange = (e) => {
     />
   )}
 
-  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+  <div className="absolute inset-0 z-10 bg-black/40 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto flex items-center justify-center transition-opacity">
     <button
       type="button"
       onClick={handleChangeImage}
@@ -449,16 +619,111 @@ const handleFileChange = (e) => {
             <input
               type="text"
               value={thumbnail}
-              onChange={(e) => setThumbnail(e.target.value)}
+              onChange={(e) => {
+                setThumbnail(e.target.value);
+                setHasChanges(true);
+              }}
               className="w-full rounded-lg border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2.5 text-sm focus:ring-primary focus:border-primary"
             />
           </div>
 
+          <button
+            type="button"
+            onClick={handleChangeImage}
+            className="px-4 py-2 rounded-lg border border-primary/20 text-primary font-semibold hover:bg-primary/10 transition-colors flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined">upload_file</span>
+            Upload Thumbnail
+          </button>
+
           <p className="text-xs text-slate-500 italic">
             Recommended size: 1280x720px. Max size 2MB. Supports JPG, PNG, WEBP.
           </p>
+    </div>
+
+      </div>
+    </div>
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+      <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+        <span className="material-symbols-outlined text-primary">
+          video_file
+        </span>
+        Intro Video
+      </h3>
+
+      <div className="grid grid-cols-2 gap-6">
+        <div className="aspect-video rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center relative overflow-hidden group">
+          {formData.introVideoUrl ? (
+            <video
+              controls
+              preload="metadata"
+              className="absolute inset-0 w-full h-full object-cover"
+              src={formData.introVideoUrl}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center text-slate-400 px-6 text-center">
+              <span className="material-symbols-outlined text-5xl mb-3">smart_display</span>
+              <p className="text-sm font-medium">Chưa có video giới thiệu</p>
+            </div>
+          )}
+
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+            <button
+              type="button"
+              onClick={handleChangeIntroVideo}
+              className="bg-white text-slate-900 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined">
+                file_upload
+              </span>
+              Change Video
+            </button>
+          </div>
+
+          <input
+            type="file"
+            accept="video/*"
+            ref={introVideoInputRef}
+            onChange={handleIntroVideoFileChange}
+            className="hidden"
+          />
         </div>
 
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">
+              Intro Video URL
+            </label>
+
+            <input
+              type="text"
+              name="introVideoUrl"
+              value={formData.introVideoUrl}
+              onChange={handleChange}
+              placeholder="https://example.com/intro-video.mp4"
+              className="w-full rounded-lg border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2.5 text-sm focus:ring-primary focus:border-primary"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleChangeIntroVideo}
+            className="px-4 py-2 rounded-lg border border-primary/20 text-primary font-semibold hover:bg-primary/10 transition-colors flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined">upload_file</span>
+            Upload Intro Video
+          </button>
+
+          {introVideoName && (
+            <p className="text-sm text-slate-500">
+              File đã chọn: <span className="font-semibold text-primary">{introVideoName}</span>
+            </p>
+          )}
+
+          <p className="text-xs text-slate-500 italic">
+            Bạn có thể nhập URL video trực tiếp hoặc chọn file video để upload khi bấm Update Course.
+          </p>
+        </div>
       </div>
     </div>
           </div>
@@ -482,7 +747,7 @@ const handleFileChange = (e) => {
             </label>
             <input
               type="text"
-              value={courseId}
+              value={formData.courseId}
               readOnly
               className="w-full rounded-lg border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2.5 font-mono text-xs"
             />

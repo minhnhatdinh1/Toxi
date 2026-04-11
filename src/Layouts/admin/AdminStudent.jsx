@@ -137,11 +137,11 @@ export default function AdminStudent() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex min-h-screen overflow-hidden">
       <AdminSidebar />
 
       <main className="flex-1 min-w-0 overflow-y-auto bg-slate-50">
-        <header className="sticky top-0 z-40 flex h-20 items-center justify-between border-b border-slate-200 bg-white px-8">
+        <header className="sticky top-0 z-40 flex min-h-20 flex-col gap-4 border-b border-slate-200 bg-white px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div>
             <h2 className="text-xl font-bold uppercase tracking-tight text-slate-800">
               Quản lý học viên
@@ -151,8 +151,8 @@ export default function AdminStudent() {
             </p>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="relative w-80 max-w-[42vw]">
+          <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-center lg:w-auto">
+            <div className="relative w-full sm:w-80 sm:max-w-[42vw]">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                 search
               </span>
@@ -167,7 +167,7 @@ export default function AdminStudent() {
 
             <Link
               to="/adminAddNewStudent"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 font-semibold text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 font-semibold text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90"
             >
               <span className="material-symbols-outlined text-lg">add</span>
               Thêm học viên
@@ -175,7 +175,7 @@ export default function AdminStudent() {
           </div>
         </header>
 
-        <div className="space-y-6 p-8">
+        <div className="space-y-6 p-4 sm:p-6 lg:p-8">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
@@ -380,13 +380,13 @@ export default function AdminStudent() {
               </table>
             </div>
 
-            <div className="flex items-center justify-between border-t border-slate-200 px-6 py-4">
+            <div className="flex flex-col gap-3 border-t border-slate-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
               <p className="text-sm text-slate-500">
                 Trang <span className="font-bold text-slate-900">{currentPage}</span> /{" "}
                 <span className="font-bold text-slate-900">{totalPages}</span>
               </p>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}

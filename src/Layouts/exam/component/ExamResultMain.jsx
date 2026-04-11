@@ -1,6 +1,8 @@
 import {useEffect, useState } from "react";
 import { Link, useNavigate,useParams } from "react-router-dom";
 import logo from "../../../assets/image/LOGO (1).png";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 const MOCK_RESULT = {
   title: "Đề thi HSK 4 — Mã đề 101",
@@ -58,7 +60,7 @@ const [result, setResult] = useState(null);
 useEffect(() => {
   const token = localStorage.getItem("token");  
   
-  fetch(`http://localhost:8080/api/exam/result/${id}`, {
+  fetch(`${BASE_URL}/api/exam/result/${id}`, {
     headers: {
       "Content-Type": "application/json",
       ...(token && { Authorization: `Bearer ${token}` }) 

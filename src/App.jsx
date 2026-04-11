@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import ReactLogo from './assets/react.svg'
 import ViteLogo from '/vite.svg'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -28,7 +28,7 @@ import MyCoursePage from './Layouts/mycourse/MyCoursePage.jsx'
 import MyInformationPage from './Layouts/mycourse/MyInformationPage.jsx'
 import MyProductMain from './Layouts/mycourse/component/MyProductMain.jsx'
 import MyVocabularyPage from './Layouts/mycourse/MyVocabularyPage.jsx'
-import Course from './Layouts/products/Course.jsx'
+import Course from './Layouts/products/CoursePage.jsx'
 import StepEmail from './Layouts/auth/ForgotPassword/StepEmail.jsx'
 import './App.css'
 import Product from './Layouts/products/Product.jsx';
@@ -36,6 +36,7 @@ import StepCode from './Layouts/auth/ForgotPassword/StepCode.jsx';
 import StepReset from './Layouts/auth/ForgotPassword/StepReset.jsx';
 import AdminPage from './Layouts/admin/AdminPage.jsx';
 import AdminCourse from './Layouts/admin/AdminCourse.jsx';
+import AdminCourseComment from './Layouts/admin/AdminCourseComment.jsx';
 import AdminProduct from './Layouts/admin/AdminProduct.jsx';
 
 
@@ -83,6 +84,10 @@ import EditRead from './Layouts/admin/addnewquiz/EditRead.jsx';
 import EditWritting from './Layouts/admin/addnewquiz/EditWritting.jsx';
 import QuizDetailPage   from './Layouts/exam/QuizDetailPage.jsx';
 import AdminQuizPreview from './Layouts/admin/AdminQuizPreview.jsx';
+import AdminVideo from './Layouts/admin/AdminVideo.jsx';
+import AdminAddNewVideo from './Layouts/admin/AdminAddNewVideo.jsx';
+import AdminCourseContent from './Layouts/admin/AdminCourseContent.jsx';
+import LearnRoute from './LearnRoute.jsx';
 function App() {
   return (
     <Routes>
@@ -112,7 +117,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/cart" element={<Cartpage />} />
       <Route path="/checkout" element={<CheckOutPage />} />
-      <Route path="/video" element={<VideoPage />} />
+      <Route path="/learn/:courseId/:lessonId" element={<LearnRoute><VideoPage /></LearnRoute>} />
       <Route path="/flashcard" element={<FlashcardPage />} />
       <Route path="/Exam/:id" element={<ExamPage />} />
       <Route path="/result/:id" element={<ExamResultPage />} />
@@ -125,6 +130,7 @@ function App() {
       <Route path="/MissingPassword" element={<StepEmail />} />
       <Route path="/MissingPasswordStepCode" element={<StepCode />} />
       <Route path="/reset-password" element={<StepReset />} />
+   <Route path="/checkout/:courseId" element={<CheckOutPage />} />
 
 
 
@@ -146,6 +152,7 @@ function App() {
 
       <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
       <Route path="/adminCourse" element={<AdminRoute><AdminCourse /></AdminRoute>} />
+      <Route path="/adminCourseComment" element={<AdminRoute><AdminCourseComment /></AdminRoute>} />
       <Route path="/adminProduct" element={<AdminRoute><AdminProduct /></AdminRoute>} />
 
       <Route path="/adminQuiz" element={<AdminRoute><AdminQuiz /></AdminRoute>} />
@@ -181,6 +188,8 @@ function App() {
       <Route path="/editread" element={<AdminRoute><EditRead /></AdminRoute>} />
       <Route path ="/editwritting" element={<AdminRoute><EditWritting /></AdminRoute>} />
       <Route path="/adminQuiz/:id/preview" element={<AdminRoute><AdminQuizPreview /></AdminRoute>} />
+      <Route path="/adminAddNewVideo/:courseId" element={<AdminRoute><AdminAddNewVideo /></AdminRoute>} />
+      <Route path="/admincoursecontent/:courseId" element={<AdminRoute><AdminCourseContent /></AdminRoute>} />
 
    <Route path="/adminQuiz/:quizId/add-question/listen" element={<AdminRoute><AddNewListenQuiz /></AdminRoute>} />
 <Route path="/adminQuiz/:quizId/add-question/read" element={<AdminRoute><AddNewReadQuiz /></AdminRoute>} />
@@ -196,3 +205,4 @@ function App() {
 };
 
 export default App;
+

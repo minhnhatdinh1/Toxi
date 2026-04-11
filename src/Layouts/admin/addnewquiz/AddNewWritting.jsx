@@ -152,7 +152,9 @@ export default function AddNewWritting() {
         await createQuestion(quizId, payload);
       }
 
-      if (andNext) {
+      if (isEdit && andNext) {
+        alert("Da luu thay doi.");
+      } else if (andNext) {
         setWords(DEFAULT_WORDS);
         setNewWord("");
         setCorrectOrder("");
@@ -217,7 +219,9 @@ export default function AddNewWritting() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <QuizPageHeader
           title={`${isEdit ? "Chinh sua" : "Tao"} cau hoi Viet - ${TYPES.find((item) => item.value === activeType)?.label}`}
+          isEdit={isEdit}
           onCancel={() => navigate(`/adminEditQuiz/${quizId}`)}
+          onSaveAndNext={() => handleSave(true)}
           onSaveAndClose={() => handleSave(false)}
         />
 

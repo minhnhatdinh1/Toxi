@@ -18,7 +18,8 @@ export default function AdminAddNewProduct() {
   };
 
   const parseCurrency = (value) => {
-    return Number(value.replace(/\./g, ""));
+    const digitsOnly = String(value || "").replace(/[^\d]/g, "");
+    return digitsOnly ? Number(digitsOnly) : "";
   };
 
   useEffect(() => {
@@ -45,6 +46,10 @@ export default function AdminAddNewProduct() {
     discountPrice: "",
     stock: "",
   });
+  const [priceInputs, setPriceInputs] = useState({
+    originalPrice: "",
+    discountPrice: "",
+  });
   
   const handleChange = (e) => {
     setFormData({
@@ -55,6 +60,33 @@ export default function AdminAddNewProduct() {
   };
 
   const [thumbnail, setThumbnail] = useState("");
+
+  const handlePriceFocus = (field) => {
+    setPriceInputs((prev) => ({
+      ...prev,
+      [field]: formData[field] ? String(formData[field]) : "",
+    }));
+  };
+
+  const handlePriceChange = (field, value) => {
+    const digitsOnly = String(value || "").replace(/[^\d]/g, "");
+    setPriceInputs((prev) => ({
+      ...prev,
+      [field]: digitsOnly,
+    }));
+    setFormData((prev) => ({
+      ...prev,
+      [field]: digitsOnly ? Number(digitsOnly) : "",
+    }));
+    setError("");
+  };
+
+  const handlePriceBlur = (field) => {
+    setPriceInputs((prev) => ({
+      ...prev,
+      [field]: formData[field] ? formatCurrency(formData[field]) : "",
+    }));
+  };
 
   const validateForm = () => {
     if (!formData.title.trim()) return "Tiêu đề sách không được bỏ trống";
@@ -324,13 +356,13 @@ await createProduct(payload);
                         <input
                           type="text"
                           name="originalPrice"
-                          value={formatCurrency(formData.originalPrice)}
+                          inputMode="numeric"
+                          value={priceInputs.originalPrice}
+                          onFocus={() => handlePriceFocus("originalPrice")}
                           onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              originalPrice: parseCurrency(e.target.value),
-                            })
+                            handlePriceChange("originalPrice", e.target.value)
                           }
+                          onBlur={() => handlePriceBlur("originalPrice")}
                           placeholder="1.000.000"
                           className="w-full rounded-xl border border-primary/10 bg-slate-50 dark:bg-primary/5 focus:border-primary focus:ring-primary dark:text-white transition-all p-3"
                         />
@@ -344,13 +376,13 @@ await createProduct(payload);
                         <input
                           type="text"
                           name="discountPrice"
-                          value={formatCurrency(formData.discountPrice)}
+                          inputMode="numeric"
+                          value={priceInputs.discountPrice}
+                          onFocus={() => handlePriceFocus("discountPrice")}
                           onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              discountPrice: parseCurrency(e.target.value),
-                            })
+                            handlePriceChange("discountPrice", e.target.value)
                           }
+                          onBlur={() => handlePriceBlur("discountPrice")}
                           placeholder="800.000"
                           className="w-full rounded-xl border border-primary/10 bg-slate-50 dark:bg-primary/5 focus:border-primary focus:ring-primary dark:text-white transition-all p-3"
                         />

@@ -6,7 +6,7 @@ export default function BlogIntrodution() {
 
     return (
      <>
-       <main className=" ml-64 flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900/50">
+       <div className="w-full bg-slate-50 dark:bg-slate-900/50">
 <section className="relative w-full h-[500px] flex items-center justify-center overflow-hidden">
       
       {/* Background */}
@@ -43,7 +43,7 @@ export default function BlogIntrodution() {
 </Link>
 
 <Link
-  to="/contact"
+  to="/Introduction"
   className="bg-white/10 border border-white/30 py-3 px-8 rounded-xl inline-block"
 >
   Liên hệ tư vấn
@@ -516,7 +516,7 @@ export default function BlogIntrodution() {
 
       </div>
     </section>
-    </main>
+    </div>
      </>
     )
 }

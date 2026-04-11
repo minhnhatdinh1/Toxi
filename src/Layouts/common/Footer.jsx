@@ -75,22 +75,22 @@ const Footer = () => {
             <h3 className="text-white font-bold mb-4">Khóa học</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a className="hover:text-primary transition-colors" href="#">
+                <a className="hover:text-primary transition-colors" href="/course">
                   Tiếng Trung Giao Tiếp
                 </a>
               </li>
               <li>
-                <a className="hover:text-primary transition-colors" href="#">
+                <a className="hover:text-primary transition-colors" href="/course">
                   Luyện thi HSK/HSKK
                 </a>
               </li>
               <li>
-                <a className="hover:text-primary transition-colors" href="#">
+                <a className="hover:text-primary transition-colors" href="/course">
                   Tiếng Trung Thương Mại
                 </a>
               </li>
               <li>
-                <a className="hover:text-primary transition-colors" href="#">
+                <a className="hover:text-primary transition-colors" href="/course">
                   Tiếng Trung Trẻ Em
                 </a>
               </li>

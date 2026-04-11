@@ -1,7 +1,9 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
-const API_BASE = "http://localhost:8080/api/admin";
+
+const API_BASE = `${BASE_URL}/api/admin`;
 
 const isUsableToken = (token) => {
   if (!token) return false;
@@ -157,7 +159,11 @@ export const createQuestion = async (quizId, questionData) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error adding questions:", error);
+    console.error("Error adding questions:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      payload: questionData,
+    });
     throw error;
   }
 };
@@ -260,3 +266,4 @@ export const getErrorMessage = (error) => {
 
   return error.message || "Lỗi không xác định.";
 };
+

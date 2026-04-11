@@ -1,7 +1,9 @@
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
-const ADMIN_API = "http://localhost:8080/api/admin/blogs";
-const PUBLIC_API = "http://localhost:8080/api/blogs";
+
+const ADMIN_API = `${BASE_URL}/api/admin/blogs`;
+const PUBLIC_API = `${BASE_URL}/api/blogs`;
 
 const getToken = () => localStorage.getItem("authToken") || localStorage.getItem("token");
 
@@ -28,7 +30,7 @@ export const buildBlogImageUrl = (value) => {
   if (!value) return "";
   if (typeof value !== "string") return "";
   if (value.startsWith("http://") || value.startsWith("https://")) return value;
-  return `http://localhost:8080/api/files/${value.replace(/^\/+/, "")}`;
+  return `${BASE_URL}/api/files/${value.replace(/^\/+/, "")}`;
 };
 
 export const normalizeBlog = (raw = {}) => {

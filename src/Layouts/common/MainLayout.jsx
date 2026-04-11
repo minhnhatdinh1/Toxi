@@ -4,8 +4,11 @@ import { Outlet } from 'react-router-dom'
 export default function MainLayout() {
   return (
     <>
-      <Header />
-     <Outlet />
+      <Header>
+        <div className="w-full">
+          <Outlet />
+        </div>
+      </Header>
       <Footer />
     </>
   )

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams,Link } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
+import LoadingSpinner from "../common/LoadingSpinner";
 import {
   fetchQuizDetail,
   createQuestion,
@@ -92,17 +93,22 @@ const [step, setStep] = useState(2); // mặc định = 2 luôn
         if (response.success) {
           setQuizInfo(response.data);
           setQuestions(withDisplayRange(response.data.questions || []));
-               const bankRes = await fetchQuestionBank(id);
-      if (bankRes.success) {
-        setBankQuestions(bankRes.data || []);
-      }
-
         }
       } catch (err) {
         console.error("Error fetching quiz:", err);
         setError("Lỗi tải dữ liệu");
       } finally {
         setLoading(false);
+      }
+
+      try {
+        const bankRes = await fetchQuestionBank(id);
+        if (bankRes.success) {
+          setBankQuestions(bankRes.data || []);
+        }
+      } catch (err) {
+        console.error("Error fetching question bank:", err);
+        setBankQuestions([]);
       }
     };
 
@@ -118,8 +124,17 @@ const [step, setStep] = useState(2); // mặc định = 2 luôn
 const handlePublish = async () => {
   try {
     await updateQuiz(id, {
-      ...quizInfo,
-      status: "ACTIVE"
+      title: quizInfo.title || "",
+      quizType: quizInfo.quizType || "",
+      hsklevel: quizInfo.hsklevel ?? 1,
+      timeLimit: quizInfo.timeLimit ?? 1,
+      passScore: quizInfo.passScore ?? 0,
+      description: quizInfo.description || "",
+      status: "ACTIVE",
+      showPinyin: quizInfo.showPinyin ?? true,
+      thumbnail: quizInfo.thumbnail || null,
+      maxAttempts: quizInfo.maxAttempts ?? null,
+      maxPauses: quizInfo.maxPauses ?? null
     });
 
     alert("Đã publish đề thi!");
@@ -193,7 +208,7 @@ const handlePublish = async () => {
     setDragIdx(null);
   };
 
-  if (loading) return <div className="flex h-screen items-center justify-center">Đang tải dữ liệu...</div>;
+  if (loading) return <LoadingSpinner fullScreen text="Dang tai du lieu..." />;
   if (error) return <div className="flex h-screen items-center justify-center text-red-600">{error}</div>;
   if (!quizInfo) return <div className="flex h-screen items-center justify-center">Không tìm thấy đề thi</div>;
 
@@ -510,3 +525,6 @@ const editRoute = (q) => {
   );
   
 }
+
+
+

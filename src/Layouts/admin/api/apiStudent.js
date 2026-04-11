@@ -1,6 +1,9 @@
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
-const API_BASE = "http://localhost:8080/api/admin/users";
+
+const API_BASE = `${BASE_URL}/api/admin/users`;
+const AUTH_REGISTER_API = `${BASE_URL}/api/auth/register`;
 
 const getToken = () => localStorage.getItem("authToken") || localStorage.getItem("token");
 
@@ -59,8 +62,53 @@ export const fetchAdminStudentById = async (id) => {
 };
 
 export const createAdminStudent = async (payload) => {
-  const response = await axios.post(API_BASE, payload, getConfig());
-  return normalizeStudent(toData(response.data));
+  const normalizedPayload = {
+    username: payload.username || payload.userName || "",
+    userName: payload.userName || payload.username || "",
+    fullName: payload.fullName || "",
+    email: payload.email || "",
+    phone: payload.phone || "",
+    address: payload.address || "",
+    password: payload.password || payload.passWord || "",
+    passWord: payload.passWord || payload.password || "",
+    confirmPassword:
+      payload.confirmPassword || payload.password || payload.passWord || "",
+    status: payload.status ?? true,
+    roleName: payload.roleName || "USER",
+    role: payload.role || "USER",
+  };
+
+  try {
+    const response = await axios.post(API_BASE, normalizedPayload, getConfig());
+    return normalizeStudent(toData(response.data));
+  } catch (error) {
+    const status = error?.response?.status;
+    if (![403, 404, 405].includes(status)) {
+      throw error;
+    }
+
+    const fallbackPayload = {
+      userName: normalizedPayload.userName,
+      passWord: normalizedPayload.passWord,
+      confirmPassword: normalizedPayload.confirmPassword,
+      fullName: normalizedPayload.fullName,
+      email: normalizedPayload.email,
+      phone: normalizedPayload.phone,
+    };
+
+    const response = await axios.post(AUTH_REGISTER_API, fallbackPayload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return normalizeStudent({
+      ...fallbackPayload,
+      status: normalizedPayload.status,
+      roleName: "USER",
+      ...(toData(response.data) || {}),
+    });
+  }
 };
 
 export const updateAdminStudent = async (id, payload) => {

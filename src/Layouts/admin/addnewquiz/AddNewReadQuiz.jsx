@@ -152,6 +152,12 @@ export default function AddNewReadQuiz() {
 
   async function handleSave(andNext = false) {
     const hskLevel = parseInt(String(form.hsk).replace("HSK ", ""), 10) || 1;
+
+    if (!["done", "draft"].includes(form.status)) {
+      alert("Trang thai cau hoi chi ho tro Xong hoac Nhap.");
+      return;
+    }
+
     let payload = {
       questionType: activeType,
       skill: "doc",
@@ -164,7 +170,7 @@ export default function AddNewReadQuiz() {
       imageUrl: toStoredFile(mainImage),
       correctOrder: correctOrder.trim() || null,
       score: Number(form.score) || 1,
-      status: String(form.status || "done").toUpperCase(),
+      status: form.status === "done" ? "DONE" : "DRAFT",
       quizOptions: [],
     };
 
@@ -264,6 +270,7 @@ export default function AddNewReadQuiz() {
     }
 
     try {
+      console.log("READ QUESTION PAYLOAD", payload);
       if (isEdit) {
         await updateQuestion(questionId, payload);
       } else {

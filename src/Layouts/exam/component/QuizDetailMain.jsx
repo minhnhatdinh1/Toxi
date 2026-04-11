@@ -2,6 +2,8 @@ import { useState,useEffect  } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import logo from "../../../assets/image/LOGO (1).png";
 import { useCart } from "../../../context/CartContext";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 // ── Mock data ──
 const QUIZ = {
@@ -110,6 +112,75 @@ const [quiz, setQuiz] = useState(null);
 const token = localStorage.getItem("token");
 const [hasDone, setHasDone] = useState(false);
 const [bestScore, setBestScore] = useState(null);
+const [quizHistory, setQuizHistory] = useState([]);
+
+function formatHistoryDate(value) {
+  if (!value) return "Khong ro ngay";
+
+  if (typeof value === "string") {
+    const normalized = value.trim();
+    const vnDateTimeMatch = normalized.match(
+      /^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/
+    );
+
+    if (vnDateTimeMatch) {
+      const [, day, month, year, hour = "00", minute = "00", second = "00"] = vnDateTimeMatch;
+      const parsed = new Date(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        Number(hour),
+        Number(minute),
+        Number(second)
+      );
+
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toLocaleDateString("vi-VN");
+      }
+    }
+  }
+
+  const raw = new Date(value);
+  return !Number.isNaN(raw.getTime()) ? raw.toLocaleDateString("vi-VN") : "Khong ro ngay";
+}
+
+function formatHistoryTimeSpent(value) {
+  const minutes = Number(value);
+  if (Number.isFinite(minutes) && minutes > 0) return `${minutes} phut`;
+  return "Khong ro";
+}
+
+function mapHistoryItem(item, index) {
+  const score = Number(item?.score ?? item?.totalScore ?? item?.resultScore ?? 0);
+  const total = Number(item?.total ?? item?.maxScore ?? item?.totalScorePossible ?? 300) || 300;
+  const pass = typeof item?.pass === "boolean"
+    ? item.pass
+    : typeof item?.isPassed === "boolean"
+    ? item.isPassed
+    : typeof item?.passed === "boolean"
+    ? item.passed
+    : score >= total * 0.8;
+
+  return {
+    id:
+      item?.quizResultsId ??
+      item?.quizResultId ??
+      item?.resultId ??
+      item?.id ??
+      `${index}`,
+    date: formatHistoryDate(
+      item?.submittedAt ??
+        item?.createdAt ??
+        item?.finishedAt ??
+        item?.examDate ??
+        item?.date
+    ),
+    score,
+    total,
+    time: formatHistoryTimeSpent(item?.timeSpent ?? item?.durationMinutes ?? item?.time),
+    pass,
+  };
+}
 
 
 const questionList = quiz?.questions || [];
@@ -135,7 +206,7 @@ const mappedQuiz = quiz
       totalQ: totalQuestionCount,
       plays: quiz.playCount,
       createdAt: quiz.createdAt || QUIZ.createdAt,
-      history: [],
+      history: quizHistory,
       sections: QUIZ.sections.map((section) => ({
         ...section,
         questions: sectionCounts[section.skill] ?? section.questions,
@@ -147,32 +218,52 @@ const mappedQuiz = quiz
 
 
 useEffect(() => {
-  fetch(`http://localhost:8080/api/quizzes/${id}`)
+  fetch(`${BASE_URL}/api/quizzes/${id}`)
     .then(res => res.json())
     .then(data => setQuiz(data.data));
 }, [id]);
 
 
 useEffect(() => {
-  if (!token) return;
+  if (!token) {
+    setQuizHistory([]);
+    setHasDone(false);
+    setBestScore(null);
+    return;
+  }
 
-  fetch(`http://localhost:8080/api/exam/history/${id}`, {
+  fetch(`${BASE_URL}/api/exam/history/${id}`, {
     headers: {
       Authorization: `Bearer ${token}`
     }
   })
     .then(res => res.json())
     .then(data => {
-      const history = data.data || [];
+      const rawHistory = Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data?.data?.content)
+        ? data.data.content
+        : Array.isArray(data)
+        ? data
+        : Array.isArray(data?.result)
+        ? data.result
+        : [];
+      const history = rawHistory.map(mapHistoryItem);
+
+      setQuizHistory(history);
 
       if (history.length > 0) {
         setHasDone(true);
 
         const best = Math.max(...history.map(h => h.score));
         setBestScore(best);
+      } else {
+        setHasDone(false);
+        setBestScore(null);
       }
     })
     .catch(() => {
+      setQuizHistory([]);
       setHasDone(false);
       setBestScore(null);
     });
@@ -368,7 +459,7 @@ useEffect(() => {
                           </div>
                         )}
                         {q.history.map((h,i)=>(
-                          <div key={i} className={`flex items-center gap-4 p-4 rounded-xl border ${h.pass?"border-emerald-200 bg-emerald-50":"border-red-200 bg-red-50"}`}>
+                          <div key={h.id || i} className={`flex items-center gap-4 p-4 rounded-xl border ${h.pass?"border-emerald-200 bg-emerald-50":"border-red-200 bg-red-50"}`}>
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-lg ${h.pass?"bg-emerald-500 text-white":"bg-red-400 text-white"}`}>
                               {i+1}
                             </div>
@@ -383,9 +474,9 @@ useEffect(() => {
                             </div>
                             <div className="text-right flex-shrink-0">
                               <p className={`text-xl font-black ${h.pass?"text-emerald-600":"text-red-500"}`}>{h.score}</p>
-                              <p className="text-xs text-slate-400">/300 điểm</p>
+                              <p className="text-xs text-slate-400">/{h.total} điểm</p>
                             </div>
-                            <Link to="/ExamResult" className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition flex-shrink-0">
+                            <Link to={h.id ? `/result/${h.id}` : "/ExamResult"} className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition flex-shrink-0">
                               <span className="material-symbols-outlined text-sm">visibility</span>Xem lại
                             </Link>
                           </div>

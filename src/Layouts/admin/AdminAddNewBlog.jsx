@@ -2,12 +2,15 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
 import { uploadImage } from "./api/apiFile";
+
 import {
+
+
   createAdminBlog,
   fetchAdminBlogById,
   updateAdminBlog,
 } from "./api/apiBlog";
-
+const BASE_URL = import.meta.env.VITE_API_URL;
 const INPUT_CLS =
   "w-full rounded-lg border border-slate-200 bg-white p-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15";
 
@@ -234,7 +237,7 @@ export default function AdminAddNewBlog() {
                   <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
                   {form.thumbnail ? (
                     <img
-                      src={form.thumbnail.startsWith("http") ? form.thumbnail : `http://localhost:8080/api/files/${form.thumbnail}`}
+                      src={form.thumbnail.startsWith("http") ? form.thumbnail : `${BASE_URL}/api/files/${form.thumbnail}`}
                       alt="thumbnail"
                       className="max-h-52 rounded-lg object-cover"
                     />
@@ -271,7 +274,7 @@ export default function AdminAddNewBlog() {
                         className="relative overflow-hidden rounded-lg border border-slate-200"
                       >
                         <img
-                          src={img.startsWith("http") ? img : `http://localhost:8080/api/files/${img}`}
+                          src={img.startsWith("http") ? img : `${BASE_URL}/api/files/${img}`}
                           alt={`gallery-${index}`}
                           className="h-28 w-full object-cover"
                         />

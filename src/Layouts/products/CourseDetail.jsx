@@ -1,34 +1,58 @@
-import { useParams, Link, useNavigate } from 'react-router-dom'
-import logo from '../../assets/image/LOGO (1).png'
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import React, { useState, useEffect } from 'react';
-
-
+import LoginModal from "../../components/LoginModal";
+import StarRating from "../../components/StarRating";
 import { useCart } from "../../context/CartContext";
+import LoadingSpinner from "../common/LoadingSpinner";
+import StoreTopHeader from "../common/StoreTopHeader";
+import { createCourseReview, getCourseReviews } from "./api/apiCourseReview";
+import { getNotifications, pushNotification } from "../../utils/notificationCenter";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 
+const COURSE_REVIEW_REPLY_SEEN_KEY = "toxi_course_review_reply_seen";
 
-import StarRating from '../../components/StarRating';
+const readSeenReviewReplies = () => {
+  try {
+    const raw = localStorage.getItem(COURSE_REVIEW_REPLY_SEEN_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeSeenReviewReplies = (items) => {
+  localStorage.setItem(COURSE_REVIEW_REPLY_SEEN_KEY, JSON.stringify(items));
+};
 
 export default function CourseDetail() {
-  const { id } = useParams();
+  const { id: courseId } = useParams();
   const navigate = useNavigate();
-
-
-const { addToCart, cartCount } = useCart();
+  const location = useLocation();
+  const { addToCart } = useCart();
+  const reviewRefs = useRef({});
 
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
-const [timeLeft, setTimeLeft] = useState("");
+  const [timeLeft, setTimeLeft] = useState("");
+  const [hasAccess, setHasAccess] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [pendingLesson, setPendingLesson] = useState(null);
+  const [courseReviews, setCourseReviews] = useState([]);
+  const [reviewForm, setReviewForm] = useState({ rating: 0, content: "" });
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [highlightedReviewId, setHighlightedReviewId] = useState(null);
+
   useEffect(() => {
     fetchCourse();
-  }, [id]);
-useEffect(() => {
+  }, [courseId]);
+
+  useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date();
-      // Thiết lập mốc 00:00:00 của ngày mai (tức là cuối ngày hôm nay)
       const tomorrow = new Date();
-      tomorrow.setHours(24, 0, 0, 0); 
+      tomorrow.setHours(24, 0, 0, 0);
 
       const diff = tomorrow - now;
       const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
@@ -36,75 +60,316 @@ useEffect(() => {
       const s = Math.floor((diff / 1000) % 60);
 
       setTimeLeft(
-        `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+        `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
       );
     }, 1000);
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    refreshAccess();
+  }, [courseId]);
+
+  useEffect(() => {
+    loadCourseReviews();
+  }, [courseId]);
+
   const fetchCourse = async () => {
     try {
-      const res = await axios.get(
-        `http://localhost:8080/api/courses/${id}`
-      );
+      setLoading(true);
+      const res = await axios.get(`${BASE_URL}/api/courses/${courseId}`);
       setCourse(res.data);
-      setLoading(false);
     } catch (error) {
-      console.error("Lỗi khi lấy khóa học:", error);
+      console.error(error);
+    } finally {
       setLoading(false);
     }
   };
 
+  const refreshAccess = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/course/${courseId}/access`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
-const handleAddToCart = () => {
-  addToCart(course.courseId,"COURSE",1);
-  alert("Đã thêm vào giỏ hàng!");
+      const nextAccess = !!res.data;
+      setHasAccess(nextAccess);
+      return nextAccess;
+    } catch (error) {
+      setHasAccess(false);
+      return false;
+    }
+  };
 
-};
-  if (loading) return <div className="p-10">Đang tải...</div>;
+  const loadCourseReviews = async () => {
+    try {
+      const response = await getCourseReviews(courseId);
+      const payload = Array.isArray(response) ? response : response?.data || response?.content || [];
+      const currentUserName = String(localStorage.getItem("userName") || "").trim().toLowerCase();
+      const currentUserEmail = String(localStorage.getItem("email") || "").trim().toLowerCase();
+      const seenReplies = readSeenReviewReplies();
+      const nextSeenReplies = { ...seenReplies };
+
+      payload.forEach((review) => {
+        const reviewOwnerName = String(review.userName || review.fullName || "").trim().toLowerCase();
+        const reviewOwnerEmail = String(review.email || "").trim().toLowerCase();
+        const isOwnedByCurrentUser =
+          (!!currentUserName && reviewOwnerName === currentUserName) ||
+          (!!currentUserEmail && reviewOwnerEmail === currentUserEmail);
+
+        if (!isOwnedByCurrentUser || !review.adminReply) {
+          return;
+        }
+
+        const reviewId = String(
+          review.id || review.reviewId || `${courseId}-${reviewOwnerEmail || reviewOwnerName}-${review.createdAt || ""}`
+        );
+        const replySignature = JSON.stringify({
+          adminReply: review.adminReply,
+          repliedAt: review.repliedAt || review.updatedAt || review.updated_at || null,
+        });
+        const existingReplyNotification = getNotifications("user").some(
+          (item) =>
+            item.type === "review-reply" &&
+            String(item.contextId || "") === reviewId &&
+            String(item.entityId || "") === String(courseId)
+        );
+
+        if (seenReplies[reviewId] !== replySignature && !existingReplyNotification) {
+          pushNotification({
+            audience: "user",
+            type: "review-reply",
+            title: "Admin da phan hoi danh gia",
+            message: `Danh gia cua ban cho ${course?.title || "khoa hoc"} da co phan hoi moi.`,
+            entityId: Number(courseId),
+            entityType: "course-review-reply",
+            contextId: reviewId,
+            actor: "Admin",
+            path: `/courses/${courseId}?focusReview=${encodeURIComponent(reviewId)}`,
+          });
+        }
+
+        nextSeenReplies[reviewId] = replySignature;
+      });
+
+      writeSeenReviewReplies(nextSeenReplies);
+      setCourseReviews(payload);
+    } catch (error) {
+      console.error("Error loading course reviews:", error);
+      setCourseReviews([]);
+    }
+  };
+
+  const handleAddToCart = () => {
+    addToCart(course.courseId, "COURSE", 1, {
+      title: course.title,
+      imageUrl: course.thumbnailUrl,
+      originalPrice: course.price,
+      discountPrice: course.discountPrice,
+    });
+    alert("Đã thêm vào giỏ hàng!");
+  };
+
+  const handleLessonNavigation = (lessonId, isPreview) => {
+    if (!lessonId) return;
+
+    if (isPreview) {
+      navigate(`/learn/${courseId}/${lessonId}`);
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setPendingLesson({ lessonId, isPreview });
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    if (!hasAccess) {
+      navigate(`/checkout/${courseId}`);
+      return;
+    }
+
+    navigate(`/learn/${courseId}/${lessonId}`);
+  };
+
+  const handleLoginSuccess = async () => {
+    setIsLoginModalOpen(false);
+
+    if (!pendingLesson?.lessonId) return;
+
+    const { lessonId, isPreview } = pendingLesson;
+    setPendingLesson(null);
+
+    const accessGranted = await refreshAccess();
+
+    if (isPreview || accessGranted) {
+      navigate(`/learn/${courseId}/${lessonId}`);
+      return;
+    }
+
+    navigate(`/checkout/${courseId}`);
+  };
+
+  const getMediaUrl = (url) => {
+    if (!url) return "";
+    if (/^https?:\/\//i.test(url)) return url;
+    const normalized = String(url).replace(/\\/g, "/").replace(/^\/+/, "");
+    if (
+      normalized.startsWith("upload/") ||
+      normalized.startsWith("uploads/") ||
+      normalized.startsWith("api/files/") ||
+      normalized.startsWith("files/")
+    ) {
+      return `${BASE_URL}/${normalized}`;
+    }
+    return `${BASE_URL}/uploads/${normalized}`;
+  };
+
+  const formatReviewDate = (value) => {
+    if (!value) return "--";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "--";
+    return date.toLocaleDateString("vi-VN");
+  };
+
+  const getInitials = (name) => {
+    const text = String(name || "U").trim();
+    return text ? text.charAt(0).toUpperCase() : "U";
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const focusReviewId = params.get("focusReview");
+    if (!focusReviewId || courseReviews.length === 0) return;
+
+    const target = reviewRefs.current[focusReviewId];
+    if (!target) return;
+
+    setHighlightedReviewId(focusReviewId);
+    target.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    const timer = window.setTimeout(() => setHighlightedReviewId(null), 2500);
+    return () => window.clearTimeout(timer);
+  }, [location.search, courseReviews]);
+
+  const averageRating =
+    courseReviews.length > 0
+      ? (
+          courseReviews.reduce((sum, item) => sum + Number(item.rating || 0), 0) / courseReviews.length
+        ).toFixed(1)
+      : course?.rating
+        ? course.rating.toFixed(1)
+        : "0.0";
+
+  const reviewCount = courseReviews.length || Number(course?.reviewCount || 0);
+
+  const ratingDistribution = [5, 4, 3, 2, 1].map((star) => {
+    const count = courseReviews.filter((item) => Number(item.rating) === star).length;
+    const percent = reviewCount > 0 ? Math.round((count / reviewCount) * 100) : 0;
+    return { label: `${star} sao`, percent };
+  });
+
+  const handleReviewSubmit = async (event) => {
+    event.preventDefault();
+
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    if (!token) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    if (!reviewForm.rating || !String(reviewForm.content).trim()) {
+      alert("Vui long chon so sao va nhap noi dung danh gia.");
+      return;
+    }
+
+    try {
+      setReviewSubmitting(true);
+      await createCourseReview({
+        courseId: Number(courseId),
+        rating: Number(reviewForm.rating),
+        content: reviewForm.content.trim(),
+      });
+      pushNotification({
+        audience: "admin",
+        type: "review",
+        title: "Danh gia khoa hoc moi",
+        message: `${localStorage.getItem("userName") || "Hoc vien"} vua gui danh gia cho ${course?.title || "khoa hoc"}.`,
+        entityId: Number(courseId),
+        entityType: "course-review",
+        contextId: `${courseId}-${localStorage.getItem("email") || localStorage.getItem("userName") || "hoc-vien"}`,
+        actor: localStorage.getItem("userName") || "Hoc vien",
+        path: "/adminCourseComment",
+      });
+      setReviewForm({ rating: 0, content: "" });
+      await loadCourseReviews();
+      alert("Gui danh gia thanh cong.");
+    } catch (error) {
+      console.error("Error creating review:", error);
+      alert("Khong the gui danh gia luc nay. Kiem tra backend API /api/course-reviews.");
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  if (loading) return <LoadingSpinner fullScreen text="Dang tai khoa hoc..." />;
   if (!course) return <div className="p-10">Không tìm thấy khóa học</div>;
-const hasDiscount =
-  course.discountPrice &&
-  course.discountPrice < course.price;
 
-const finalPrice = hasDiscount
-  ? course.discountPrice
-  : course.price;
+  const hasDiscount = course.discountPrice && course.discountPrice < course.price;
+  const finalPrice = hasDiscount ? course.discountPrice : course.price;
+  const discountPercent = hasDiscount
+    ? Math.round(100 - (course.discountPrice / course.price) * 100)
+    : 0;
+  const introVideoUrl = getMediaUrl(
+    course?.introVideoUrl ||
+      course?.videoUrl ||
+      course?.introUrl ||
+      course?.introVideo ||
+      course?.video
+  );
+  const thumbnailUrl = getMediaUrl(
+    course?.thumbnailUrl ||
+      course?.thumbnail ||
+      course?.imageUrl ||
+      course?.image
+  );
 
-const discountPercent = hasDiscount
-  ? Math.round(
-      100 - (course.discountPrice / course.price) * 100
-    )
-  : 0;
-
-  
   return (
     <>
-      <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
-        {/* Background pattern */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => {
+          setIsLoginModalOpen(false);
+          setPendingLesson(null);
+        }}
+        onSuccess={handleLoginSuccess}
+        title="Đăng nhập để mở bài học"
+        description="Khi đăng nhập xong, hệ thống sẽ đưa bạn trở lại nội dung khóa học bạn vừa chọn."
+      />
+
+      <StoreTopHeader />
+      {false && <header className="sticky top-0 z-50 bg-primary text-white shadow-xl">
         <div className="absolute inset-0 bg-chinese-pattern opacity-10 pointer-events-none"></div>
 
-        <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-8 relative z-10">
-          {/* LOGO */}
-          <Link to="/Home" className="flex items-center gap-3 shrink-0">
-                    <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />
-                    <div>
-                      <h1 className="text-2xl font-black tracking-tighter leading-none">
-                        TOXI
-                      </h1>
-                      <p className="text-[8px] uppercase tracking-widest text-secondary font-bold">
-                        学以致用
-                      </p>
-                    </div>
-                  </Link>
+        <div className="relative z-10 mx-auto flex max-w-[1920px] items-center justify-between gap-8 px-4 py-4 md:px-8">
+          <Link to="/Home" className="flex shrink-0 items-center gap-3">
+            <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />
+            <div>
+              <h1 className="text-2xl font-black leading-none tracking-tighter">TOXI</h1>
+              <p className="text-[8px] font-bold uppercase tracking-widest text-secondary">学以致用</p>
+            </div>
+          </Link>
 
-          {/* SEARCH */}
-          <div className="flex-1 max-w-2xl hidden md:block">
-            <div className="relative group">
+          <div className="hidden max-w-2xl flex-1 md:block">
+            <div className="group relative">
               <input
                 type="text"
                 placeholder="Tìm kiếm sản phẩm, giáo trình, dụng cụ..."
-                className="w-full pl-12 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-full text-sm focus:ring-2 focus:ring-secondary focus:bg-white focus:text-primary transition-all placeholder-white/60"
+                className="w-full rounded-full border border-white/20 bg-white/10 py-2.5 pl-12 pr-4 text-sm transition-all placeholder-white/60 focus:bg-white focus:text-primary focus:ring-2 focus:ring-secondary"
               />
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/60 group-focus-within:text-primary">
                 search
@@ -112,545 +377,455 @@ const discountPercent = hasDiscount
             </div>
           </div>
 
-          {/* ACTIONS */}
-          <div className="flex items-center gap-6 shrink-0">
-            {/* CART */}
+          <div className="flex shrink-0 items-center gap-6">
+            <div className="group relative cursor-pointer" onClick={() => navigate("/cart")}>
+              <span className="material-symbols-outlined text-[28px] text-white transition-colors hover:text-secondary">
+                shopping_cart
+              </span>
+              {cartCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                  {cartCount}
+                </span>
+              )}
+            </div>
 
-           <div className="relative group cursor-pointer" onClick={() => navigate('/cart')}>
-  <span className="material-symbols-outlined text-[28px] text-white hover:text-secondary transition-colors">
-    shopping_cart
-  </span>
-  {cartCount > 0 && (
-    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-      {cartCount}
-    </span>
-  )}
-</div>
-
-            {/* AUTH BUTTONS */}
-            <div className="hidden sm:flex items-center gap-4">
-              <Link to="/login" className="text-sm font-bold hover:text-secondary transition-colors">
+            <div className="hidden items-center gap-4 sm:flex">
+              <Link to="/login" className="text-sm font-bold transition-colors hover:text-secondary">
                 Đăng nhập
               </Link>
-              <Link to="/register" className="bg-secondary text-primary px-6 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-secondary-dark transition-all transform hover:scale-105">
+              <Link
+                to="/register"
+                className="rounded-full bg-secondary px-6 py-2.5 text-sm font-bold text-primary shadow-lg transition-all hover:scale-105 hover:bg-secondary-dark"
+              >
                 Đăng ký tư vấn
               </Link>
             </div>
 
-            {/* MOBILE MENU */}
-            <button className="md:hidden text-white">
+            <button className="text-white md:hidden">
               <span className="material-symbols-outlined">menu</span>
             </button>
           </div>
         </div>
-      </header>
-      <main className="flex-grow w-full max-w-7xl ml-auto mr-auto px-4 sm:px-6 lg:px-8 py-6 lg:pl-0">
-  {/* Breadcrumb */}
-  <div className="flex flex-wrap gap-2 items-center mb-6 text-sm">
-    <a
-      href="/Home"
-      className="text-slate-500 hover:text-primary dark:text-slate-400"
-    >
-      Trang chủ
-    </a>
+      </header>}
 
-    <span className="text-slate-300 material-symbols-outlined text-[16px]">
-      chevron_right
-    </span>
-
-    <a
-      href="#"
-      className="text-slate-500 hover:text-primary dark:text-slate-400"
-    >
-      Khóa học
-    </a>
-
-    <span className="text-slate-300 material-symbols-outlined text-[16px]">
-      chevron_right
-    </span>
-
-    <span className="text-[#0d141b] dark:text-white font-medium">
-      {course?.breadcrumb}
-    </span>
-  </div>
-
-  {/* Main grid */}
-  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-6 md:gap-8">
-    {/* Left content */}
-    <div className="md:col-span-2 lg:col-span-8 flex flex-col gap-8">
-      <div className="flex flex-col gap-4">
-        <h1 className="text-[#0d141b] dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.02em]">
-         {course.title}
-        </h1>
-
-        <p className="text-slate-600 dark:text-slate-300 text-lg font-normal leading-relaxed">
-          {course.description}
-        </p>
-
-        <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm text-slate-500 dark:text-slate-400 mt-1">
-          <div className="flex items-center gap-1.5">
-            <StarRating value={course.rating ? Math.round(course.rating) : 0} size="text-base" />
-            <span className="font-bold text-[#0d141b] dark:text-white">
-              {course.rating ? course.rating.toFixed(1) : '–'}
-            </span>
-            <span>({course.reviewCount || '1,250'} đánh giá)</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[18px]">
-              group
-            </span>
-            <span>3,400 học viên</span>
-          </div>
-<div className="flex items-center gap-1.5">
-<span className="material-symbols-outlined text-[18px]">
-              update
-            </span>
-            <span>Cập nhật: 06/2023</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[18px]">
-              language
-            </span>
-            <span>Tiếng Việt, Trung</span>
-          </div>
+      <main className="ml-auto mr-auto flex-grow w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:pl-0">
+        <div className="mb-6 flex flex-wrap items-center gap-2 text-sm">
+          <a href="/Home" className="text-slate-500 hover:text-primary dark:text-slate-400">
+            Trang chủ
+          </a>
+          <span className="material-symbols-outlined text-[16px] text-slate-300">chevron_right</span>
+          <a href="#" className="text-slate-500 hover:text-primary dark:text-slate-400">
+            Khóa học
+          </a>
+          <span className="material-symbols-outlined text-[16px] text-slate-300">chevron_right</span>
+          <span className="font-medium text-[#0d141b] dark:text-white">{course?.breadcrumb}</span>
         </div>
-      </div>
-      {/* Video preview */}
-<div className="relative w-full rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 bg-black aspect-video group cursor-pointer">
-  <div
-    className="absolute inset-0 bg-cover bg-center opacity-80 group-hover:opacity-60 transition-opacity duration-300"
-    style={{
-      backgroundImage:
-        'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCLTF0Qx…vzBuAvgDZkgonzonrnWrGscEpyqRmSLRuEKIp6TeGWj0tDeEIL3y3TD0GS5s")',
-    }}
-  />
 
-  <div className="absolute inset-0 flex items-center justify-center">
-    <button className="flex items-center justify-center rounded-full size-20 bg-primary/90 text-white shadow-lg backdrop-blur-sm group-hover:scale-110 transition-transform duration-300 pl-1">
-      <span className="material-symbols-outlined text-[40px] filled">
-        play_arrow
-      </span>
-    </button>
-  </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8 lg:grid-cols-12">
+          <div className="flex flex-col gap-8 md:col-span-2 lg:col-span-8">
+            <div className="flex flex-col gap-4">
+              <h1 className="text-3xl font-black leading-tight tracking-[-0.02em] text-[#0d141b] dark:text-white md:text-4xl">
+                {course.title}
+              </h1>
 
-  <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end text-white">
-    <div>
-      <p className="font-bold text-lg">Giới thiệu khóa học</p>
-      <p className="text-sm opacity-90">Xem trước miễn phí</p>
-    </div>
-    <span className="bg-black/50 px-2 py-1 rounded text-xs font-mono">
-      02:45
-    </span>
-  </div>
-</div>
+              <p className="text-lg font-normal leading-relaxed text-slate-600 dark:text-slate-300">
+                {course.description}
+              </p>
 
-{/* Course introduction */}
-{/* Course introduction */}
-<div className="bg-white dark:bg-slate-800 rounded-xl p-6 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
-  <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-primary">
-    <span className="material-symbols-outlined">info</span>
-    Giới thiệu khóa học
-  </h3>
+              <div className="mt-1 flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400 md:gap-6">
+                <div className="flex items-center gap-1.5">
+                  <StarRating value={course.rating ? Math.round(course.rating) : 0} size="text-base" />
+                  <span className="font-bold text-[#0d141b] dark:text-white">
+                    {course.rating ? course.rating.toFixed(1) : "–"}
+                  </span>
+                  <span>({reviewCount || 0} đánh giá)</span>
+                </div>
 
-  <div className="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300">
-    <p className="mb-2">Khóa học dành cho người đã có nền tảng cơ bản.</p>
-    <p className="mb-2">Tập trung luyện nghe – nói – đọc – viết.</p>
-  </div>
-</div>
-{/* What you will learn */}
-{/* What you will learn */}
-<div className="bg-white dark:bg-slate-800 rounded-xl p-6 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
-  <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-primary">
-    <span className="material-symbols-outlined">check_circle</span>
-    Bạn sẽ học được gì?
-  </h3>
+                <div className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px]">group</span>
+                  <span>3,400 học viên</span>
+                </div>
 
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-    {/* Mục 1 */}
-    <div className="flex gap-3">
-      <span className="material-symbols-outlined text-green-500">check</span>
-      <span>1200 từ vựng chuẩn HSK 4.</span>
-    </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px]">update</span>
+                  <span>Cập nhật: 06/2023</span>
+                </div>
 
-    {/* Mục 2 */}
-    <div className="flex gap-3">
-      <span className="material-symbols-outlined text-green-500">check</span>
-      <span>Viết đoạn văn ngắn bằng tiếng Trung.</span>
-    </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px]">language</span>
+                  <span>Tiếng Việt, Trung</span>
+                </div>
+              </div>
+            </div>
 
-    {/* Mục 3 */}
-    <div className="flex gap-3">
-      <span className="material-symbols-outlined text-green-500">check</span>
-      <span>Giao tiếp học tập và công việc.</span>
-    </div>
-  </div>
-</div>
+            {introVideoUrl ? (
+              <div className="aspect-video w-full overflow-hidden rounded-xl border border-slate-200 bg-black shadow-sm dark:border-slate-700">
+                <video
+                  controls
+                  preload="metadata"
+                  poster={thumbnailUrl || undefined}
+                  className="h-full w-full object-cover"
+                  src={introVideoUrl}
+                />
+              </div>
+            ) : (
+              <div className="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-black shadow-sm dark:border-slate-700">
+                <div className="absolute inset-0 bg-cover bg-center opacity-80 transition-opacity duration-300 group-hover:opacity-60"></div>
 
-{/* Course content */}
-<div className="bg-white dark:bg-slate-800 rounded-xl p-6 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
-  <div className="flex justify-between items-center mb-6">
-    <h3 className="text-xl font-bold flex items-center gap-2 text-primary">
-      <span className="material-symbols-outlined">menu_book</span>
-      Nội dung khóa học
-    </h3>
-    <span className="text-sm text-slate-500 dark:text-slate-400">
-      8 Chương • 35 Bài giảng • 12h 30m
-    </span>
-  </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <button className="flex size-20 items-center justify-center rounded-full bg-primary/90 pl-1 text-white shadow-lg backdrop-blur-sm transition-transform duration-300 group-hover:scale-110">
+                    <span className="material-symbols-outlined filled text-[40px]">play_arrow</span>
+                  </button>
+                </div>
 
-  <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-  {course.chapters?.map((chapter, chapterIndex) => (
-    <details
-      key={chapter.chapterId}
-      className="group"
-      open={chapterIndex === 0}
-    >
-      <summary className="flex justify-between items-center bg-slate-50 dark:bg-slate-900 p-4 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors list-none">
-        <div className="flex items-center gap-3">
-          <span className="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">
-            expand_more
-          </span>
-          <span className="font-bold text-[#0d141b] dark:text-white">
-            {chapter.title}
-          </span>
-        </div>
-        <span className="text-xs text-slate-500">
-          {chapter.contents?.length || 0} nội dung
-        </span>
-      </summary>
+                <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white">
+                  <div>
+                    <p className="text-lg font-bold">Giới thiệu khóa học</p>
+                    <p className="text-sm opacity-90">Xem trước miễn phí</p>
+                  </div>
+                  <span className="rounded bg-black/50 px-2 py-1 font-mono text-xs">02:45</span>
+                </div>
+              </div>
+            )}
 
-      <div className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-700">
-        {chapter.contents?.map((content) => {
-          const isLesson = content.contentType === "LESSON";
+            <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 md:p-8">
+              <h3 className="mb-4 flex items-center gap-2 text-xl font-bold text-primary">
+                <span className="material-symbols-outlined">info</span>
+                Giới thiệu khóa học
+              </h3>
 
-          const title = isLesson
-            ? content.lesson?.title
-            : content.quiz?.title;
+              <div className="prose max-w-none text-slate-600 dark:prose-invert dark:text-slate-300">
+                <p className="mb-2">Khóa học dành cho người đã có nền tảng cơ bản.</p>
+                <p className="mb-2">Tập trung luyện nghe – nói – đọc – viết.</p>
+              </div>
+            </div>
 
-          const isPreview = content.isPreview;
+            <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 md:p-8">
+              <h3 className="mb-6 flex items-center gap-2 text-xl font-bold text-primary">
+                <span className="material-symbols-outlined">check_circle</span>
+                Bạn sẽ học được gì?
+              </h3>
 
-          return (
-            <div
-              key={content.courseContentId}
-              onClick={() => {
-                if (isPreview && isLesson) {
-                  navigate(
-                    `/video/${content.lesson?.lessonId}`
-                  );
-                }
-              }}
-              className={`p-4 flex justify-between items-center ${
-                isPreview && isLesson
-                  ? "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50"
-                  : ""
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-primary text-[20px]">
-                  {isLesson
-                    ? isPreview
-                      ? "play_circle"
-                      : "lock"
-                    : "quiz"}
-                </span>
+              <div className="grid grid-cols-1 gap-x-8 gap-y-4 md:grid-cols-2">
+                <div className="flex gap-3">
+                  <span className="material-symbols-outlined text-green-500">check</span>
+                  <span>1200 từ vựng chuẩn HSK 4.</span>
+                </div>
 
-                <span className="text-sm text-slate-700 dark:text-slate-300">
-                  {title}
+                <div className="flex gap-3">
+                  <span className="material-symbols-outlined text-green-500">check</span>
+                  <span>Viết đoạn văn ngắn bằng tiếng Trung.</span>
+                </div>
+
+                <div className="flex gap-3">
+                  <span className="material-symbols-outlined text-green-500">check</span>
+                  <span>Giao tiếp học tập và công việc.</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 md:p-8">
+              <div className="mb-6 flex items-center justify-between">
+                <h3 className="flex items-center gap-2 text-xl font-bold text-primary">
+                  <span className="material-symbols-outlined">menu_book</span>
+                  Nội dung khóa học
+                </h3>
+                <span className="text-sm text-slate-500 dark:text-slate-400">
+                  8 Chương • 35 Bài giảng • 12h 30m
                 </span>
               </div>
 
-              {isLesson ? (
-                isPreview ? (
-<span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded">
-                    Học thử
-                  </span>
-                ) : (
-                  <span className="text-xs text-slate-500">
-                    Khóa
-                  </span>
-                )
-              ) : (
-                <span className="text-xs text-purple-500 font-medium">
-                  Quiz
-                </span>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </details>
-  ))}
-</div>
-</div>
-<div className="bg-white dark:bg-slate-800 rounded-xl p-6 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
-  <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-primary">
-    <span className="material-symbols-outlined">reviews</span>
-    Đánh giá của học viên
-  </h3>
+              <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
+                {course.chapters?.map((chapter, chapterIndex) => (
+                  <details key={chapter.chapterId} className="group" open={chapterIndex === 0}>
+                    <summary className="flex cursor-pointer list-none items-center justify-between bg-slate-50 p-4 transition-colors hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700">
+                      <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-slate-400 transition-transform group-open:rotate-180">
+                          expand_more
+                        </span>
+                        <span className="font-bold text-[#0d141b] dark:text-white">{chapter.title}</span>
+                      </div>
+                      <span className="text-xs text-slate-500">
+                        {chapter.contents?.length || 0} nội dung
+                      </span>
+                    </summary>
 
-  {/* Write review */}
-  <div className="mb-10 p-6 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-300 dark:border-slate-600">
-    <h4 className="font-bold text-lg mb-4 text-[#0d141b] dark:text-white">
-      Viết đánh giá của bạn
-    </h4>
+                    <div className="divide-y divide-slate-100 border-t border-slate-200 bg-white dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-800">
+                      {chapter.contents?.map((content) => {
+                        const isLesson = content.contentType === "LESSON";
+                        const title = isLesson ? content.lesson?.title : content.quiz?.title;
+                        const isPreview = content.isPreview;
 
-    <form className="space-y-4">
-      <div>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
-          Chọn số sao của bạn:
-        </p>
+                        return (
+                          <div
+                            key={content.courseContentId}
+                            onClick={() => {
+                              if (!isLesson) return;
+                              handleLessonNavigation(content.lesson?.lessonId, isPreview);
+                            }}
+                            className={`flex items-center justify-between p-4 ${
+                              isLesson ? "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50" : ""
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="material-symbols-outlined text-[20px] text-primary">
+                                {isLesson ? (isPreview ? "play_circle" : "lock") : "quiz"}
+                              </span>
 
-        <div className="flex flex-row-reverse justify-end gap-1 star-rating">
-          {[5, 4, 3, 2, 1].map((star) => (
-            <div key={star}>
-              <input
-                id={`star${star}`}
-                name="rating"
-                type="radio"
-                value={star}
-                className="hidden"
-              />
-              <label
-                htmlFor={`star${star}`}
-                className="material-symbols-outlined text-[32px] filled cursor-pointer"
-              >
-                star
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
+                              <span className="text-sm text-slate-700 dark:text-slate-300">{title}</span>
+                            </div>
 
-      <div>
-        <textarea
-          className="w-full rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:ring-primary focus:border-primary text-sm"
-          placeholder="Chia sẻ trải nghiệm của bạn về khóa học này..."
-          rows={4}
-        />
-      </div>
-
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <label className="flex items-center gap-2 cursor-pointer group">
-          <div className="size-10 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400 group-hover:border-primary group-hover:text-primary transition-colors">
-            <span className="material-symbols-outlined">add_a_photo</span>
-          </div>
-          <span className="text-sm text-slate-500 dark:text-slate-400">
-            Đính kèm hình ảnh
-          </span>
-          <input type="file" accept="image/*" className="hidden" />
-        </label>
-
-        <button
-          type="submit"
-className="w-full sm:w-auto px-8 py-3 bg-secondary hover:bg-[#e6b400] text-primary font-bold rounded-lg transition-all shadow-md active:scale-95"
-        >
-          Gửi đánh giá
-        </button>
-      </div>
-    </form>
-  </div>
-
-  {/* Review statistics */}
-  <div className="flex flex-wrap gap-x-12 gap-y-8">
-    <div className="flex flex-col gap-2 min-w-[150px]">
-      <p className="text-[#0d141b] dark:text-white text-5xl font-black leading-tight tracking-[-0.033em]">
-        4.8+
-      </p>
-<div className="flex gap-1 text-secondary">
-        {[1, 2, 3, 4].map((_, i) => (
-          <span key={i} className="material-symbols-outlined filled">
-            star
-          </span>
-        ))}
-        <span className="material-symbols-outlined text-slate-300 dark:text-slate-600">
-          star
-        </span>
-      </div>
-
-      <p className="text-slate-500 text-sm font-normal">1,250 nhận xét</p>
-    </div>
-
-    <div className="flex-1 min-w-[280px]">
-      {[
-        { label: "5 sao", percent: 72 },
-        { label: "4 sao", percent: 20 },
-        { label: "3 sao", percent: 5 },
-      ].map((item, index) => (
-        <div key={index} className="flex items-center gap-3 mb-2">
-          <div className="w-8 text-xs font-medium text-right dark:text-slate-300">
-            {item.label}
-          </div>
-
-          <div className="flex h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
-            <div
-              className="rounded-full bg-secondary"
-              style={{ width: `${item.percent}%` }}
-            />
-          </div>
-
-          <div className="w-8 text-xs text-slate-500 text-right">
-            {item.percent}%
-          </div>
-        </div>
-      ))}
-    </div>
-     <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-700 flex flex-col gap-6">
-      {/* Review 1 */}
-      <div className="flex gap-4">
-        <div className="size-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-slate-600 dark:text-slate-300">
-          M
-        </div>
-
-        <div className="flex-1">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="font-bold text-sm dark:text-white">Minh Hoàng</p>
-              <div className="flex text-secondary text-[14px] mt-0.5">
-                {[...Array(5)].map((_, i) => (
-                  <span
-                    key={i}
-                    className="material-symbols-outlined filled"
-                  >
-                    star
-                  </span>
+                            {isLesson ? (
+                              isPreview ? (
+                                <span className="rounded bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                                  Học thử
+                                </span>
+                              ) : (
+                                <span className="text-xs text-slate-500">Khóa</span>
+                              )
+                            ) : (
+                              <span className="text-xs font-medium text-purple-500">Quiz</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </details>
                 ))}
               </div>
             </div>
-            <span className="text-xs text-slate-400">2 ngày trước</span>
-          </div>
 
-          <p className="text-slate-600 dark:text-slate-300 text-sm mt-2">
-            Khóa học rất hay, cô dạy dễ hiểu. Mình mất gốc mà học xong 3 chương
-            đầu đã thấy tự tin hơn hẳn khi phát âm.
-          </p>
-        </div>
-</div>
+            <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 md:p-8">
+              <h3 className="mb-6 flex items-center gap-2 text-xl font-bold text-primary">
+                <span className="material-symbols-outlined">reviews</span>
+                Đánh giá của học viên
+              </h3>
 
-      {/* Review 2 */}
-      <div className="flex gap-4">
-        <div className="size-10 rounded-full bg-pink-100 flex items-center justify-center font-bold text-pink-600">
-          L
-        </div>
+              <div className="mb-10 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 dark:border-slate-600 dark:bg-slate-900/50">
+                <h4 className="mb-4 text-lg font-bold text-[#0d141b] dark:text-white">Viết đánh giá của bạn</h4>
 
-        <div className="flex-1">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="font-bold text-sm dark:text-white">Lan Anh</p>
-              <div className="flex text-secondary text-[14px] mt-0.5">
-{[...Array(4)].map((_, i) => (
-                  <span
-                    key={i}
-                    className="material-symbols-outlined filled"
-                  >
-                    star
-                  </span>
-                ))}
-                <span className="material-symbols-outlined text-slate-300">
-                  star
-                </span>
+                <form className="space-y-4" onSubmit={handleReviewSubmit}>
+                  <div>
+                    <p className="mb-2 text-sm text-slate-500 dark:text-slate-400">Chọn số sao của bạn:</p>
+
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setReviewForm((prev) => ({ ...prev, rating: star }))}
+                          className={`material-symbols-outlined cursor-pointer text-[32px] transition ${
+                            star <= Number(reviewForm.rating || 0)
+                              ? "filled text-secondary"
+                              : "text-slate-300 hover:text-secondary"
+                          }`}
+                          aria-label={`Chon ${star} sao`}
+                        >
+                          star
+                        </button>
+                      ))}
+                      <span className="ml-2 text-sm font-medium text-slate-500">
+                        {reviewForm.rating ? `${reviewForm.rating}/5 sao` : "Chua chon sao"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <textarea
+                      value={reviewForm.content}
+                      onChange={(event) => setReviewForm((prev) => ({ ...prev, content: event.target.value }))}
+                      className="w-full rounded-lg border-slate-200 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800"
+                      placeholder="Chia sẻ trải nghiệm của bạn về khóa học này..."
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+                    <label className="group flex cursor-pointer items-center gap-2">
+                      <div className="flex size-10 items-center justify-center rounded-lg border-2 border-dashed border-slate-300 text-slate-400 transition-colors group-hover:border-primary group-hover:text-primary dark:border-slate-600">
+                        <span className="material-symbols-outlined">add_a_photo</span>
+                      </div>
+                      <span className="text-sm text-slate-500 dark:text-slate-400">Đính kèm hình ảnh</span>
+                      <input type="file" accept="image/*" className="hidden" />
+                    </label>
+
+                    <button
+                      type="submit"
+                      disabled={reviewSubmitting}
+                      className="w-full rounded-lg bg-secondary px-8 py-3 font-bold text-primary shadow-md transition-all active:scale-95 hover:bg-[#e6b400] disabled:opacity-60 sm:w-auto"
+                    >
+                      Gửi đánh giá
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <div className="flex flex-wrap gap-x-12 gap-y-8">
+                <div className="flex min-w-[150px] flex-col gap-2">
+                  <p className="text-5xl font-black leading-tight tracking-[-0.033em] text-[#0d141b] dark:text-white">{averageRating}+</p>
+                  <div className="flex gap-1 text-secondary">
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <span
+                        key={i}
+                        className={`material-symbols-outlined ${i < Math.round(Number(averageRating || 0)) ? "filled" : "text-slate-300 dark:text-slate-600"}`}
+                      >
+                        star
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-sm font-normal text-slate-500">{reviewCount} nhận xét</p>
+                </div>
+
+                <div className="min-w-[280px] flex-1">
+                  {ratingDistribution.map((item, index) => (
+                    <div key={index} className="mb-2 flex items-center gap-3">
+                      <div className="w-8 text-right text-xs font-medium dark:text-slate-300">{item.label}</div>
+                      <div className="flex h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+                        <div className="rounded-full bg-secondary" style={{ width: `${item.percent}%` }} />
+                      </div>
+                      <div className="w-8 text-right text-xs text-slate-500">{item.percent}%</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-8 flex flex-col gap-6 border-t border-slate-100 pt-8 dark:border-slate-700">
+                  {courseReviews.length > 0 ? (
+                    courseReviews.map((review) => {
+                      const reviewId = String(
+                        review.id ||
+                          review.reviewId ||
+                          `${courseId}-${review.email || review.userName || "hoc-vien"}-${review.createdAt || ""}`
+                      );
+
+                      return (
+                      <div
+                        key={reviewId}
+                        ref={(node) => {
+                          if (node) {
+                            reviewRefs.current[reviewId] = node;
+                          }
+                        }}
+                        className={`flex gap-4 rounded-xl px-2 py-2 transition-all ${
+                          highlightedReviewId === reviewId ? "bg-amber-50 ring-2 ring-amber-200" : ""
+                        }`}
+                      >
+                        <div className="flex size-10 items-center justify-center rounded-full bg-slate-200 font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                          {getInitials(review.userName)}
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p className="text-sm font-bold dark:text-white">
+                                {review.userName || review.email || "Học viên"}
+                              </p>
+                              <div className="mt-0.5 flex text-[14px] text-secondary">
+                                {Array.from({ length: 5 }, (_, i) => (
+                                  <span
+                                    key={i}
+                                    className={`material-symbols-outlined ${i < Number(review.rating || 0) ? "filled" : "text-slate-300 dark:text-slate-600"}`}
+                                  >
+                                    star
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <span className="text-xs text-slate-400">{formatReviewDate(review.createdAt)}</span>
+                          </div>
+
+                          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{review.content}</p>
+
+                          {review.adminReply ? (
+                            <div className="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                              <p className="mb-1 font-semibold text-primary">Phản hồi từ admin</p>
+                              <p>{review.adminReply}</p>
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    )})
+                  ) : (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Chưa có đánh giá nào cho khóa học này.
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
-            <span className="text-xs text-slate-400">1 tuần trước</span>
           </div>
 
-          <p className="text-slate-600 dark:text-slate-300 text-sm mt-2">
-            Nội dung thực tế, không lý thuyết suông. Giá như có thêm nhiều bài
-            tập tương tác hơn nữa thì tuyệt vời.
-          </p>
+          <div className="md:col-span-1 lg:col-span-4">
+            <div className="sticky top-24 flex flex-col gap-6">
+              <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-primary to-blue-400" />
+
+                <div className="mb-2 flex items-end gap-2">
+                  <span className="text-2xl font-black text-[#0d141b] dark:text-white">
+                    {Number(finalPrice).toLocaleString()}đ
+                  </span>
+
+                  {hasDiscount && (
+                    <span className="mb-1 text-lg text-slate-400 line-through">
+                      {Number(course.price).toLocaleString()}đ
+                    </span>
+                  )}
+
+                  {hasDiscount && <div className="text-sm font-semibold text-red-500">-{discountPercent}%</div>}
+                </div>
+
+                <p className="mb-6 flex items-center gap-1 text-sm font-medium text-red-500">
+                  <span className="material-symbols-outlined text-[16px]">timer</span>
+                  Ưu đãi kết thúc sau {timeLeft}
+                </p>
+
+                <button
+                  onClick={() => navigate(`/checkout/${courseId}`)}
+                  className="mb-3 flex h-12 w-full items-center justify-center rounded-lg bg-secondary text-base font-bold tracking-wide text-primary shadow-md shadow-yellow-100 transition-all hover:bg-[#e6b400] dark:shadow-none"
+                >
+                  Mua ngay
+                </button>
+
+                <button
+                  onClick={handleAddToCart}
+                  className="flex h-12 w-full items-center justify-center rounded-lg border border-slate-200 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700"
+                >
+                  Thêm vào giỏ hàng
+                </button>
+
+                <div className="my-6 border-t border-slate-100 dark:border-slate-700" />
+
+                <div className="flex flex-col gap-4">
+                  <p className="text-sm font-bold text-[#0d141b] dark:text-white">Khóa học này bao gồm:</p>
+
+                  <ul className="flex flex-col gap-3">
+                    <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                      <span className="material-symbols-outlined text-[20px] text-slate-400">play_lesson</span>
+                      <span>35 bài giảng video</span>
+                    </li>
+
+                    <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                      <span className="material-symbols-outlined text-[20px] text-slate-400">description</span>
+                      <span>20+ tài liệu PDF độc quyền</span>
+                    </li>
+
+                    <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                      <span className="material-symbols-outlined text-[20px] text-slate-400">all_inclusive</span>
+                      <span>Truy cập trọn đời</span>
+                    </li>
+
+                    <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                      <span className="material-symbols-outlined text-[20px] text-slate-400">devices</span>
+                      <span>Học trên Web và Mobile</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-    </div>
-    
-    <div className="md:col-span-1 lg:col-span-4">
-  <div className="sticky top-24 flex flex-col gap-6">
-    <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-lg relative overflow-hidden group">
-      
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-blue-400" />
-
-
-<div className="flex items-end gap-2 mb-2">
-  <span className="text-2xl font-black text-[#0d141b] dark:text-white">
-    {Number(finalPrice).toLocaleString()}đ
-  </span>
-
-  {hasDiscount && (
-    <span className="text-lg text-slate-400 line-through mb-1">
-      {Number(course.price).toLocaleString()}đ
-    </span>
-  )}
-  
-{hasDiscount && (
-  <div className="text-red-500 text-sm font-semibold">
-    -{discountPercent}%
-  </div>
-)}
-      
-</div>
-  
-     
-
- <p className="text-red-500 text-sm font-medium mb-6 flex items-center gap-1">
-        <span className="material-symbols-outlined text-[16px]">timer</span>
-        Ưu đãi kết thúc sau {timeLeft}
-      </p>
-
-      <button className="w-full h-12 flex items-center justify-center rounded-lg bg-secondary hover:bg-[#e6b400] text-primary font-bold text-base tracking-wide transition-all shadow-md shadow-yellow-100 dark:shadow-none mb-3">
-        Mua ngay 
-      </button>
-
-      <button  onClick={handleAddToCart} className="w-full h-12 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-        Thêm vào giỏ hàng
-      </button>
-
-      <div className="my-6 border-t border-slate-100 dark:border-slate-700" />
-<div className="flex flex-col gap-4">
-        <p className="font-bold text-sm text-[#0d141b] dark:text-white">
-          Khóa học này bao gồm:
-        </p>
-
-        <ul className="flex flex-col gap-3">
-          <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
-            <span className="material-symbols-outlined text-slate-400 text-[20px]">
-              play_lesson
-            </span>
-            <span>35 bài giảng video</span>
-          </li>
-<li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
-            <span className="material-symbols-outlined text-slate-400 text-[20px]">
-              description
-            </span>
-            <span>20+ tài liệu PDF độc quyền</span>
-          </li>
-
-          <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
-            <span className="material-symbols-outlined text-slate-400 text-[20px]">
-              all_inclusive
-            </span>
-            <span>Truy cập trọn đời</span>
-          </li>
-
-          <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
-            <span className="material-symbols-outlined text-slate-400 text-[20px]">
-              devices
-            </span>
-            <span>Học trên Web và Mobile</span>
-          </li>
-        </ul>
-      </div>
-
-    </div>
-  </div>
-</div>
-  </div>
-  
-</main>
+      </main>
     </>
-  )
-};
+  );
+}
+
+

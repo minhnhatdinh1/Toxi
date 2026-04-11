@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import toxiLogo from "../../../assets/image/LOGO (1).png";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 const EXAM_INFO = {
   title: "De thi HSK",
@@ -40,7 +42,7 @@ const SECTION_STYLES = {
 function buildFileUrl(path) {
   if (!path) return null;
   if (path.startsWith("http")) return path;
-  return `http://localhost:8080/api/files/${encodeURIComponent(path)}`;
+  return `${BASE_URL}/api/files/${encodeURIComponent(path)}`;
 }
 
 function sectionLabel(skill) {
@@ -603,7 +605,7 @@ export default function ExamMain() {
   const [questions, setQuestions] = useState([]);
 
   useEffect(() => {
-    fetch(`http://localhost:8080/api/quizzes/${id}`)
+    fetch(`${BASE_URL}/api/quizzes/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("API loi");
         return res.json();
@@ -700,7 +702,7 @@ export default function ExamMain() {
         timeSpent: Math.max(0, quizMeta.timeLimit * 60 - timeLeft),
       };
 
-      const res = await fetch("http://localhost:8080/api/exam/submit", {
+      const res = await fetch(`${BASE_URL}/api/exam/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
