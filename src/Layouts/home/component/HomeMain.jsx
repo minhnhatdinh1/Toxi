@@ -84,53 +84,53 @@ export function HomePage() {
   const blogs = [
     {
       id: 5,
-      title: "? ngh?a c?a m?u ?? trong v?n h?a Trung Hoa ng?y T?t",
-      category: "V?n h?a",
+      title: "Ý nghĩa của màu đỏ trong văn hóa Trung Hoa ngày Tết",
+      category: "Văn hóa",
       date: "10/11/2023",
       author: "Admin",
-      desc: "T?i sao ng??i Trung Qu?c l?i th?ch m?u ??? T?m hi?u ngu?n g?c v? ? ngh?a t?m linh...",
+      desc: "Tại sao người Trung Quốc lại thích màu đỏ? Tìm hiểu nguồn gốc và ý nghĩa tâm linh...",
       image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAwsBsZIsyCmtSVufrnW8IQ3OcNeGQO6uv5_S2x_YweK8CwOgxS_j8F_1UlAP1CKu-MJ4a6fHrmJFtzUUcb_X4KSq8qWpLna00jvHLg7DEjci3_9aaWB-JPpLO0hbOLKlLYbtXWV_1gq2dYp2AdtNDqJHNF-j2XA-3y-JFm721_M16loDAuswddRMrVB91_VS9Tc0bFgo4Ft74lY4nteoQG2dIzPct6KXEEJ9A_vnNS8l55l5dzg3f46GB6CxSZ1N3nNlKt4Oc23S0",
       color: "secondary",
     },
     {
       id: 6,
-      title: "5 sai l?m ph? bi?n khi m?i b?t ??u h?c H?n ng?",
-      category: "Kinh nghi?m",
+      title: "5 sai lầm phổ biến khi mới bắt đầu học Hán ngữ",
+      category: "Kinh nghiệm",
       date: "08/11/2023",
       author: "Admin",
-      desc: "Ph?t ?m thanh m?u, v?n m?u v? c?ch nh? ch? H?n hi?u qu? cho ng??i m?i...",
+      desc: "Phát âm thanh mẫu, vận mẫu và cách nhớ chữ Hán hiệu quả cho người mới...",
       image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAhvprHGL6K93pHFVHLPVSFyKTZaBgwoiNwoZ6rufaP3po7sqtplcZ0ZwYV2GwP_0zun0jre0uIAbdySGtu4jG-uSCgC3yAEj_a49Fjunnm7lnluUwzOxT5LJN2DlK-mV7HEw8F0s7lXu7lzThvMEwBhVv1qGxDMQ0k589zZgj_A5-D1zb3exuWfXZ6VvlypTc_EcokCIn_ffDJPT0UKVdGasZVPsKRp-8BZ6p0Ng55-0HMo1e1E5gT-rBRAduNNVBO0Z1AhRqdGH8",
       color: "primary",
     },
   ];
 
   const instructors = [
-    { name: "ThS. L\u00ea H\u01b0\u01a1ng Giang", title: "Chuy\u00ean gia HSK 6 & Th\u01b0\u01a1ng m\u1ea1i", exp: "12 n\u0103m gi\u1ea3ng d\u1ea1y", cert: "Ch\u1ee9ng ch\u1ec9 Putonghua c\u1ea5p \u0111\u1ed9 1", students: "3.200+", avatar: "G", color: "#c8102e" },
-    { name: "GV. Nguy\u1ec5n V\u0103n Minh", title: "Gi\u1ea3ng vi\u00ean Giao ti\u1ebfp & Ph\u00e1t \u00e2m", exp: "8 n\u0103m kinh nghi\u1ec7m", cert: "T\u1ed1t nghi\u1ec7p \u0110H B\u1eafc Kinh", students: "2.800+", avatar: "M", color: "#8B0000" },
-    { name: "GV. Tr\u1ea7n Th\u1ecb Mai", title: "Chuy\u00ean gia H\u00e1n ng\u1eef V\u0103n ph\u00f2ng", exp: "6 n\u0103m gi\u1ea3ng d\u1ea1y", cert: "Th\u1ea1c s\u0129 Ng\u00f4n ng\u1eef h\u1ecdc", students: "1.900+", avatar: "T", color: "#B8860B" },
+    { name: "ThS. Lê Hương Giang", title: "Chuyên gia HSK 6 & Thương mại", exp: "12 năm giảng dạy", cert: "Chứng chỉ Putonghua cấp độ 1", students: "3.200+", avatar: "G", color: "#c8102e" },
+    { name: "GV. Nguyễn Văn Minh", title: "Giảng viên Giao tiếp & Phát âm", exp: "8 năm kinh nghiệm", cert: "Tốt nghiệp ĐH Bắc Kinh", students: "2.800+", avatar: "M", color: "#8B0000" },
+    { name: "GV. Trần Thị Mai", title: "Chuyên gia Hán ngữ Văn phòng", exp: "6 năm giảng dạy", cert: "Thạc sĩ Ngôn ngữ học", students: "1.900+", avatar: "T", color: "#B8860B" },
   ];
 
   const faqs = [
-    { q: "Học bao lâu có thể  thi HSK 4?", a: "V\u1edbi l\u1ed9 tr\u00ecnh h\u1ecdc 3-4 ti\u1ebfng/tu\u1ea7n, h\u1ecdc vi\u00ean th\u01b0\u1eddng \u0111\u1ea1t HSK 4 sau 12-18 th\u00e1ng. TOXI cam k\u1ebft ho\u00e0n h\u1ecdc ph\u00ed n\u1ebfu kh\u00f4ng \u0111\u1ea1t m\u1ee5c ti\u00eau trong th\u1eddi h\u1ea1n \u0111\u00e3 k\u00fd k\u1ebft." },
-    { q: "TOXI có cam kết  \u0111\u1ea7u ra kh\u00f4ng?", a: "C\u00f3. Ch\u00fang t\u00f4i k\u00fd h\u1ee3p \u0111\u1ed3ng \u0111\u00e0o t\u1ea1o v\u1edbi cam k\u1ebft \u0111\u1ea7u ra r\u00f5 r\u00e0ng. H\u1ecdc vi\u00ean \u0111\u01b0\u1ee3c h\u1ecdc l\u1ea1i mi\u1ec5n ph\u00ed 100% n\u1ebfu kh\u00f4ng \u0111\u1ea1t k\u1ebft qu\u1ea3 nh\u01b0 cam k\u1ebft." },
-    { q: "L\u1edbp h\u1ecdc online hay offline?", a: "TOXI c\u00f3 c\u1ea3 hai h\u00ecnh th\u1ee9c: l\u1edbp tr\u1ef1c ti\u1ebfp t\u1ea1i H\u00e0 N\u1ed9i & TP.HCM v\u00e0 l\u1edbp online live qua Zoom. H\u1ecdc vi\u00ean c\u00f3 th\u1ec3 chuy\u1ec3n \u0111\u1ed5i linh ho\u1ea1t." },
-    { q: "Học phí có trả góp  không?", a: "Có. Toxi hộ trợ trả góp 0% lãi su?t qua th? tín d?ng ho?c ví di?n t?. Liên h? tu v?n viên d? bi?t thêm chi ti?t." },
-    { q: "Giáo trình có khác so v?i trung tâm khác không?", a: "Giáo trình Toxi được biên soạn độc quyền bám sát HSK chu?n m?i 3.0, tích h?p van hóa th?c t? và công ngh? AI luy?n phát âm - hoàn toàn khác bi?t th? tru?ng." },
+    { q: "Học bao lâu có thể thi HSK 4?", a: "Với lộ trình học 3-4 tiếng/tuần, học viên thường đạt HSK 4 sau 12-18 tháng. TOXI cam kết hoàn học phí nếu không đạt mục tiêu trong thời hạn đã ký kết." },
+    { q: "TOXI có cam kết đầu ra không?", a: "Có. Chúng tôi ký hợp đồng đào tạo với cam kết đầu ra rõ ràng. Học viên được học lại miễn phí 100% nếu không đạt kết quả như cam kết." },
+    { q: "Lớp học online hay offline?", a: "TOXI có cả hai hình thức: lớp trực tiếp tại Hà Nội & TP.HCM và lớp online live qua Zoom. Học viên có thể chuyển đổi linh hoạt." },
+    { q: "Học phí có trả góp không?", a: "Có. TOXI hỗ trợ trả góp 0% lãi suất qua thẻ tín dụng hoặc ví điện tử. Liên hệ tư vấn viên để biết thêm chi tiết." },
+    { q: "Giáo trình có khác so với trung tâm khác không?", a: "Giáo trình TOXI được biên soạn độc quyền bám sát chuẩn HSK mới 3.0, tích hợp văn hóa thực tế và công nghệ AI luyện phát âm." },
   ];
 
   const hskPath = [
-    { level: "HSK 1", label: "V? lòng", desc: "150 t? v?ng co b?n", color: "#4ade80", weeks: "8 tu?n" },
-    { level: "HSK 2", label: "So c?p", desc: "300 t?, giao ti?p don gi?n", color: "#facc15", weeks: "10 tu?n" },
-    { level: "HSK 3", label: "Trung so", desc: "600 t?, d?i s?ng hàng ngày", color: "#fb923c", weeks: "14 tu?n" },
-    { level: "HSK 4", label: "Trung c?p", desc: "1.200 t?, giao ti?p t? nhiên", color: "#f87171", weeks: "18 tu?n" },
-    { level: "HSK 5", label: "Cao c?p", desc: "2.500 t?, th?o lu?n sâu", color: "#c084fc", weeks: "24 tu?n" },
-    { level: "HSK 6", label: "Thành th?o", desc: "5.000 t?, b?n ng?", color: "#60a5fa", weeks: "36 tu?n" },
+    { level: "HSK 1", label: "Vỡ lòng", desc: "150 từ vựng cơ bản", color: "#4ade80", weeks: "8 tuần" },
+    { level: "HSK 2", label: "Sơ cấp", desc: "300 từ, giao tiếp đơn giản", color: "#facc15", weeks: "10 tuần" },
+    { level: "HSK 3", label: "Trung sơ", desc: "600 từ, dùng trong đời sống hằng ngày", color: "#fb923c", weeks: "14 tuần" },
+    { level: "HSK 4", label: "Trung cấp", desc: "1.200 từ, giao tiếp tự nhiên", color: "#f87171", weeks: "18 tuần" },
+    { level: "HSK 5", label: "Cao cấp", desc: "2.500 từ, thảo luận chuyên sâu", color: "#c084fc", weeks: "24 tuần" },
+    { level: "HSK 6", label: "Thành thạo", desc: "5.000 từ, gần như bản ngữ", color: "#60a5fa", weeks: "36 tuần" },
   ];
 
   const courseTabs = [
-    { label: "L? trình HSK", icon: "school" },
-    { label: "Giao ti?p", icon: "record_voice_over" },
-    { label: "Cho ngu?i di làm", icon: "work" },
+    { label: "Lộ trình HSK", icon: "school" },
+    { label: "Giao tiếp", icon: "record_voice_over" },
+    { label: "Cho người đi làm", icon: "work" },
   ];
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
@@ -199,10 +199,10 @@ export function HomePage() {
         title: course.title || `Khoa hoc ${index + 1}`,
         subtitle:
           course.description ||
-          "Kh?m ph? kh?a h?c n?i b?t c?a TOXI v? m? trang chi ti?t ngay t? banner.",
+          "Khám phá khóa học nổi bật của TOXI và mở trang chi tiết ngay từ banner.",
         image: course.thumbnailUrl || fallbackImages[index % fallbackImages.length],
-        accent: index === 0 ? "Kh?m ph? ngay" : "Xem chi ti?t",
-        metric: `${course.totalLesson || 0} b?i h?c`, 
+        accent: index === 0 ? "Khám phá ngay" : "Xem chi tiết",
+        metric: `${course.totalLesson || 0} bài học`,
       }));
     }
 
@@ -210,11 +210,11 @@ export function HomePage() {
       {
         id: "hero-home-fallback",
         eyebrow: "TOXI Education",
-        title: "Tinh hoa ng?n ng? Trung Hoa",
-        subtitle: "Banner s? t? ??ng c?p nh?t theo kh?a h?c n?i b?t khi backend tr? d? li?u ??y ??.",
+        title: "Tinh hoa ngôn ngữ Trung Hoa",
+        subtitle: "Banner sẽ tự động cập nhật theo khóa học nổi bật khi backend trả dữ liệu đầy đủ.",
         image: fallbackImages[0],
         accent: "HSK Roadmap",
-        metric: "10.000+ h?c vi?n",
+        metric: "10.000+ học viên",
       },
     ];
   }, [courses]);
@@ -335,14 +335,14 @@ export function HomePage() {
         </div>
 
         {/* Floating chars */}
-        <div className="hero-char absolute top-8 right-12 text-secondary/15 font-serif text-[130px] leading-none select-none pointer-events-none hidden lg:block" style={{ animationDelay: "0s" }}>?</div>
-        <div className="hero-char absolute bottom-12 right-[22%] text-white/8 font-serif text-[80px] leading-none select-none pointer-events-none hidden lg:block" style={{ animationDelay: "2s" }}>?</div>
+        <div className="hero-char absolute top-8 right-12 text-secondary/15 font-serif text-[130px] leading-none select-none pointer-events-none hidden lg:block" style={{ animationDelay: "0s" }}>福</div>
+        <div className="hero-char absolute bottom-12 right-[22%] text-white/8 font-serif text-[80px] leading-none select-none pointer-events-none hidden lg:block" style={{ animationDelay: "2s" }}>学</div>
         <div className="hero-char absolute top-[30%] right-[8%] text-secondary/10 font-serif text-[60px] leading-none select-none pointer-events-none hidden xl:block" style={{ animationDelay: '1s' }}>é“</div>
 
         {/* Decorative red pillar */}
         <div className="absolute top-0 right-[16%] w-1 h-40 bg-accent-red/70 hidden lg:block" />
         <div className="absolute top-40 right-[16%] -translate-x-1/2 w-24 h-28 bg-accent-red rounded-xl flex-col items-center justify-center border-t-8 border-b-8 border-secondary hidden lg:flex badge-glow">
-          <div className="text-secondary font-serif text-4xl font-bold">?</div>
+          <div className="text-secondary font-serif text-4xl font-bold">春</div>
         </div>
 
         {/* Content */}
@@ -355,13 +355,13 @@ export function HomePage() {
             </div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.1] mb-5 drop-shadow-xl">
-              Tinh hoa ngôn ng?<br />
+              Tinh hoa ngôn ngữ<br />
               <span className="text-secondary relative">Trung Hoa</span>
             </h1>
 
             <p className="text-lg text-slate-200 mb-8 leading-relaxed max-w-xl font-light">
             Hệ thống đào tạo tiếng trung chuẩn HSK, tập trung vào trải nghiệm học viên và van hóa Á Ðông.
-              H?c ?? ?ng d?ng - <span className="font-serif text-secondary">????</span>.
+              Học để ứng dụng - <span className="font-serif text-secondary">学以致用</span>.
             </p>
 
             {/* CTA buttons */}
@@ -369,12 +369,12 @@ export function HomePage() {
               <Link to="/practice"
                 className="px-8 py-4 bg-secondary text-primary font-black rounded-xl shadow-[0_6px_0_#b8860b] active:shadow-none active:translate-y-1 hover:bg-yellow-300 transition-all flex items-center justify-center gap-2 text-base">
                 <span className="material-symbols-outlined">quiz</span>
-                Ki?m tra trình d? FREE
+                Kiểm tra trình độ FREE
               </Link>
               <Link to="/Introduction"
                 className="px-8 py-4 bg-white/10 border-2 border-white/30 text-white font-bold rounded-xl hover:bg-white/20 backdrop-blur-sm transition-all flex items-center justify-center gap-2 text-base">
                 <span className="material-symbols-outlined">play_circle</span>
-                Xem gi?i thi?u
+                Xem giới thiệu
               </Link>
             </div>
 
@@ -388,13 +388,13 @@ export function HomePage() {
               ))}
               </div>
               <div>
-                <div className="flex text-secondary text-sm">{"?????".split("").map((s, j) => <span key={j}>{s}</span>)}</div>
-                <p className="text-white/80 text-xs mt-0.5"><strong className="text-white">10.000+</strong> h?c viên dã tin ch?n TOXI</p>
+                <div className="flex text-secondary text-sm">{"★★★★★".split("").map((s, j) => <span key={j}>{s}</span>)}</div>
+                <p className="text-white/80 text-xs mt-0.5"><strong className="text-white">10.000+</strong> học viên đã tin chọn TOXI</p>
               </div>
               <div className="h-8 w-px bg-white/20 hidden sm:block" />
               <div className="text-center">
                 <p className="text-secondary font-black text-lg leading-none">95%</p>
-                <p className="text-white/70 text-xs">d?t HSK 4+</p>
+                <p className="text-white/70 text-xs">đạt HSK 4+</p>
               </div>
             </div>
           </div>
@@ -407,12 +407,12 @@ export function HomePage() {
       <div className="overflow-hidden border-b border-slate-100 bg-white py-4 sm:py-5">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="flex items-center gap-4 mb-1">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Tin t??ng b?i</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Tin tưởng bởi</p>
           <div className="h-px bg-slate-100 flex-1" />
         </div>
         <div className="relative overflow-hidden mt-2">
           <div className="marquee-track">
-            {["Vi?n Kh?ng T?", "HanNom Institute", "??i h?c H? N?i", "?H Ngo?i th??ng", "HSK Vietnam", "Confucius HN", "Vi?n Kh?ng T?", "HanNom Institute", "??i h?c H? N?i", "?H Ngo?i th??ng", "HSK Vietnam", "Confucius HN"].map((name, i) => (
+            {["Viện Khổng Tử", "HanNom Institute", "Đại học Hà Nội", "ĐH Ngoại thương", "HSK Vietnam", "Confucius HN", "Viện Khổng Tử", "HanNom Institute", "Đại học Hà Nội", "ĐH Ngoại thương", "HSK Vietnam", "Confucius HN"].map((name, i) => (
               <div key={i} className="flex shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 sm:px-6">
                 <span className="material-symbols-outlined text-accent-red text-[16px]">school</span>
                 <span className="text-sm font-bold text-slate-600">{name}</span>
@@ -430,10 +430,10 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 md:gap-6">
             {[
-              { n: 10000, suf: "+", label: "H?c vi?n", icon: "groups" },
-              { n: 95, suf: "%", label: "??t HSK 4+", icon: "verified" },
-              { n: 8, suf: " n?m", label: "Kinh nghi?m", icon: "history_edu" },
-              { n: 50, suf: "+", label: "Gi?ng vi?n", icon: "support_agent" },
+              { n: 10000, suf: "+", label: "Học viên", icon: "groups" },
+              { n: 95, suf: "%", label: "Đạt HSK 4+", icon: "verified" },
+              { n: 8, suf: " năm", label: "Kinh nghiệm", icon: "history_edu" },
+              { n: 50, suf: "+", label: "Giảng viên", icon: "support_agent" },
             ].map((s, i) => (
               <div key={i} className="rounded-2xl border border-white/15 bg-white/10 p-4 text-center backdrop-blur-sm sm:p-5 md:p-6">
                 <span className="material-symbols-outlined mb-2 block text-2xl text-secondary sm:text-3xl">{s.icon}</span>
@@ -454,9 +454,9 @@ export function HomePage() {
         <div className="max-w-5xl mx-auto">
           <FadeSection>
             <div className="mb-8 text-center sm:mb-10 md:mb-12">
-              <span className="inline-block px-4 py-1 rounded-full bg-accent-red/10 text-accent-red text-xs font-bold uppercase tracking-widest mb-3">Khóa h?c</span>
-              <h2 className="mb-3 text-3xl font-black text-slate-900 sm:text-4xl md:text-5xl">Ch?n l? trình phù h?p</h2>
-              <p className="mx-auto max-w-lg text-sm text-slate-500 sm:text-base">T? con s? 0 d?n thành th?o - TOXI có m?i khóa h?c b?n c?n.</p>
+              <span className="inline-block px-4 py-1 rounded-full bg-accent-red/10 text-accent-red text-xs font-bold uppercase tracking-widest mb-3">Khóa học</span>
+              <h2 className="mb-3 text-3xl font-black text-slate-900 sm:text-4xl md:text-5xl">Chọn lộ trình phù hợp</h2>
+              <p className="mx-auto max-w-lg text-sm text-slate-500 sm:text-base">Từ con số 0 đến thành thạo - TOXI có mọi khóa học bạn cần.</p>
             </div>
 
             {/* Tabs */}
@@ -478,7 +478,7 @@ export function HomePage() {
             <FadeSection>
               <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3 md:gap-6">
                 {featuredCourses.map((course, index) => {
-                  const labels = ["N?N T?NG", "TRUNG C?P", "CAO C?P"];
+                  const labels = ["NỀN TẢNG", "TRUNG CẤP", "CAO CẤP"];
                   const isOwned = myCourses.includes(Number(course.courseId));
                   return (
                     <button key={course.courseId} type="button" onClick={() => handleOpenCourse(course)}
@@ -488,7 +488,7 @@ export function HomePage() {
                           {labels[index] || course.level || "HSK"}
                         </div>
                         {isOwned && (
-                          <div className="absolute top-3 right-3 bg-green-500 text-white text-[10px] font-black px-3 py-1 rounded-full z-10">? Ðã s? h?u</div>
+                          <div className="absolute top-3 right-3 bg-green-500 text-white text-[10px] font-black px-3 py-1 rounded-full z-10">Đã sở hữu</div>
                         )}
                         <div className="w-full h-full bg-cover bg-center hover:scale-110 transition-transform duration-700"
                           style={{ backgroundImage: `url('${course.thumbnailUrl || fallbackImages[index % fallbackImages.length]}')` }} />
@@ -499,10 +499,10 @@ export function HomePage() {
                         <p className="text-sm text-slate-500 mb-4 line-clamp-2">{course.description}</p>
                         <div className="flex items-center justify-between border-t border-dashed border-slate-200 pt-3">
                           <span className="text-lg font-black text-accent-red sm:text-xl">
-                            {Number(course.discountPrice && course.discountPrice < course.price ? course.discountPrice : course.price || 0).toLocaleString("vi-VN")}d
+                            {Number(course.discountPrice && course.discountPrice < course.price ? course.discountPrice : course.price || 0).toLocaleString("vi-VN")}đ
                           </span>
                           <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${isOwned ? 'bg-green-100 text-green-600' : 'bg-primary text-white'}`}>
-                            {isOwned ? "Ti?p t?c h?c" : "Xem ngay ?"}
+                            {isOwned ? "Tiếp tục học" : "Xem ngay"}
                           </span>
                         </div>
                       </div>
@@ -512,7 +512,7 @@ export function HomePage() {
               </div>
               <div className="mt-6 text-center sm:mt-8">
                 <Link to="/course" className="inline-flex items-center gap-2 px-8 py-3 border-2 border-primary text-primary font-bold rounded-xl hover:bg-primary hover:text-white transition-all">
-                  Xem t?t c? khóa h?c <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  Xem tất cả khóa học <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </Link>
               </div>
             </FadeSection>
@@ -523,9 +523,9 @@ export function HomePage() {
             <FadeSection>
               <div className="grid gap-4 sm:gap-5 md:grid-cols-3 md:gap-6">
                 {[
-                  { icon: "record_voice_over", title: "Giao ti?p Co b?n", desc: "Phát âm chu?n và m?u câu thông d?ng hàng ngày cho ngu?i m?i b?t d?u.", color: "text-primary", bg: "bg-primary/8" },
-                  { icon: "forum", title: "Giao ti?p Nâng cao", desc: "Th?o lu?n xã h?i & van hóa sâu s?c. Tang cu?ng bi?n lu?n, ph?n x?.", color: "text-accent-red", bg: "bg-accent-red/8" },
-                  { icon: "travel_explore", title: "Ti?ng Trung Du l?ch", desc: "Ð?t phòng, h?i du?ng, mua s?m, an u?ng - t?t c? tình hu?ng du l?ch.", color: "text-yellow-600", bg: "bg-yellow-50" },
+                  { icon: "record_voice_over", title: "Giao tiếp Cơ bản", desc: "Phát âm chuẩn và mẫu câu thông dụng hằng ngày cho người mới bắt đầu.", color: "text-primary", bg: "bg-primary/8" },
+                  { icon: "forum", title: "Giao tiếp Nâng cao", desc: "Thảo luận xã hội và văn hóa chuyên sâu. Tăng cường phản xạ giao tiếp tự nhiên.", color: "text-accent-red", bg: "bg-accent-red/8" },
+                  { icon: "travel_explore", title: "Tiếng Trung Du lịch", desc: "Đặt phòng, hỏi đường, mua sắm, ăn uống - đủ các tình huống du lịch thực tế.", color: "text-yellow-600", bg: "bg-yellow-50" },
                 ].map((c, i) => (
                   <div key={i} className={`card-lift rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-7`}>
                     <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${c.bg} ${c.color} sm:mb-5 sm:h-14 sm:w-14`}>
@@ -547,8 +547,8 @@ export function HomePage() {
             <FadeSection>
               <div className="grid gap-4 sm:gap-5 md:grid-cols-2 md:gap-6">
                 {[
-                  { title: "Ti?ng Trung Van phòng & Thuong m?i", img: fallbackImages[2], items: ["So?n th?o email, h?p d?ng thuong m?i", "K? nang dàm phán, thuy?t trình", "Van hóa doanh nghi?p Trung Qu?c"] },
-                  { title: "Ti?ng Trung Công xu?ng & K? thu?t", img: fallbackImages[1], items: ["T? v?ng chuyên ngành k? thu?t", "Giao ti?p v?i qu?n lý ngu?i Trung", "Quy trình s?n xu?t & an toàn lao d?ng"] },
+                  { title: "Tiếng Trung Văn phòng & Thương mại", img: fallbackImages[2], items: ["Soạn thảo email, hợp đồng thương mại", "Kỹ năng đàm phán, thuyết trình", "Văn hóa doanh nghiệp Trung Quốc"] },
+                  { title: "Tiếng Trung Công xưởng & Kỹ thuật", img: fallbackImages[1], items: ["Từ vựng chuyên ngành kỹ thuật", "Giao tiếp với quản lý người Trung", "Quy trình sản xuất & an toàn lao động"] },
                 ].map((c, i) => (
                   <div key={i} className="card-lift bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm flex flex-col md:flex-row">
                     <div className="md:w-2/5 h-48 md:h-auto bg-cover bg-center shrink-0" style={{ backgroundImage: `url('${c.img}')` }} />
@@ -582,9 +582,9 @@ export function HomePage() {
       <FadeSection className="bg-white px-4 py-10 sm:px-6 sm:py-12 md:px-12 md:py-16 lg:px-16 lg:py-20" id="hsk">
         <div className="max-w-5xl mx-auto">
           <div className="mb-8 text-center sm:mb-10 md:mb-14">
-            <span className="inline-block px-4 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest mb-3">L? trình</span>
-            <h2 className="mb-3 text-3xl font-black text-slate-900 sm:text-4xl md:text-5xl">L? trình HSK t? A-Z</h2>
-            <p className="mx-auto max-w-lg text-sm text-slate-500 sm:text-base">M?i c?p d? du?c thi?t k? bám sát tiêu chu?n HSK qu?c t? m?i nh?t 3.0</p>
+            <span className="inline-block px-4 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest mb-3">Lộ trình</span>
+            <h2 className="mb-3 text-3xl font-black text-slate-900 sm:text-4xl md:text-5xl">Lộ trình HSK từ A-Z</h2>
+            <p className="mx-auto max-w-lg text-sm text-slate-500 sm:text-base">Mỗi cấp độ được thiết kế bám sát tiêu chuẩn HSK quốc tế mới nhất 3.0.</p>
           </div>
 
           {/* Desktop: horizontal path */}
@@ -624,7 +624,7 @@ export function HomePage() {
 
           <div className="mt-6 text-center sm:mt-8 md:mt-10">
             <Link to="/practice" className="inline-flex items-center gap-2 px-8 py-3.5 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-primary/90 transition-all">
-              <span className="material-symbols-outlined">quiz</span> Test xem b?n dang ? level nào
+              <span className="material-symbols-outlined">quiz</span> Test xem bạn đang ở level nào
             </Link>
           </div>
         </div>
@@ -641,31 +641,31 @@ export function HomePage() {
               <div className="aspect-[4/5] rounded-t-full rounded-b-3xl overflow-hidden shadow-2xl border-[8px] border-white">
                 <div className="h-full bg-cover bg-center" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCwxb7nc6Y1agbpHftxTY_o4gDjVVkTrjthWCSr5aBCwYASNCDteRUBSCZszZPjpyC_ojHXMdIfsGFN2TxXG-ynM7Ys8vjpEEM7SYFsxEap7wqxiraLyfoPwKZ_gct2jA74qnO8XM_x9Jc6aeaDM2oQwgSFd1HOfrukFmrN2vDgUOmaNV-a2e7z1IkWP6mUG0NVibB_lY0a0S0Rh34s8N6VIua_DB_UF5NXrbv8oiRT8CsANH17Kx7-D2oDZk8IoCqgcI_r32IbgF0')" }} />
                 <div className="absolute inset-0 flex items-end bg-gradient-to-t from-primary/80 to-transparent p-5 sm:p-8">
-                  <p className="w-full text-center font-serif text-lg italic text-white sm:text-xl">"Ngôn ng? là c?u n?i van hóa"</p>
+                  <p className="w-full text-center font-serif text-lg italic text-white sm:text-xl">"Ngôn ngữ là cầu nối văn hóa"</p>
                 </div>
               </div>
               {/* Stat badges */}
               <div className="absolute right-3 top-6 rounded-2xl border border-slate-100 bg-white p-3 shadow-xl sm:-right-4 sm:top-1/4 sm:p-4">
                 <div className="text-3xl font-black text-primary">95%</div>
-                <div className="text-xs text-slate-500">T? l? d?t HSK 4+</div>
+                <div className="text-xs text-slate-500">Tỷ lệ đạt HSK 4+</div>
               </div>
               <div className="absolute left-3 bottom-6 rounded-2xl bg-secondary p-3 shadow-xl sm:-left-4 sm:bottom-1/4 sm:p-4">
                 <div className="text-3xl font-black text-primary">10K+</div>
-                <div className="text-xs text-primary/70">H?c vi?n</div>
+                <div className="text-xs text-primary/70">Học viên</div>
               </div>
             </div>
 
             {/* Content */}
             <div className="order-1 lg:order-2">
-              <span className="inline-block px-4 py-1 rounded-full bg-accent-red/10 text-accent-red text-xs font-bold uppercase tracking-widest mb-4">Giá tr? c?t lõi</span>
+              <span className="inline-block px-4 py-1 rounded-full bg-accent-red/10 text-accent-red text-xs font-bold uppercase tracking-widest mb-4">Giá trị cốt lõi</span>
               <h2 className="mb-6 text-3xl font-black text-slate-900 sm:text-4xl md:mb-8 md:text-5xl">
-                T?i sao <span className="text-primary">10.000+</span> h?c viên ch?n TOXI?
+                Tại sao <span className="text-primary">10.000+</span> học viên chọn TOXI?
               </h2>
               <div className="space-y-4 sm:space-y-5 md:space-y-6">
                 {[
-                  { icon: "verified_user", title: "Cam k?t d?u ra b?ng van b?n", desc: "H?p d?ng minh b?ch. H?c l?i mi?n phí 100% n?u không d?t k?t qu? cam k?t.", stat: "100% hoàn phí", color: "bg-primary" },
-                  { icon: "record_voice_over", title: "Phuong pháp Nhúng (Immersion)", desc: "Môi tru?ng giao ti?p 100% ti?ng Trung - ph?n x? t? nhiên nhu ngu?i b?n x?.", stat: "2x nhanh hon", color: "bg-accent-red" },
-                  { icon: "auto_stories", title: "Giáo trình d?c quy?n HSK 3.0", desc: "Biên so?n bám sát chu?n HSK m?i nh?t, k?t h?p AI luy?n phát âm.", stat: "Ð?c quy?n TOXI", color: "bg-secondary" },
+                  { icon: "verified_user", title: "Cam kết đầu ra bằng văn bản", desc: "Hợp đồng minh bạch. Học lại miễn phí 100% nếu không đạt kết quả cam kết.", stat: "100% hoàn phí", color: "bg-primary" },
+                  { icon: "record_voice_over", title: "Phương pháp Nhúng (Immersion)", desc: "Môi trường giao tiếp 100% tiếng Trung, giúp phản xạ tự nhiên như người bản xứ.", stat: "2x nhanh hơn", color: "bg-accent-red" },
+                  { icon: "auto_stories", title: "Giáo trình độc quyền HSK 3.0", desc: "Biên soạn bám sát chuẩn HSK mới nhất, kết hợp AI luyện phát âm.", stat: "Độc quyền TOXI", color: "bg-secondary" },
                 ].map((item, i) => (
                   <div key={i} className="group flex gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-all hover:border-secondary/30 hover:shadow-md sm:gap-4">
                     <div className={`w-12 h-12 rounded-xl ${item.color} flex items-center justify-center text-white shrink-0`}>
@@ -692,9 +692,9 @@ export function HomePage() {
       <FadeSection className="bg-white px-4 py-10 sm:px-6 sm:py-12 md:px-12 md:py-16 lg:px-16 lg:py-20" id="instructors">
         <div className="max-w-5xl mx-auto">
           <div className="mb-8 text-center sm:mb-10 md:mb-14">
-            <span className="inline-block px-4 py-1 rounded-full bg-secondary/20 text-yellow-700 text-xs font-bold uppercase tracking-widest mb-3">\u0110\u1ed9i ng\u0169 gi\u1ea3ng vi\u00ean</span>
-            <h2 className="mb-3 text-3xl font-black text-slate-900 sm:text-4xl md:text-5xl">H\u1ecdc t\u1eeb nh\u1eefng chuy\u00ean gia h\u00e0ng \u0111\u1ea7u</h2>
-            <p className="mx-auto max-w-lg text-sm text-slate-500 sm:text-base">Gi\u1ea3ng vi\u00ean TOXI \u0111\u1ec1u c\u00f3 ch\u1ee9ng ch\u1ec9 qu\u1ed1c t\u1ebf v\u00e0 kinh nghi\u1ec7m th\u1ef1c ti\u1ec5n t\u1ea1i Trung Qu\u1ed1c.</p>
+            <span className="inline-block px-4 py-1 rounded-full bg-secondary/20 text-yellow-700 text-xs font-bold uppercase tracking-widest mb-3">Đội ngũ giảng viên</span>
+            <h2 className="mb-3 text-3xl font-black text-slate-900 sm:text-4xl md:text-5xl">Học từ những chuyên gia hàng đầu</h2>
+            <p className="mx-auto max-w-lg text-sm text-slate-500 sm:text-base">Giảng viên TOXI đều có chứng chỉ quốc tế và kinh nghiệm thực tiễn tại Trung Quốc.</p>
           </div>
 
           <div className="grid gap-4 sm:gap-5 md:grid-cols-3 md:gap-6">
@@ -707,7 +707,7 @@ export function HomePage() {
                     {inst.avatar}
                   </div>
                   <div className="w-full px-4 pb-3 flex justify-end">
-                    <span className="text-xs font-bold bg-white/80 backdrop-blur px-2 py-1 rounded-full text-slate-700">{inst.students} h\u1ecdc vi\u00ean</span>
+                    <span className="text-xs font-bold bg-white/80 backdrop-blur px-2 py-1 rounded-full text-slate-700">{inst.students} học viên</span>
                   </div>
                 </div>
                 <div className="p-5">
@@ -721,7 +721,7 @@ export function HomePage() {
                       <span className="material-symbols-outlined text-[14px] text-slate-400">verified</span>{inst.cert}
                     </div>
                   </div>
-                  <div className="flex mt-3">{"\u2605\u2605\u2605\u2605\u2605".split("").map((s, j) => <span key={j} className="text-secondary text-sm">{s}</span>)}</div>
+                  <div className="flex mt-3">{"★★★★★".split("").map((s, j) => <span key={j} className="text-secondary text-sm">{s}</span>)}</div>
                 </div>
               </div>
               ))}
@@ -736,17 +736,17 @@ export function HomePage() {
         <div className="absolute inset-0 bg-chinese-pattern opacity-8" />
         <div className="max-w-5xl mx-auto relative z-10">
           <div className="mb-8 text-center sm:mb-10 md:mb-14">
-            <span className="inline-block px-4 py-1 rounded-full border border-secondary/40 text-secondary text-xs font-bold uppercase tracking-widest mb-3">H\u1ecdc vi\u00ean n\u00f3i g\u00ec</span>
-            <h2 className="mb-3 text-3xl font-black text-white sm:text-4xl md:text-5xl">10.000+ h\u1ecdc vi\u00ean tin t\u01b0\u1edfng</h2>
+            <span className="inline-block px-4 py-1 rounded-full border border-secondary/40 text-secondary text-xs font-bold uppercase tracking-widest mb-3">Học viên nói gì</span>
+            <h2 className="mb-3 text-3xl font-black text-white sm:text-4xl md:text-5xl">10.000+ học viên tin tưởng</h2>
           </div>
           <div className="grid gap-4 sm:gap-5 md:grid-cols-3 md:gap-6">
             {[
-              { name: "Nguy\u1ec5n Thu H\u00e0", result: "\u0110\u1ea1t HSK 6 - 280 \u0111i\u1ec3m", quote: "TOXI gi\u00fap t\u00f4i \u0111\u1ea1t HSK 6 sau 2 n\u0103m h\u1ecdc. Ph\u01b0\u01a1ng ph\u00e1p d\u1ea1y r\u1ea5t th\u1ef1c t\u1ebf v\u00e0 gi\u00e1o vi\u00ean nhi\u1ec7t t\u00ecnh.", avatar: "H", color: "#c8102e" },
-              { name: "Tr\u1ea7n Minh Tu\u1ea5n", result: "Nh\u1eadn h\u1ecdc b\u1ed5ng Kh\u1ed5ng T\u1eed", quote: "Nh\u1edd TOXI t\u00f4i t\u1ef1 tin giao ti\u1ebfp v\u1edbi \u0111\u1ed1i t\u00e1c Trung Qu\u1ed1c v\u00e0 nh\u1eadn \u0111\u01b0\u1ee3c h\u1ecdc b\u1ed5ng to\u00e0n ph\u1ea7n.", avatar: "T", color: "#B8860B" },
-              { name: "L\u00ea Ng\u1ecdc Anh", result: "Th\u0103ng ch\u1ee9c t\u1ea1i c\u00f4ng ty FDI", quote: "Ti\u1ebfng Trung TOXI gi\u00fap t\u00f4i th\u0103ng ti\u1ebfn nhanh trong c\u00f4ng ty c\u00f3 v\u1ed1n \u0111\u1ea7u t\u01b0 Trung Qu\u1ed1c.", avatar: "A", color: "#1a3a5c" },
+              { name: "Nguyễn Thu Hà", result: "Đạt HSK 6 - 280 điểm", quote: "TOXI giúp tôi đạt HSK 6 sau 2 năm học. Phương pháp dạy rất thực tế và giáo viên nhiệt tình.", avatar: "H", color: "#c8102e" },
+              { name: "Trần Minh Tuấn", result: "Nhận học bổng Khổng Tử", quote: "Nhờ TOXI tôi tự tin giao tiếp với đối tác Trung Quốc và nhận được học bổng toàn phần.", avatar: "T", color: "#B8860B" },
+              { name: "Lê Ngọc Anh", result: "Thăng chức tại công ty FDI", quote: "Tiếng Trung TOXI giúp tôi thăng tiến nhanh trong công ty có vốn đầu tư Trung Quốc.", avatar: "A", color: "#1a3a5c" },
             ].map((t, i) => (
               <div key={i} className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-sm transition-all hover:bg-white/15 sm:p-6">
-                <div className="flex text-secondary mb-4">{"\u2605\u2605\u2605\u2605\u2605".split("").map((s, j) => <span key={j}>{s}</span>)}</div>
+                <div className="flex text-secondary mb-4">{"★★★★★".split("").map((s, j) => <span key={j}>{s}</span>)}</div>
                 <p className="text-white/90 text-sm leading-relaxed mb-5 italic">"{t.quote}"</p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0" style={{ backgroundColor: t.color }}>{t.avatar}</div>
@@ -762,13 +762,13 @@ export function HomePage() {
           {/* Achievement board */}
           <div className="mt-6 rounded-2xl border border-white/15 bg-white/10 p-5 sm:mt-8 sm:p-6 md:mt-10">
             <h3 className="text-white font-black text-center mb-6 flex items-center justify-center gap-2">
-              <span className="material-symbols-outlined text-secondary">emoji_events</span> B\u1ea3ng V\u00e0ng Th\u00e0nh T\u00edch
+              <span className="material-symbols-outlined text-secondary">emoji_events</span> Bảng Vàng Thành Tích
             </h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               {[
-                { rank: "\uD83E\uDD47", name: "Nguy\u1ec5n Thu H\u00e0", score: "HSK 6 - 280\u0111", color: "bg-yellow-400/20" },
-                { rank: "\uD83E\uDD48", name: "Tr\u1ea7n Minh Tu\u1ea5n", score: "HSK 5 - 265\u0111", color: "bg-slate-300/20" },
-                { rank: "\uD83E\uDD49", name: "L\u00ea Ng\u1ecdc Anh", score: "HB Kh\u1ed5ng T\u1eed 2023", color: "bg-orange-300/20" },
+                { rank: "🥇", name: "Nguyễn Thu Hà", score: "HSK 6 - 280đ", color: "bg-yellow-400/20" },
+                { rank: "🥈", name: "Trần Minh Tuấn", score: "HSK 5 - 265đ", color: "bg-slate-300/20" },
+                { rank: "🥉", name: "Lê Ngọc Anh", score: "HB Khổng Tử 2023", color: "bg-orange-300/20" },
               ].map((r, i) => (
                 <div key={i} className={`${r.color} rounded-xl p-3 text-center`}>
                   <div className="text-2xl mb-1">{r.rank}</div>
@@ -789,17 +789,17 @@ export function HomePage() {
           <div className="mb-8 flex items-center justify-center gap-3 sm:mb-10 md:mb-12 md:gap-4">
             <div className="h-px bg-slate-200 flex-1" />
             <div className="text-center">
-              <div className="text-xs font-bold text-primary uppercase tracking-widest mb-1">D?ng c? h?c t?p</div>
+              <div className="text-xs font-bold text-primary uppercase tracking-widest mb-1">Dụng cụ học tập</div>
               <h2 className="text-3xl font-black text-slate-900">TOXI Store</h2>
             </div>
             <div className="h-px bg-slate-200 flex-1" />
           </div>
           <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-4 md:gap-6">
             {[
-              { id: 1, name: "V? t?p vi?t Th??ng H?i", price: "89.000?", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAbkVSFExNteE9CGGXL4Qv8mk3Gt2EkENVuguiwfR2-T3GqYfUywrHFjc0RbL0juSTVR_ajo2oxbi9kreWP7qevea_-wD6AIC6d9Olp-8l2L53EJMwT0SVmAlAlrHTfeMO1IEa0d-MDfprIGo-0tMBWdsmgxrXQ88bXPgmzEiHg9Yj-cjf-HicH8czfkj0tRY8SfJq4y4LzurOHyh5nSDXAMbyIkwa8nL6bcZN0ao5v-juwqPnwuyaKfXjKCk1LENhUYPOpKg0S3Qk" },
-              { id: 2, name: "Flashcard HSK 1-3", price: "250.000d", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDfeAdxPhgksrY8QFJ91EbYKlV9XXR2QamdXeEVsRakGCtbRskwOI2HO_kz8NPpRGVYESEgKuqTTa4-XczvNtRXaUWCjwN5FQEi7uPd6DU6kaJmRLgT0DiWNbgKOxl8kSAYSn2NrPqfGXBBdUVgoXHrTsjsfg6XgtVVFT14WdrNWWPPGeLvF1oQGXrP55PYQxLu5wRYzlHWNukZnIDCAoUxxfIsYVTGQW386LQtSZrjXVFP7hrwfy2EWORQQHW6ulcHTPdO9rJjStg" },
-              { id: 3, name: "Gi?o tr?nh H?n ng? Q1", price: "115.000?", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAb82Zl7_ZBUA4rQzh4vB3sSP9JJO06Rt2JATxjYWCrL_foyOJa5aXMMOrx-GJXj5tdiUqwz1VxxTuobg5iGAmC6f7YJU7T9voeVQuDTubrjH5mnlEtGifQVUhSqm4_dSMchhJBGoL8JT6a4Bpj10H-oQhPjIuELIUoI_-rjgxfvqIVzE5w5a9zmOAirMRZ1YU0msADojGz8NUnBZCb3JjgKZB9GzH77twiaE8DLzS8O_clnlLHmJgm2EXRXMQWPoA22Mvsj6tLVOw" },
-              { id: 4, name: "B? b?t l?ng th? ph?p", price: "145.000?", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCh8Xr_PUz4IDYThA1TyDnkPT4BmJKLwhscu7FK-ySx4Kt2TTbRDod_9E_gpQ46epTfzi1k6QCNtXpm_ahEwyA8av66aj2PZ_nvmllqqP7fBMiosCgY5nUIq1E66J5bxV9mbxX_oOeoA46M-u2VXCLiaU6SRGbBTIPpgRz27skgwzo8h4rIMba5I_0GsL1fD4hSca5kIpGHkCuRnaGo0czuNYYQXQM3SzLiz0bomvuH4ZyFRuMvo26QM7rW4AOdgNearO3Cqofys3c", badge: "Best Seller" },
+              { id: 1, name: "Vở tập viết Thượng Hải", price: "89.000đ", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAbkVSFExNteE9CGGXL4Qv8mk3Gt2EkENVuguiwfR2-T3GqYfUywrHFjc0RbL0juSTVR_ajo2oxbi9kreWP7qevea_-wD6AIC6d9Olp-8l2L53EJMwT0SVmAlAlrHTfeMO1IEa0d-MDfprIGo-0tMBWdsmgxrXQ88bXPgmzEiHg9Yj-cjf-HicH8czfkj0tRY8SfJq4y4LzurOHyh5nSDXAMbyIkwa8nL6bcZN0ao5v-juwqPnwuyaKfXjKCk1LENhUYPOpKg0S3Qk" },
+              { id: 2, name: "Flashcard HSK 1-3", price: "250.000đ", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDfeAdxPhgksrY8QFJ91EbYKlV9XXR2QamdXeEVsRakGCtbRskwOI2HO_kz8NPpRGVYESEgKuqTTa4-XczvNtRXaUWCjwN5FQEi7uPd6DU6kaJmRLgT0DiWNbgKOxl8kSAYSn2NrPqfGXBBdUVgoXHrTsjsfg6XgtVVFT14WdrNWWPPGeLvF1oQGXrP55PYQxLu5wRYzlHWNukZnIDCAoUxxfIsYVTGQW386LQtSZrjXVFP7hrwfy2EWORQQHW6ulcHTPdO9rJjStg" },
+              { id: 3, name: "Giáo trình Hán ngữ Q1", price: "115.000đ", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAb82Zl7_ZBUA4rQzh4vB3sSP9JJO06Rt2JATxjYWCrL_foyOJa5aXMMOrx-GJXj5tdiUqwz1VxxTuobg5iGAmC6f7YJU7T9voeVQuDTubrjH5mnlEtGifQVUhSqm4_dSMchhJBGoL8JT6a4Bpj10H-oQhPjIuELIUoI_-rjgxfvqIVzE5w5a9zmOAirMRZ1YU0msADojGz8NUnBZCb3JjgKZB9GzH77twiaE8DLzS8O_clnlLHmJgm2EXRXMQWPoA22Mvsj6tLVOw" },
+              { id: 4, name: "Bộ bút lông thư pháp", price: "145.000đ", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCh8Xr_PUz4IDYThA1TyDnkPT4BmJKLwhscu7FK-ySx4Kt2TTbRDod_9E_gpQ46epTfzi1k6QCNtXpm_ahEwyA8av66aj2PZ_nvmllqqP7fBMiosCgY5nUIq1E66J5bxV9mbxX_oOeoA46M-u2VXCLiaU6SRGbBTIPpgRz27skgwzo8h4rIMba5I_0GsL1fD4hSca5kIpGHkCuRnaGo0czuNYYQXQM3SzLiz0bomvuH4ZyFRuMvo26QM7rW4AOdgNearO3Cqofys3c", badge: "Best Seller" },
             ].map((item) => (
               <Link to={`/products/${item.id}`} key={item.id} className="card-lift group cursor-pointer">
                 <div className="aspect-[3/4] rounded-2xl bg-slate-100 overflow-hidden mb-3 relative shadow-sm border border-slate-200">
@@ -830,10 +830,10 @@ export function HomePage() {
             <div>
               <span className="inline-block px-4 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-widest mb-2">Blog</span>
               <h2 className="text-3xl font-black text-slate-900 flex items-center gap-2">
-                <span className="material-symbols-outlined text-secondary">history_edu</span> G?c V?n H?a & Blog
+                <span className="material-symbols-outlined text-secondary">history_edu</span> Góc Văn Hóa & Blog
               </h2>
             </div>
-            <a href="#" className="text-sm font-bold text-primary hover:text-secondary transition-colors">Xem thêm ?</a>
+            <a href="#" className="text-sm font-bold text-primary hover:text-secondary transition-colors">Xem thêm →</a>
           </div>
           <div className="grid gap-4 sm:gap-5 md:grid-cols-2 md:gap-6">
             {blogs.map((blog) => (
@@ -861,8 +861,8 @@ export function HomePage() {
         <div className="max-w-3xl mx-auto">
           <div className="mb-8 text-center sm:mb-10 md:mb-12">
             <span className="inline-block px-4 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest mb-3">FAQ</span>
-            <h2 className="mb-3 text-3xl font-black text-slate-900 sm:text-4xl">C\u00e2u h\u1ecfi th\u01b0\u1eddng g\u1eb7p</h2>
-            <p className="text-sm text-slate-500 sm:text-base">Kh\u00f4ng t\u00ecm th\u1ea5y c\u00e2u tr\u1ea3 l\u1eddi? Li\u00ean h\u1ec7 t\u01b0 v\u1ea5n vi\u00ean qua hotline.</p>
+            <h2 className="mb-3 text-3xl font-black text-slate-900 sm:text-4xl">Câu hỏi thường gặp</h2>
+            <p className="text-sm text-slate-500 sm:text-base">Không tìm thấy câu trả lời? Liên hệ tư vấn viên qua hotline.</p>
           </div>
           <div className="space-y-3">
             {faqs.map((faq, i) => (
@@ -886,32 +886,32 @@ export function HomePage() {
       ============================================== */}
       <FadeSection className="relative overflow-hidden bg-gradient-to-br from-primary via-[#8a000e] to-[#7a0015] px-4 py-12 sm:px-6 sm:py-14 md:px-12 md:py-18 lg:py-24">
         <div className="absolute inset-0 bg-chinese-pattern opacity-10" />
-        <div className="hero-char absolute right-12 top-1/2 -translate-y-1/2 text-white/8 font-serif text-[200px] leading-none select-none pointer-events-none hidden xl:block">?</div>
+        <div className="hero-char absolute right-12 top-1/2 -translate-y-1/2 text-white/8 font-serif text-[200px] leading-none select-none pointer-events-none hidden xl:block">龙</div>
         <div className="max-w-3xl mx-auto text-center relative z-10">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-secondary/50 bg-white/10 px-4 py-1.5 text-secondary backdrop-blur-sm sm:mb-6 sm:px-5 sm:py-2">
             <span className="material-symbols-outlined text-[16px] animate-pulse">stars</span>
-            <span className="text-xs font-bold tracking-widest uppercase">\u01afu \u0111\u00e3i khai gi\u1ea3ng th\u00e1ng 11</span>
+            <span className="text-xs font-bold tracking-widest uppercase">Ưu đãi khai giảng tháng 11</span>
           </div>
           <h2 className="mb-4 text-3xl font-black leading-tight text-white sm:mb-5 sm:text-4xl md:text-6xl">
-            B\u1eaft \u0111\u1ea7u h\u00e0nh tr\u00ecnh<br />
-            <span className="text-secondary">h\u1ecdc H\u00e1n ng\u1eef</span> h\u00f4m nay
+            Bắt đầu hành trình<br />
+            <span className="text-secondary">học Hán ngữ</span> hôm nay
           </h2>
           <p className="mx-auto mb-6 max-w-xl text-sm text-slate-200 sm:mb-8 sm:text-base md:mb-10 md:text-lg">
-            Tham gia c\u00f9ng 10.000+ h\u1ecdc vi\u00ean \u0111\u00e3 thay \u0111\u1ed5i cu\u1ed9c \u0111\u1eddi nh\u1edd ti\u1ebfng Trung. <strong>Test tr\u00ecnh \u0111\u1ed9 mi\u1ec5n ph\u00ed</strong> - kh\u00f4ng c\u1ea7n \u0111\u0103ng k\u00fd.
+            Tham gia cùng 10.000+ học viên đã thay đổi cuộc đời nhờ tiếng Trung. <strong>Test trình độ miễn phí</strong> - không cần đăng ký.
           </p>
           <div className="flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
             <Link to="/practice"
               className="flex items-center justify-center gap-2 rounded-xl bg-secondary px-6 py-3.5 text-base font-black text-primary shadow-[0_6px_0_#b8860b] transition-all hover:bg-yellow-300 active:translate-y-1 active:shadow-none sm:px-8 sm:py-4 sm:text-lg md:px-10">
               <span className="material-symbols-outlined">quiz</span>
-              Test tr\u00ecnh \u0111\u1ed9 MI\u1EC4N PH\u00CD
+              Test trình độ MIỄN PHÍ
             </Link>
             <Link to="/course"
               className="flex items-center justify-center gap-2 rounded-xl border-2 border-white/30 bg-white/15 px-6 py-3.5 text-base font-bold text-white backdrop-blur-sm transition-all hover:bg-white/25 sm:px-8 sm:py-4 sm:text-lg md:px-10">
               <span className="material-symbols-outlined">school</span>
-              Xem t\u1ea5t c\u1ea3 kh\u00f3a h\u1ecdc
+              Xem tất cả khóa học
             </Link>
           </div>
-          <p className="mt-5 text-xs text-white/50 sm:mt-6 sm:text-sm">\u2022 Mi\u1ec5n ph\u00ed ho\u00e0n to\u00e0n &nbsp;\u00b7&nbsp; \u2022 Kh\u00f4ng c\u1ea7n th\u1ebb t\u00edn d\u1ee5ng &nbsp;\u00b7&nbsp; \u2022 K\u1ebft qu\u1ea3 ngay l\u1eadp t\u1ee9c</p>
+          <p className="mt-5 text-xs text-white/50 sm:mt-6 sm:text-sm">• Miễn phí hoàn toàn &nbsp;·&nbsp; • Không cần thẻ tín dụng &nbsp;·&nbsp; • Kết quả ngay lập tức</p>
         </div>
       </FadeSection>
     </>

@@ -222,7 +222,7 @@ useEffect(() => {
   };
 
   const navItems = [
-    { icon: "home_app_logo", label: "Trang chủ", to: "/Home" },
+    { icon: "home_app_logo", label: "Trang chủ", to: "/home" },
     { icon: "self_improvement", label: "Khóa học", to: "/course" },
     { icon: "school", label: "Sản phẩm", to: "/store" },
     { icon: "school", label: "Sản phẩm", to: "/store" },
