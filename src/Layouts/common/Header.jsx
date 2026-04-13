@@ -187,7 +187,7 @@ useEffect(() => {
     localStorage.removeItem("guestId");
     localStorage.removeItem("avatarUrl");
     setMenuOpen(false);
-    navigate("/Home");
+    navigate("/home");
     window.location.reload();
   };
   
@@ -281,15 +281,15 @@ useEffect(() => {
        <nav className="flex-1 px-5 py-6 space-y-2.5 bg-white">
   {/* TRANG CHU */}
   <a
-    href="/Home"
+    href="/home"
     className={`group flex items-center gap-3 px-5 py-4 rounded-2xl border transition-all ${
-      isActiveLink("/Home")
+      isActiveLink("/home")
         ? "text-white bg-primary shadow-lg border-primary"
         : "text-slate-600 bg-transparent border-transparent hover:bg-blue-50 hover:text-primary hover:border-blue-100"
     }`}
   >
     <span className={`material-symbols-outlined group-hover:scale-110 transition-transform ${
-      isActiveLink("/Home") ? "text-secondary" : "text-slate-400 group-hover:text-primary"
+      isActiveLink("/home") ? "text-secondary" : "text-slate-400 group-hover:text-primary"
     }`}>
       home_app_logo
     </span>
