@@ -224,7 +224,7 @@ useEffect(() => {
     { icon: "home_app_logo", label: "Trang chủ", to: "/Home" },
     { icon: "self_improvement", label: "Khóa học", to: "/course" },
     { icon: "school", label: "Sản phẩm", to: "/store" },
-    { icon: "school", label: "Sản phẩm", to: "/store" },
+    { icon: "folder_open", label: "Tài liệu", to: "/documents" },
   ];
 
   const quickLinks = [
@@ -295,12 +295,7 @@ useEffect(() => {
     <span className="font-bold">Trang chủ</span>
   </a>
 
-  {[
-    { icon: "self_improvement", label: "Khóa học", to: "/course" },
-    { icon: "school", label: "Sản phẩm", to: "/store" },
-     
-   
-  ].map((item) => (
+  {navItems.filter((item) => item.to !== "/Home").map((item) => (
     <Link
       key={item.label}
       to={item.to}
