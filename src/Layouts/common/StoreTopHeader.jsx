@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/image/LOGO (1).png";
 import { useCart } from "../../context/CartContext";
 import NotificationBell from "../../components/NotificationBell";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 export default function StoreTopHeader() {
   const navigate = useNavigate();
@@ -50,7 +52,7 @@ export default function StoreTopHeader() {
 
     const fetchCourses = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/courses");
+        const response = await fetch(`${BASE_URL}/api/courses`);
         const payload = await response.json();
         const rawCourses = Array.isArray(payload)
           ? payload

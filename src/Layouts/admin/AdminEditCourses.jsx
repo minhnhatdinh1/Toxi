@@ -3,6 +3,9 @@ import { useState, useRef, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
 import { useNavigate, useParams } from "react-router-dom";
 import { uploadImage } from "./api/apiFile";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+
 export default function AdminEditCourses() {
   const navigate = useNavigate();
   const { id: routeCourseId } = useParams();
@@ -30,7 +33,6 @@ export default function AdminEditCourses() {
   const [introVideoName, setIntroVideoName] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const introVideoInputRef = useRef(null);
-
   useEffect(() => {
     const loadCourse = async () => {
       if (!routeCourseId) return;
@@ -40,7 +42,7 @@ export default function AdminEditCourses() {
         let course = null;
 
         const detailRes = await fetch(
-          `http://localhost:8080/api/admin/courses/${routeCourseId}`,
+          `${BASE_URL}/api/admin/courses/${routeCourseId}`,
           { headers }
         );
 
@@ -48,7 +50,7 @@ export default function AdminEditCourses() {
           const detailPayload = await detailRes.json();
           course = detailPayload?.data || detailPayload;
         } else {
-          const listRes = await fetch("http://localhost:8080/api/admin/courses", {
+          const listRes = await fetch(  `${BASE_URL}/api/admin/courses`, {
             headers,
           });
           if (listRes.ok) {
@@ -189,7 +191,7 @@ export default function AdminEditCourses() {
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/admin/courses/${routeCourseId || formData.courseId}`,
+        `${BASE_URL}/api/admin/courses/${routeCourseId || formData.courseId}`,
         {
           method: "PUT",
           headers: {

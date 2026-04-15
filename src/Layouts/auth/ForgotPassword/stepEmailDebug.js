@@ -1,6 +1,8 @@
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
-const DEBUG_BASE_URL = "http://localhost:8080/api";
+
+const DEBUG_BASE_URL = `${BASE_URL}/api`;
 
 export async function testSendOtpRequest(email) {
   const token = localStorage.getItem("token");

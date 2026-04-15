@@ -5,6 +5,9 @@ import { getHomeBooks, getAllCategories } from "./api/apiProduct";
 import { useCart } from "../../context/CartContext";
 import LoadingSpinner from "../common/LoadingSpinner";
 import FlyToCartAnimation from "../common/FlyToCartAnimation";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+
 // Quick filter chips
 const QUICK_FILTERS = [
   { id: "all", label: "Tất cả" },
@@ -36,7 +39,7 @@ const PRODUCT_FALLBACK_IMAGE = "https://via.placeholder.com/200?text=No+Image";
 const buildProductImageUrl = (value) => {
   if (!value || typeof value !== "string") return "";
   if (value.startsWith("http://") || value.startsWith("https://")) return value;
-  return `http://localhost:8080/api/files/${value.replace(/^\/+/, "")}`;
+  return `${BASE_URL}/api/files/${value.replace(/^\/+/, "")}`;
 };
 
 const normalizeProductImages = (raw = {}) => {
@@ -983,5 +986,6 @@ useEffect(() => {
     </>
   );
 }
+
 
 

@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 const CartContext = createContext();
 
 
-const API = "http://localhost:8080/api";
+const API = `${BASE_URL}/api`;
 const CART_PRICE_OVERRIDES_KEY = "cartPriceOverrides";
 
 const buildFileUrl = (value) => {

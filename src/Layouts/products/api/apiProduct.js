@@ -1,8 +1,10 @@
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 // ================= BASE URLs =================
-const BOOK_API = "http://localhost:8080/api/books";
-const CATEGORY_API = "http://localhost:8080/api/categories";
+const BOOK_API = `${BASE_URL}/api/books`;
+const CATEGORY_API = `${BASE_URL}/api/categories`;
 
 // ================= AXIOS INSTANCES =================
 const bookApi = axios.create({

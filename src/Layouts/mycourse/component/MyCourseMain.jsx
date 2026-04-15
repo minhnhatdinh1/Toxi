@@ -4,6 +4,8 @@ import logo from "../../../assets/image/LOGO (1).png";
 import { useCart } from "../../../context/CartContext";
 import axios from "axios";
 import LoadingSpinner from "../../common/LoadingSpinner";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 export default function MyCourseMain() {
   const [courses, setCourses] = useState([]);
@@ -33,11 +35,11 @@ export default function MyCourseMain() {
   useEffect(() => {
     const fetchMyCourses = async () => {
       try {
-        const res = await axios.get("http://localhost:8080/api/my-courses", {
+        const res = await axios.get(`${BASE_URL}/api/my-courses`, {
           headers: getAuthHeaders()
         });
         setCourses(res.data);
-        const completedRes = await axios.get("http://localhost:8080/api/progress/user", {
+        const completedRes = await axios.get(`${BASE_URL}/api/progress/user`, {
           headers: getAuthHeaders()
         });
         const completedIds = new Set((completedRes.data || []).map(Number));
@@ -45,7 +47,7 @@ export default function MyCourseMain() {
           res.data.map(async (course) => {
             if (course?.chapters?.length) return course;
             try {
-              const detailRes = await axios.get(`http://localhost:8080/api/courses/${course.courseId}`);
+              const detailRes = await axios.get(`${BASE_URL}/api/courses/${course.courseId}`);
               return detailRes.data;
             } catch (error) {
               return course;
@@ -92,7 +94,7 @@ export default function MyCourseMain() {
 
     if (!firstLessonId) {
       try {
-        const res = await axios.get(`http://localhost:8080/api/courses/${course.courseId}`);
+        const res = await axios.get(`${BASE_URL}/api/courses/${course.courseId}`);
         firstLessonId = getFirstLessonId(res.data);
       } catch (err) {
         console.error("Khong lay duoc lesson dau tien:", err);

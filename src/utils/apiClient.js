@@ -1,4 +1,5 @@
-const API = "http://localhost:8080/api";
+const BASE_URL = import.meta.env.VITE_API_URL;
+const API = `${BASE_URL}/api`;
 
 /**
  * Fetch có đính kèm Authorization header tự động.

@@ -46,6 +46,7 @@ const { mergeCartAfterLogin } = useCart();
         passWord,
       });
       const token = res.data.accessToken;  
+
     localStorage.setItem("token", res.data.accessToken);
     localStorage.setItem("accessToken", res.data.accessToken);
     localStorage.setItem("userId", res.data.userId);
@@ -56,8 +57,16 @@ const { mergeCartAfterLogin } = useCart();
        await mergeCartAfterLogin(token);
 
 
+
     // Decode token để lấy role
     const decoded = jwtDecode(token);
+      if (decoded.role === "ADMIN") {
+        localStorage.setItem("authToken", token);
+      } else {
+        localStorage.removeItem("authToken");
+      }
+
+      await mergeCartAfterLogin(token);
     const redirectFromState = location.state?.from;
     const redirectFromSession = sessionStorage.getItem("learnRedirectAfterLogin");
 

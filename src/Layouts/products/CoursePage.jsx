@@ -4,16 +4,22 @@ import axios from "axios";
 import FilterSidebar from "../../components/FilterSidebar";
 import StarRating from "../../components/StarRating";
 import LoadingSpinner from "../common/LoadingSpinner";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 const normalizeCourseStatus = (status) => {
   const normalized = String(status || "").trim().toUpperCase();
-  if (["ACTIVE", "PUBLISHED", "PUBLIC"].includes(normalized)) return "PUBLISHED";
+  if (!normalized) return "VISIBLE";
+  if (["ACTIVE", "PUBLISHED", "PUBLIC"].includes(normalized)) return "VISIBLE";
   if (["DRAFT", "DRAFTING"].includes(normalized)) return "DRAFT";
   if (["INACTIVE", "ARCHIVED", "HIDDEN"].includes(normalized)) return "INACTIVE";
-  return normalized || "DRAFT";
+  return "VISIBLE";
 };
 
-const isVisibleCourse = (course) => normalizeCourseStatus(course?.status) === "PUBLISHED";
+const isVisibleCourse = (course) => {
+  const status = normalizeCourseStatus(course?.status);
+  return status !== "DRAFT" && status !== "INACTIVE";
+};
 
 export default function Course() {
   const [courses, setCourses] = useState([]);
@@ -68,7 +74,7 @@ export default function Course() {
 
     if (!firstLessonId) {
       try {
-        const res = await axios.get(`http://localhost:8080/api/courses/${course.courseId}`);
+        const res = await axios.get(`${BASE_URL}/api/courses/${course.courseId}`);
         firstLessonId = getFirstLessonId(res.data);
       } catch (err) {
         console.error("Khong lay duoc lesson dau tien:", err);
@@ -90,7 +96,7 @@ export default function Course() {
     }).format(number || 0);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/courses")
+    fetch(`${BASE_URL}/api/courses`)
       .then((res) => res.json())
       .then((data) => {
         const courseList = Array.isArray(data) ? data : [];
@@ -111,7 +117,7 @@ export default function Course() {
       return;
     }
 
-    fetch("http://localhost:8080/api/my-courses", {
+    fetch(`${BASE_URL}/api/my-courses`, {
       headers: getAuthHeaders(),
     })
       .then((res) => res.json())
@@ -119,7 +125,7 @@ export default function Course() {
         const ownedCourses = Array.isArray(data) ? data : [];
         setMyCourses(ownedCourses.map((c) => Number(c.courseId)));
 
-        const completedRes = await axios.get("http://localhost:8080/api/progress/user", {
+        const completedRes = await axios.get(`${BASE_URL}/api/progress/user`, {
           headers: getAuthHeaders(),
         });
         const completedIds = new Set((completedRes.data || []).map(Number));
@@ -128,7 +134,7 @@ export default function Course() {
           ownedCourses.map(async (course) => {
             if (course?.chapters?.length) return course;
             try {
-              const detailRes = await axios.get(`http://localhost:8080/api/courses/${course.courseId}`);
+              const detailRes = await axios.get(`${BASE_URL}/api/courses/${course.courseId}`);
               return detailRes.data;
             } catch (error) {
               return course;

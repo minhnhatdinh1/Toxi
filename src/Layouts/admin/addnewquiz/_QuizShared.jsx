@@ -3,6 +3,8 @@
 
 import toxiLogo from "../../../assets/image/LOGO (1).png";
 import { Link } from "react-router-dom";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 export const inputCls = "border border-slate-200 rounded-xl px-3 py-2.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition bg-white";
 export const labelCls = "block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5";
@@ -35,7 +37,6 @@ export function QuizSidebar({ activeType, skill,quizId }) {
   const skillRoutes = { nghe:`/adminQuiz/${quizId}/add-question/listen`, doc:`/adminQuiz/${quizId}/add-question/read`, viet:`/adminQuiz/${quizId}/add-question/write`};
   const skillLabels = { nghe:"Nghe (听)", doc:"Đọc (读)", viet:"Viết (写)" };
   const skillColors = { nghe:"text-blue-400", doc:"text-emerald-400", viet:"text-orange-400" };
-
   return (
     <aside className="w-60 bg-slate-900 flex-shrink-0 flex flex-col h-screen">
       {/* Back */}
@@ -282,11 +283,11 @@ export function ImageSlot({ label, value, onChange }) {
     if (typeof value === "object" && value.url) {
       return value.url.startsWith("http")
         ? value.url
-        : `http://localhost:8080/api/files/${encodeURIComponent(value.url)}`;
+        : `${BASE_URL}/api/files/${encodeURIComponent(value.url)}`;
     }
 
     if (typeof value === "string") {
-      return `http://localhost:8080/api/files/${encodeURIComponent(value)}`;
+      return `${BASE_URL}/api/files/${encodeURIComponent(value)}`;
     }
 
     return null;

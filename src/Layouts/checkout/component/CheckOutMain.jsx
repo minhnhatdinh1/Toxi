@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { useCart } from "../../../context/CartContext";
 import StoreTopHeader from "../../common/StoreTopHeader";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 const getEffectiveItemPrice = (item) => {
   const discountPrice = Number(item.discountPrice ?? item.finalPrice ?? 0);
@@ -37,7 +39,7 @@ export default function CheckOutMain() {
       }
 
       try {
-        const res = await axios.get(`http://localhost:8080/api/courses/${courseId}`);
+        const res = await axios.get(`${BASE_URL}/api/courses/${courseId}`);
         const course = res.data;
         const price = Number(
           course?.discountPrice && course.discountPrice < course.price
@@ -124,7 +126,7 @@ export default function CheckOutMain() {
     };
 
     try {
-      const res = await fetch("http://localhost:8080/api/payment/create", {
+      const res = await fetch(`${BASE_URL}/api/payment/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

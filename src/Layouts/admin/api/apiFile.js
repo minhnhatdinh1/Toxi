@@ -1,9 +1,11 @@
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
-const UPLOAD_URL = "http://localhost:8080/api/admin/upload";
-const EXPORT_URL = "http://localhost:8080/api/admin/books/export-excel";
+
+const UPLOAD_URL = `${BASE_URL}/api/admin/upload`;
+const EXPORT_URL = `${BASE_URL}/api/admin/books/export-excel`;
 const DELETE_IMAGE_BY_BOOK_URL =
-  "http://localhost:8080/api/images/delete-by-book";
+  `${BASE_URL}/api/images/delete-by-book`;
 
 // ================= UPLOAD IMAGE =================
 export const uploadImage = async (file) => {

@@ -1,5 +1,4 @@
-﻿
-import { Link,useNavigate, useLocation  } from "react-router-dom";
+﻿import { Link,useNavigate, useLocation  } from "react-router-dom";
 import { useState,useRef, useEffect } from "react";
 import ThemeToggle from "./ThemeToggle";
 import NotificationBell from "../../components/NotificationBell";
@@ -7,6 +6,8 @@ import NotificationBell from "../../components/NotificationBell";
 import toxiLogo from "../../assets/image/LOGO (1).png";
 
  import { useCart } from "../../context/CartContext";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 const Header = ({ children }) => {
   const socialLinks = [
     {
@@ -107,7 +108,7 @@ useEffect(() => {
 
     const fetchCourses = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/courses");
+        const response = await fetch(`${BASE_URL}/api/courses`);
         const payload = await response.json();
         const rawCourses = Array.isArray(payload)
           ? payload
@@ -186,7 +187,7 @@ useEffect(() => {
     localStorage.removeItem("guestId");
     localStorage.removeItem("avatarUrl");
     setMenuOpen(false);
-    navigate("/Home");
+    navigate("/home");
     window.location.reload();
   };
   
@@ -221,7 +222,7 @@ useEffect(() => {
   };
 
   const navItems = [
-    { icon: "home_app_logo", label: "Trang chủ", to: "/Home" },
+    { icon: "home_app_logo", label: "Trang chủ", to: "/home" },
     { icon: "self_improvement", label: "Khóa học", to: "/course" },
     { icon: "school", label: "Sản phẩm", to: "/store" },
     { icon: "folder_open", label: "Tài liệu", to: "/documents" },
@@ -280,15 +281,15 @@ useEffect(() => {
        <nav className="flex-1 px-5 py-6 space-y-2.5 bg-white">
   {/* TRANG CHU */}
   <a
-    href="/Home"
+    href="/home"
     className={`group flex items-center gap-3 px-5 py-4 rounded-2xl border transition-all ${
-      isActiveLink("/Home")
+      isActiveLink("/home")
         ? "text-white bg-primary shadow-lg border-primary"
         : "text-slate-600 bg-transparent border-transparent hover:bg-blue-50 hover:text-primary hover:border-blue-100"
     }`}
   >
     <span className={`material-symbols-outlined group-hover:scale-110 transition-transform ${
-      isActiveLink("/Home") ? "text-secondary" : "text-slate-400 group-hover:text-primary"
+      isActiveLink("/home") ? "text-secondary" : "text-slate-400 group-hover:text-primary"
     }`}>
       home_app_logo
     </span>
@@ -637,4 +638,6 @@ useEffect(() => {
 };
 
 export default Header;
+
+
 

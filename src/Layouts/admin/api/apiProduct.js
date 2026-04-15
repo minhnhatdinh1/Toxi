@@ -1,17 +1,18 @@
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
-const API_URL = "http://localhost:8080/api/admin/books";
-const FILE_API = "http://localhost:8080/api/files";
 
+const API_URL = `${BASE_URL}/api/admin/books`;
+const FILE_API = `${BASE_URL}/api/files`;
 const buildBookImageUrl = (value) => {
   if (!value || typeof value !== "string") return "";
   if (value.startsWith("http://") || value.startsWith("https://")) return value;
   const normalizedValue = value.replace(/^\/+/, "");
   if (normalizedValue.startsWith("api/files/")) {
-    return `http://localhost:8080/${normalizedValue}`;
+return `${BASE_URL}/${normalizedValue}`;
   }
   if (normalizedValue.startsWith("files/")) {
-    return `http://localhost:8080/api/${normalizedValue}`;
+  return `${BASE_URL}/api/${normalizedValue}`;
   }
   return `${FILE_API}/${normalizedValue}`;
 };

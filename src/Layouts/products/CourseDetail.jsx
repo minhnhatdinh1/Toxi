@@ -8,6 +8,8 @@ import LoadingSpinner from "../common/LoadingSpinner";
 import StoreTopHeader from "../common/StoreTopHeader";
 import { createCourseReview, getCourseReviews } from "./api/apiCourseReview";
 import { getNotifications, pushNotification } from "../../utils/notificationCenter";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 const COURSE_REVIEW_REPLY_SEEN_KEY = "toxi_course_review_reply_seen";
 
@@ -76,7 +78,7 @@ export default function CourseDetail() {
   const fetchCourse = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`http://localhost:8080/api/courses/${courseId}`);
+      const res = await axios.get(`${BASE_URL}/api/courses/${courseId}`);
       setCourse(res.data);
     } catch (error) {
       console.error(error);
@@ -87,7 +89,7 @@ export default function CourseDetail() {
 
   const refreshAccess = async () => {
     try {
-      const res = await axios.get(`http://localhost:8080/api/course/${courseId}/access`, {
+      const res = await axios.get(`${BASE_URL}/api/course/${courseId}/access`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -222,9 +224,9 @@ export default function CourseDetail() {
       normalized.startsWith("api/files/") ||
       normalized.startsWith("files/")
     ) {
-      return `http://localhost:8080/${normalized}`;
+      return `${BASE_URL}/${normalized}`;
     }
-    return `http://localhost:8080/uploads/${normalized}`;
+    return `${BASE_URL}/uploads/${normalized}`;
   };
 
   const formatReviewDate = (value) => {

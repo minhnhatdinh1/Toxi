@@ -1,16 +1,22 @@
 ﻿import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 const normalizeCourseStatus = (status) => {
   const normalized = String(status || "").trim().toUpperCase();
-  if (["ACTIVE", "PUBLISHED", "PUBLIC"].includes(normalized)) return "PUBLISHED";
+  if (!normalized) return "VISIBLE";
+  if (["ACTIVE", "PUBLISHED", "PUBLIC"].includes(normalized)) return "VISIBLE";
   if (["DRAFT", "DRAFTING"].includes(normalized)) return "DRAFT";
   if (["INACTIVE", "ARCHIVED", "HIDDEN"].includes(normalized)) return "INACTIVE";
-  return normalized || "DRAFT";
+  return "VISIBLE";
 };
 
-const isVisibleCourse = (course) => normalizeCourseStatus(course?.status) === "PUBLISHED";
+const isVisibleCourse = (course) => {
+  const status = normalizeCourseStatus(course?.status);
+  return status !== "DRAFT" && status !== "INACTIVE";
+};
 
 /* tiny hook: fade-in on scroll */
 function useFadeIn() {
@@ -108,17 +114,17 @@ export function HomePage() {
     { q: "Học bao lâu có thể thi HSK 4?", a: "Với lộ trình học 3-4 tiếng/tuần, học viên thường đạt HSK 4 sau 12-18 tháng. TOXI cam kết hoàn học phí nếu không đạt mục tiêu trong thời hạn đã ký kết." },
     { q: "TOXI có cam kết đầu ra không?", a: "Có. Chúng tôi ký hợp đồng đào tạo với cam kết đầu ra rõ ràng. Học viên được học lại miễn phí 100% nếu không đạt kết quả như cam kết." },
     { q: "Lớp học online hay offline?", a: "TOXI có cả hai hình thức: lớp trực tiếp tại Hà Nội & TP.HCM và lớp online live qua Zoom. Học viên có thể chuyển đổi linh hoạt." },
-    { q: "Học phí có trả góp được không?", a: "Có. TOXI hỗ trợ trả góp 0% lãi suất qua thẻ tín dụng hoặc ví điện tử. Liên hệ tư vấn viên để biết thêm chi tiết." },
-    { q: "Giáo trình có khác so với trung tâm khác không?", a: "Giáo trình TOXI được biên soạn độc quyền bám sát HSK chuẩn mới 3.0, tích hợp văn hóa thực tế và công nghệ AI luyện phát âm - hoàn toàn khác biệt thị trường." },
+    { q: "Học phí có trả góp không?", a: "Có. TOXI hỗ trợ trả góp 0% lãi suất qua thẻ tín dụng hoặc ví điện tử. Liên hệ tư vấn viên để biết thêm chi tiết." },
+    { q: "Giáo trình có khác so với trung tâm khác không?", a: "Giáo trình TOXI được biên soạn độc quyền bám sát chuẩn HSK mới 3.0, tích hợp văn hóa thực tế và công nghệ AI luyện phát âm." },
   ];
 
   const hskPath = [
     { level: "HSK 1", label: "Vỡ lòng", desc: "150 từ vựng cơ bản", color: "#4ade80", weeks: "8 tuần" },
     { level: "HSK 2", label: "Sơ cấp", desc: "300 từ, giao tiếp đơn giản", color: "#facc15", weeks: "10 tuần" },
-    { level: "HSK 3", label: "Trung sơ", desc: "600 từ, đời sống hàng ngày", color: "#fb923c", weeks: "14 tuần" },
+    { level: "HSK 3", label: "Trung sơ", desc: "600 từ, dùng trong đời sống hằng ngày", color: "#fb923c", weeks: "14 tuần" },
     { level: "HSK 4", label: "Trung cấp", desc: "1.200 từ, giao tiếp tự nhiên", color: "#f87171", weeks: "18 tuần" },
-    { level: "HSK 5", label: "Cao cấp", desc: "2.500 từ, thảo luận sâu", color: "#c084fc", weeks: "24 tuần" },
-    { level: "HSK 6", label: "Thành thạo", desc: "5.000 từ, bản ngữ", color: "#60a5fa", weeks: "36 tuần" },
+    { level: "HSK 5", label: "Cao cấp", desc: "2.500 từ, thảo luận chuyên sâu", color: "#c084fc", weeks: "24 tuần" },
+    { level: "HSK 6", label: "Thành thạo", desc: "5.000 từ, gần như bản ngữ", color: "#60a5fa", weeks: "36 tuần" },
   ];
 
   const courseTabs = [
@@ -151,7 +157,7 @@ export function HomePage() {
     let firstLessonId = getFirstLessonId(course);
     if (!firstLessonId) {
       try {
-        const res = await axios.get(`http://localhost:8080/api/courses/${course.courseId}`);
+        const res = await axios.get(`${BASE_URL}/api/courses/${course.courseId}`);
         firstLessonId = getFirstLessonId(res.data);
       } catch (err) { console.error(err); }
     }
@@ -159,7 +165,7 @@ export function HomePage() {
   };
 
   useEffect(() => {
-    axios.get("http://localhost:8080/api/courses")
+    axios.get(`${BASE_URL}/api/courses`)
       .then((res) => {
         const courseList = Array.isArray(res.data) ? res.data : [];
         setCourses(courseList.filter(isVisibleCourse));
@@ -170,7 +176,7 @@ export function HomePage() {
   useEffect(() => {
     const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
     if (!token) { setMyCourses([]); return; }
-    axios.get("http://localhost:8080/api/my-courses", { headers: getAuthHeaders() })
+    axios.get(`${BASE_URL}/api/my-courses`, { headers: getAuthHeaders() })
       .then((res) => setMyCourses((res.data || []).map((c) => Number(c.courseId))))
       .catch(() => setMyCourses([]));
   }, []);
@@ -345,7 +351,7 @@ export function HomePage() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 mb-6 border border-secondary/50 bg-black/30 backdrop-blur-md text-secondary px-5 py-2 rounded-full shadow-lg">
               <span className="material-symbols-outlined text-[16px] animate-pulse">festival</span>
-              <span className="text-xs font-bold tracking-widest uppercase">Khai giảng khóa mới tháng 11</span>
+              <span className="text-xs font-bold tracking-widest uppercase">Khai giảng khóa tháng 11</span>
             </div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.1] mb-5 drop-shadow-xl">
@@ -354,7 +360,7 @@ export function HomePage() {
             </h1>
 
             <p className="text-lg text-slate-200 mb-8 leading-relaxed max-w-xl font-light">
-              Hệ thống đào tạo tiếng Trung chuẩn HSK, tập trung vào trải nghiệm học viên và văn hóa Á Đông.
+            Hệ thống đào tạo tiếng trung chuẩn HSK, tập trung vào trải nghiệm học viên và van hóa Á Ðông.
               Học để ứng dụng - <span className="font-serif text-secondary">学以致用</span>.
             </p>
 
@@ -382,7 +388,7 @@ export function HomePage() {
               ))}
               </div>
               <div>
-                <div className="flex text-secondary text-sm">★★★★★</div>
+                <div className="flex text-secondary text-sm">{"★★★★★".split("").map((s, j) => <span key={j}>{s}</span>)}</div>
                 <p className="text-white/80 text-xs mt-0.5"><strong className="text-white">10.000+</strong> học viên đã tin chọn TOXI</p>
               </div>
               <div className="h-8 w-px bg-white/20 hidden sm:block" />
@@ -482,7 +488,7 @@ export function HomePage() {
                           {labels[index] || course.level || "HSK"}
                         </div>
                         {isOwned && (
-                          <div className="absolute top-3 right-3 bg-green-500 text-white text-[10px] font-black px-3 py-1 rounded-full z-10">✓ Đã sở hữu</div>
+                          <div className="absolute top-3 right-3 bg-green-500 text-white text-[10px] font-black px-3 py-1 rounded-full z-10">Đã sở hữu</div>
                         )}
                         <div className="w-full h-full bg-cover bg-center hover:scale-110 transition-transform duration-700"
                           style={{ backgroundImage: `url('${course.thumbnailUrl || fallbackImages[index % fallbackImages.length]}')` }} />
@@ -496,7 +502,7 @@ export function HomePage() {
                             {Number(course.discountPrice && course.discountPrice < course.price ? course.discountPrice : course.price || 0).toLocaleString("vi-VN")}đ
                           </span>
                           <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${isOwned ? 'bg-green-100 text-green-600' : 'bg-primary text-white'}`}>
-                            {isOwned ? "Tiếp tục học" : "Xem ngay →"}
+                            {isOwned ? "Tiếp tục học" : "Xem ngay"}
                           </span>
                         </div>
                       </div>
@@ -512,14 +518,14 @@ export function HomePage() {
             </FadeSection>
           )}
 
-          {/* Tab 1: Giao tiếp */}
+          {/* Tab 1: Giao ti?p */}
           {activeTab === 1 && (
             <FadeSection>
               <div className="grid gap-4 sm:gap-5 md:grid-cols-3 md:gap-6">
                 {[
-                  { icon: "record_voice_over", title: "Giao tiếp Cơ bản", desc: "Phát âm chuẩn và mẫu câu thông dụng hàng ngày cho người mới bắt đầu.", color: "text-primary", bg: "bg-primary/8" },
-                  { icon: "forum", title: "Giao tiếp Nâng cao", desc: "Thảo luận xã hội & văn hóa sâu sắc. Tăng cường biện luận, phản xạ.", color: "text-accent-red", bg: "bg-accent-red/8" },
-                  { icon: "travel_explore", title: "Tiếng Trung Du lịch", desc: "Đặt phòng, hỏi đường, mua sắm, ăn uống - tất cả tình huống du lịch.", color: "text-yellow-600", bg: "bg-yellow-50" },
+                  { icon: "record_voice_over", title: "Giao tiếp Cơ bản", desc: "Phát âm chuẩn và mẫu câu thông dụng hằng ngày cho người mới bắt đầu.", color: "text-primary", bg: "bg-primary/8" },
+                  { icon: "forum", title: "Giao tiếp Nâng cao", desc: "Thảo luận xã hội và văn hóa chuyên sâu. Tăng cường phản xạ giao tiếp tự nhiên.", color: "text-accent-red", bg: "bg-accent-red/8" },
+                  { icon: "travel_explore", title: "Tiếng Trung Du lịch", desc: "Đặt phòng, hỏi đường, mua sắm, ăn uống - đủ các tình huống du lịch thực tế.", color: "text-yellow-600", bg: "bg-yellow-50" },
                 ].map((c, i) => (
                   <div key={i} className={`card-lift rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-7`}>
                     <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${c.bg} ${c.color} sm:mb-5 sm:h-14 sm:w-14`}>
@@ -536,7 +542,7 @@ export function HomePage() {
             </FadeSection>
           )}
 
-          {/* Tab 2: Người đi làm */}
+          {/* Tab 2: Ngu?i di làm */}
           {activeTab === 2 && (
             <FadeSection>
               <div className="grid gap-4 sm:gap-5 md:grid-cols-2 md:gap-6">
@@ -560,7 +566,7 @@ export function HomePage() {
                           ))}
                         </ul>
                       </div>
-                      <button className="w-full py-2.5 bg-primary text-white font-bold rounded-xl text-sm hover:bg-primary/90 transition-all">Đăng ký ngay</button>
+                      <button className="w-full py-2.5 bg-primary text-white font-bold rounded-xl text-sm hover:bg-primary/90 transition-all">Ðang ký ngay</button>
                     </div>
                   </div>
               ))}
@@ -578,7 +584,7 @@ export function HomePage() {
           <div className="mb-8 text-center sm:mb-10 md:mb-14">
             <span className="inline-block px-4 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest mb-3">Lộ trình</span>
             <h2 className="mb-3 text-3xl font-black text-slate-900 sm:text-4xl md:text-5xl">Lộ trình HSK từ A-Z</h2>
-            <p className="mx-auto max-w-lg text-sm text-slate-500 sm:text-base">Mỗi cấp độ được thiết kế bám sát tiêu chuẩn HSK quốc tế mới nhất 3.0</p>
+            <p className="mx-auto max-w-lg text-sm text-slate-500 sm:text-base">Mỗi cấp độ được thiết kế bám sát tiêu chuẩn HSK quốc tế mới nhất 3.0.</p>
           </div>
 
           {/* Desktop: horizontal path */}
@@ -641,7 +647,7 @@ export function HomePage() {
               {/* Stat badges */}
               <div className="absolute right-3 top-6 rounded-2xl border border-slate-100 bg-white p-3 shadow-xl sm:-right-4 sm:top-1/4 sm:p-4">
                 <div className="text-3xl font-black text-primary">95%</div>
-                <div className="text-xs text-slate-500">Tỉ lệ đạt HSK 4+</div>
+                <div className="text-xs text-slate-500">Tỷ lệ đạt HSK 4+</div>
               </div>
               <div className="absolute left-3 bottom-6 rounded-2xl bg-secondary p-3 shadow-xl sm:-left-4 sm:bottom-1/4 sm:p-4">
                 <div className="text-3xl font-black text-primary">10K+</div>
@@ -658,7 +664,7 @@ export function HomePage() {
               <div className="space-y-4 sm:space-y-5 md:space-y-6">
                 {[
                   { icon: "verified_user", title: "Cam kết đầu ra bằng văn bản", desc: "Hợp đồng minh bạch. Học lại miễn phí 100% nếu không đạt kết quả cam kết.", stat: "100% hoàn phí", color: "bg-primary" },
-                  { icon: "record_voice_over", title: "Phương pháp Nhúng (Immersion)", desc: "Môi trường giao tiếp 100% tiếng Trung - phản xạ tự nhiên như người bản xứ.", stat: "2x nhanh hơn", color: "bg-accent-red" },
+                  { icon: "record_voice_over", title: "Phương pháp Nhúng (Immersion)", desc: "Môi trường giao tiếp 100% tiếng Trung, giúp phản xạ tự nhiên như người bản xứ.", stat: "2x nhanh hơn", color: "bg-accent-red" },
                   { icon: "auto_stories", title: "Giáo trình độc quyền HSK 3.0", desc: "Biên soạn bám sát chuẩn HSK mới nhất, kết hợp AI luyện phát âm.", stat: "Độc quyền TOXI", color: "bg-secondary" },
                 ].map((item, i) => (
                   <div key={i} className="group flex gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-all hover:border-secondary/30 hover:shadow-md sm:gap-4">
@@ -888,7 +894,7 @@ export function HomePage() {
           </div>
           <h2 className="mb-4 text-3xl font-black leading-tight text-white sm:mb-5 sm:text-4xl md:text-6xl">
             Bắt đầu hành trình<br />
-            <span className="text-secondary">征服 Hán ngữ</span> hôm nay
+            <span className="text-secondary">học Hán ngữ</span> hôm nay
           </h2>
           <p className="mx-auto mb-6 max-w-xl text-sm text-slate-200 sm:mb-8 sm:text-base md:mb-10 md:text-lg">
             Tham gia cùng 10.000+ học viên đã thay đổi cuộc đời nhờ tiếng Trung. <strong>Test trình độ miễn phí</strong> - không cần đăng ký.
@@ -905,7 +911,7 @@ export function HomePage() {
               Xem tất cả khóa học
             </Link>
           </div>
-          <p className="mt-5 text-xs text-white/50 sm:mt-6 sm:text-sm">✓ Miễn phí hoàn toàn &nbsp;·&nbsp; ✓ Không cần thẻ tín dụng &nbsp;·&nbsp; ✓ Kết quả ngay lập tức</p>
+          <p className="mt-5 text-xs text-white/50 sm:mt-6 sm:text-sm">• Miễn phí hoàn toàn &nbsp;·&nbsp; • Không cần thẻ tín dụng &nbsp;·&nbsp; • Kết quả ngay lập tức</p>
         </div>
       </FadeSection>
     </>

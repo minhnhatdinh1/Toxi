@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 function formatExamPayload(quiz) {
   return {
@@ -25,7 +27,7 @@ export default function PracticeMain() {
   const [examData, setExamData] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/quizzes", {
+    fetch(`${BASE_URL}/api/quizzes`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },

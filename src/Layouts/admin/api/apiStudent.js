@@ -1,7 +1,9 @@
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
-const API_BASE = "http://localhost:8080/api/admin/users";
-const AUTH_REGISTER_API = "http://localhost:8080/api/auth/register";
+
+const API_BASE = `${BASE_URL}/api/admin/users`;
+const AUTH_REGISTER_API = `${BASE_URL}/api/auth/register`;
 
 const getToken = () => localStorage.getItem("authToken") || localStorage.getItem("token");
 

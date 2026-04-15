@@ -1,4 +1,3 @@
-﻿
 import { useParams, Link } from "react-router-dom";
 import logo from "../../assets/image/LOGO (1).png";
 import { useNavigate } from "react-router-dom";
@@ -8,13 +7,15 @@ import { useCart } from "../../context/CartContext";
 import { useState, useEffect, useRef } from "react";
 import LoginModal from "../../components/LoginModal";
 import { pushNotification } from "../../utils/notificationCenter";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 const PRODUCT_FALLBACK_IMAGE = "https://via.placeholder.com/300x400?text=No+Image";
 
 const buildProductImageUrl = (value) => {
   if (!value || typeof value !== "string") return "";
   if (value.startsWith("http://") || value.startsWith("https://")) return value;
-  return `http://localhost:8080/api/files/${value.replace(/^\/+/, "")}`;
+  return `${BASE_URL}/api/files/${value.replace(/^\/+/, "")}`;
 };
 
 const normalizeProductImages = (raw = {}) => {
@@ -60,7 +61,7 @@ const handleAddToCart = () => {
     originalPrice: product.originalPrice,
     discountPrice: product.discountPrice,
   });
-  alert("Đã thêm vào giỏ hàng!");
+  alert("�� th�m v�o gi? h�ng!");
 };
   useEffect(() => {
     const fetchProduct = async () => {
@@ -224,7 +225,7 @@ useEffect(() => {
   if (!product) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-pulse text-gray-400">Đang tải sản phẩm...</div>
+        <div className="animate-pulse text-gray-400">�ang t?i s?n ph?m...</div>
       </div>
     );
   }
@@ -267,7 +268,7 @@ useEffect(() => {
       <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />
       <div>
         <h1 className="text-2xl font-black tracking-tighter leading-none">TOXI</h1>
-        <p className="text-[8px] uppercase tracking-widest text-secondary font-bold">学以致用</p>
+        <p className="text-[8px] uppercase tracking-widest text-secondary font-bold">????</p>
       </div>
     </Link>
 
@@ -276,7 +277,7 @@ useEffect(() => {
       <div className="relative group">
         <input
           type="text"
-          placeholder="Tìm kiếm sản phẩm, giáo trình, dụng cụ..."
+          placeholder="T�m ki?m s?n ph?m, gi�o tr�nh, d?ng c?..."
           className="w-full pl-12 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-full text-sm focus:ring-2 focus:ring-secondary focus:bg-white focus:text-primary transition-all placeholder-white/60"
         />
         <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/60 group-focus-within:text-primary">search</span>
@@ -326,7 +327,7 @@ useEffect(() => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-slate-800 text-sm truncate">{localStorage.getItem("userName") || "User"}</p>
-                    <p className="text-xs text-slate-400 truncate">{localStorage.getItem("email") || "Học viên TOXI"}</p>
+                    <p className="text-xs text-slate-400 truncate">{localStorage.getItem("email") || "H?c vi�n TOXI"}</p>
                   </div>
                 </div>
               </div>
@@ -334,10 +335,10 @@ useEffect(() => {
               {/* Menu items */}
               <div className="py-2">
                 {[
-                  { icon: "person", label: "Trang cá nhân", to: "/Profile" },
-                  { icon: "school", label: "Khóa học của tôi", to: "/MyCourse" },
-                  { icon: "shopping_bag", label: "Đơn hàng", to: "/MyProduct" },
-                  { icon: "info", label: "Thông tin cá nhân", to: "/Profile" },
+                  { icon: "person", label: "Trang c� nh�n", to: "/Profile" },
+                  { icon: "school", label: "Kh�a h?c c?a t�i", to: "/MyCourse" },
+                  { icon: "shopping_bag", label: "�on h�ng", to: "/MyProduct" },
+                  { icon: "info", label: "Th�ng tin c� nh�n", to: "/Profile" },
                 ].map((item) => (
                   <Link key={item.label} to={item.to} onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors text-slate-600 text-sm">
@@ -366,7 +367,7 @@ useEffect(() => {
                   className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors text-red-500 text-sm"
                 >
                   <span className="material-symbols-outlined text-[20px]">logout</span>
-                  Đăng xuất
+                  �ang xu?t
                 </button>
               </div>
             </div>
@@ -375,10 +376,10 @@ useEffect(() => {
       ) : (
         <div className="flex items-center gap-2">
           <Link to="/login">
-            <button className="text-white/80 font-bold text-sm hover:text-white transition-colors">Đăng nhập</button>
+            <button className="text-white/80 font-bold text-sm hover:text-white transition-colors">�ang nh?p</button>
           </Link>
           <Link to="/register">
-            <button className="bg-secondary text-primary px-4 py-2 rounded-full font-bold text-sm shadow-lg hover:brightness-110 transition-all">Đăng ký</button>
+            <button className="bg-secondary text-primary px-4 py-2 rounded-full font-bold text-sm shadow-lg hover:brightness-110 transition-all">�ang k�</button>
           </Link>
         </div>
       )}
@@ -396,7 +397,7 @@ useEffect(() => {
                 className="hover:text-primary transition-colors flex items-center gap-1"
               >
                 <span className="material-symbols-outlined text-lg">home</span>
-                Trang chủ
+                Trang ch?
               </a>
               <span className="material-symbols-outlined text-xs">
                 arrow_forward_ios
@@ -411,7 +412,7 @@ useEffect(() => {
                 arrow_forward_ios
               </span>
               <span className="text-primary font-bold">
-                {product?.name || "Sản phẩm"}
+                {product?.name || "S?n ph?m"}
               </span>
             </nav>
           </div>
@@ -476,7 +477,7 @@ useEffect(() => {
               <div className="inline-flex items-center gap-2 mb-4 bg-accent-red/10 border border-accent-red/20 text-accent-red px-3 py-1 rounded-full w-fit">
                 <span className="material-symbols-outlined text-sm">stars</span>
                 <span className="text-[11px] font-bold uppercase tracking-wider">
-                  Sản phẩm bán chạy
+                  S?n ph?m b�n ch?y
                 </span>
               </div>
 
@@ -495,12 +496,12 @@ useEffect(() => {
                     </span>
                   ))}
                   <span className="ml-2 text-sm font-bold text-slate-700">
-                    {averageRating} ({reviewCount} đánh giá)
+                    {averageRating} ({reviewCount} d�nh gi�)
                   </span>
                 </div>
                 <div className="h-4 w-px bg-slate-300"></div>
                 <p className="text-sm text-slate-500 font-medium">
-                  Đã bán 1.250 sản phẩm
+                  �� b�n 1.250 s?n ph?m
                 </p>
               </div>
 
@@ -521,14 +522,14 @@ useEffect(() => {
                   <span className="material-symbols-outlined text-sm">
                     timer
                   </span>
-                  Tiết kiệm {formatCurrency(saved)} VND khi mua hôm nay
+                  Ti?t ki?m {formatCurrency(saved)} VND khi mua h�m nay
                 </p>
               </div>
 
               {/* DESCRIPTION */}
               <div className="mb-8">
                 <h4 className="text-sm font-bold text-slate-900 mb-3 uppercase tracking-wider">
-                  Mô tả ngắn
+                  M� t? ng?n
                 </h4>
                 {product?.description}
               </div>
@@ -536,7 +537,7 @@ useEffect(() => {
               <div className="space-y-8 mb-10">
                 <div className="flex items-center gap-6">
                   <span className="text-sm font-bold text-slate-900 w-24">
-                    Số lượng:
+                    S? lu?ng:
                   </span>
                   <div className="flex items-center border-2 border-slate-200 rounded-xl bg-white overflow-hidden">
                     <button
@@ -572,7 +573,7 @@ useEffect(() => {
                   <span className="material-symbols-outlined group-hover:scale-110 transition-transform">
                     shopping_cart
                   </span>
-                  <span className="text-lg">Thêm vào giỏ hàng</span>
+                  <span className="text-lg">Th�m v�o gi? h�ng</span>
                 </button>
                 <button  onClick={() => {
     handleAddToCart();
@@ -590,7 +591,7 @@ useEffect(() => {
                     </span>
                   </div>
                   <span className="text-xs font-bold text-slate-600">
-                    Hàng chính hãng TOXI
+                    H�ng ch�nh h�ng TOXI
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -600,7 +601,7 @@ useEffect(() => {
                     </span>
                   </div>
                   <span className="text-xs font-bold text-slate-600">
-                    Giao nhanh toàn quốc
+                    Giao nhanh to�n qu?c
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -610,7 +611,7 @@ useEffect(() => {
                     </span>
                   </div>
                   <span className="text-xs font-bold text-slate-600">
-                    Đổi trả 7 ngày
+                    �?i tr? 7 ng�y
                   </span>
                 </div>
               </div>
@@ -674,8 +675,8 @@ useEffect(() => {
                       <div className="rounded-xl border border-slate-100 p-4"><p className="text-xs text-slate-400 uppercase tracking-wider">Ten san pham</p><p className="text-base font-bold text-slate-800 mt-1">{product?.title}</p></div>
                       <div className="rounded-xl border border-slate-100 p-4"><p className="text-xs text-slate-400 uppercase tracking-wider">Danh muc</p><p className="text-base font-bold text-slate-800 mt-1">{product?.categories?.map((c) => (typeof c === "string" ? c : c?.nameCategory)).join(", ") || "Dang cap nhat"}</p></div>
                       <div className="rounded-xl border border-slate-100 p-4"><p className="text-xs text-slate-400 uppercase tracking-wider">Ton kho</p><p className="text-base font-bold text-slate-800 mt-1">{product?.stock ?? 0}</p></div>
-                      <div className="rounded-xl border border-slate-100 p-4"><p className="text-xs text-slate-400 uppercase tracking-wider">Gia goc</p><p className="text-base font-bold text-slate-800 mt-1">{formatCurrency(product?.originalPrice)}đ</p></div>
-                      <div className="rounded-xl border border-slate-100 p-4"><p className="text-xs text-slate-400 uppercase tracking-wider">Gia sau giam</p><p className="text-base font-bold text-red-500 mt-1">{formatCurrency(product?.discountPrice)}đ</p></div>
+                      <div className="rounded-xl border border-slate-100 p-4"><p className="text-xs text-slate-400 uppercase tracking-wider">Gia goc</p><p className="text-base font-bold text-slate-800 mt-1">{formatCurrency(product?.originalPrice)}d</p></div>
+                      <div className="rounded-xl border border-slate-100 p-4"><p className="text-xs text-slate-400 uppercase tracking-wider">Gia sau giam</p><p className="text-base font-bold text-red-500 mt-1">{formatCurrency(product?.discountPrice)}d</p></div>
                     </div>
                   </div>
                 )}
@@ -790,8 +791,8 @@ useEffect(() => {
                   <dl className="space-y-5 text-sm">
                     <div className="flex justify-between border-b border-dashed border-slate-100 pb-3"><dt className="text-slate-500">Ma sach</dt><dd className="font-bold text-slate-900">{product.bookId}</dd></div>
                     <div className="flex justify-between border-b border-dashed border-slate-100 pb-3"><dt className="text-slate-500">Ten sach</dt><dd className="font-bold text-slate-900">{product.title}</dd></div>
-                    <div className="flex justify-between border-b border-dashed border-slate-100 pb-3"><dt className="text-slate-500">Gia goc</dt><dd className="font-bold text-slate-900">{formatCurrency(product.originalPrice)}₫</dd></div>
-                    <div className="flex justify-between border-b border-dashed border-slate-100 pb-3"><dt className="text-slate-500">Gia sau khi giam</dt><dd className="font-bold text-red-500">{formatCurrency(product.discountPrice)}₫</dd></div>
+                    <div className="flex justify-between border-b border-dashed border-slate-100 pb-3"><dt className="text-slate-500">Gia goc</dt><dd className="font-bold text-slate-900">{formatCurrency(product.originalPrice)}?</dd></div>
+                    <div className="flex justify-between border-b border-dashed border-slate-100 pb-3"><dt className="text-slate-500">Gia sau khi giam</dt><dd className="font-bold text-red-500">{formatCurrency(product.discountPrice)}?</dd></div>
                     <div className="flex justify-between border-b border-dashed border-slate-100 pb-3"><dt className="text-slate-500">Ton kho</dt><dd className="font-bold text-slate-900">{product.stock}</dd></div>
                   </dl>
                 </div>
@@ -804,7 +805,7 @@ useEffect(() => {
               <div className="flex items-center justify-between mb-12">
                 <div className="flex items-center gap-4">
                   <h2 className="text-3xl font-black text-primary">
-                    Sản phẩm liên quan
+                    S?n ph?m li�n quan
                   </h2>
                   <div className="h-1 w-20 bg-secondary rounded-full"></div>
                 </div>
@@ -812,7 +813,7 @@ useEffect(() => {
                   to={`/store`}
                   className="text-sm font-bold text-primary hover:text-accent-red flex items-center gap-1 transition-colors group"
                 >
-                  Xem tất cả cửa hàng
+                  Xem t?t c? c?a h�ng
                   <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">
                     arrow_forward
                   </span>
@@ -864,6 +865,7 @@ useEffect(() => {
     </>
   );
 }
+
 
 
 

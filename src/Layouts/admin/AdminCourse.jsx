@@ -1,9 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
+import { fetchWithAuth } from "../../utils/apiClient";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 const normalizeList = (payload) =>
   Array.isArray(payload) ? payload : payload?.data || payload?.content || [];
+
+const normalizeCourse = (course = {}) => ({
+  ...course,
+  courseId: course.courseId ?? course.course_id ?? course.id,
+  title: course.title ?? course.name ?? "",
+  courseType: course.courseType ?? course.course_type ?? course.type ?? "",
+  price: Number(course.price || 0),
+  discountPrice: Number(course.discountPrice ?? course.discount_price ?? 0),
+  thumbnailUrl:
+    course.thumbnailUrl ??
+    course.thumbnail_url ??
+    course.thumbnail ??
+    course.imageUrl ??
+    course.image ??
+    "",
+  introVideoUrl: course.introVideoUrl ?? course.intro_video_url ?? "",
+  totalLesson: Number(course.totalLesson ?? course.total_lesson ?? 0),
+  totalDuration: Number(course.totalDuration ?? course.total_duration ?? 0),
+  status: course.status ?? "",
+});
 
 const normalizeCourseStatus = (status) => {
   const normalized = String(status || "").trim().toUpperCase();
@@ -154,14 +177,32 @@ export default function AdminCourse() {
 
   const fetchCourses = async () => {
     try {
-      const [courseRes, orderRes] = await Promise.all([
-        fetch("http://localhost:8080/api/admin/courses", { headers }),
-        fetch("http://localhost:8080/api/admin/orders", { headers }),
-      ]);
+      let coursePayload = [];
+      let orderPayload = [];
 
-      const coursePayload = courseRes.ok ? await courseRes.json() : [];
-      const orderPayload = orderRes.ok ? await orderRes.json() : [];
-      const courseList = normalizeList(coursePayload);
+      const courseRes = await fetchWithAuth("/admin/courses", {
+        headers,
+      });
+
+      if (courseRes?.ok) {
+        coursePayload = await courseRes.json();
+      } else {
+        console.warn("Admin courses endpoint failed, fallback sang public courses.");
+        const publicCourseRes = await fetch(`${BASE_URL}/api/courses`);
+        coursePayload = publicCourseRes.ok ? await publicCourseRes.json() : [];
+      }
+
+      const orderRes = await fetchWithAuth("/admin/orders", {
+        headers,
+      });
+
+      if (orderRes?.ok) {
+        orderPayload = await orderRes.json();
+      } else {
+        console.warn("Admin orders endpoint failed, bo qua thong ke ghi danh.");
+      }
+
+      const courseList = normalizeList(coursePayload).map(normalizeCourse);
       const orderList = normalizeList(orderPayload);
 
       setCourses(courseList || []);
@@ -169,6 +210,8 @@ export default function AdminCourse() {
       setCurrentPage(1);
     } catch (err) {
       console.error(err);
+      setCourses([]);
+      setEnrollmentMap({});
     }
   };
 
@@ -183,7 +226,7 @@ export default function AdminCourse() {
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn chắc chắn muốn xóa khóa học này?")) return;
 
-    await fetch(`http://localhost:8080/api/admin/courses/${id}`, {
+    await fetch(`${BASE_URL}/api/admin/courses/${id}`, {
       method: "DELETE",
       headers,
     });
@@ -200,7 +243,7 @@ export default function AdminCourse() {
       let latestCourse = course;
       try {
         const detailResponse = await fetch(
-          `http://localhost:8080/api/admin/courses/${course.courseId}`,
+         `${BASE_URL}/api/admin/courses/${course.courseId}`,
           { headers }
         );
 
@@ -222,7 +265,7 @@ export default function AdminCourse() {
       );
 
       const response = await fetch(
-        `http://localhost:8080/api/admin/courses/${course.courseId}`,
+        `${BASE_URL}/api/admin/courses/${course.courseId}`,
         {
           method: "PUT",
           headers,

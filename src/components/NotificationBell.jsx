@@ -81,7 +81,7 @@ export default function NotificationBell({ audience = "all", className = "", pan
         type="button"
         onClick={handleToggle}
         className="relative flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50"
-        aria-label="Thong bao"
+        aria-label="Thông báo"
       >
         <span className="material-symbols-outlined text-[20px]">notifications</span>
         {unreadCount > 0 ? (
@@ -94,7 +94,7 @@ export default function NotificationBell({ audience = "all", className = "", pan
       {open ? (
         <div className={`absolute right-0 top-full z-[120] mt-2 w-80 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl ${panelClassName}`}>
           <div className="border-b border-slate-100 px-4 py-3">
-            <p className="text-sm font-black text-slate-900">Thong bao</p>
+            <p className="text-sm font-black text-slate-900">Thông báo</p>
           </div>
           <div className="max-h-96 overflow-y-auto">
             {items.length > 0 ? (
@@ -117,7 +117,7 @@ export default function NotificationBell({ audience = "all", className = "", pan
                 </button>
               ))
             ) : (
-              <div className="px-4 py-6 text-sm text-slate-500">Chua co thong bao nao.</div>
+              <div className="px-4 py-6 text-sm text-slate-500">Chưa có thông báo nào.</div>
             )}
           </div>
         </div>

@@ -3,13 +3,16 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import logo from '../../../assets/image/LOGO (1).png';
 import { useParams } from "react-router-dom";
 import axios from "axios";
+
 import {
+
+
   createLessonComment,
   getLessonDiscussion,
   likeLessonComment,
   seedLessonDiscussionMeta,
 } from "../api/apiLessonDiscussion";
-
+const BASE_URL = import.meta.env.VITE_API_URL;
 // ===== MOCK DOCUMENTS DATA =====
 const mockLessonDocuments = [
   { id: 1, name: "Giáo án bài 1 - Pinyin & Thanh điệu", type: "pdf", size: "2.4 MB", url: "/documents/bai1-pinyin.pdf", description: "Tài liệu lý thuyết đầy đủ về hệ thống phiên âm Pinyin", downloads: 342, icon: "picture_as_pdf", color: "text-red-500 bg-red-50 border-red-100" },
@@ -220,7 +223,7 @@ export default function VideoMain() {
 
   useEffect(() => {
   axios
-    .get(`http://localhost:8080/api/progress/course/${courseId}`, getAuthConfig())
+    .get(`${BASE_URL}/api/progress/course/${courseId}`, getAuthConfig())
     .then((res) => setCourseProgress(res.data))
     .catch(() => setCourseProgress(0));
 }, [courseId]);
@@ -228,12 +231,12 @@ export default function VideoMain() {
  const fetchData = async () => {
   try {
     const courseRes = await axios.get(
-      `http://localhost:8080/api/courses/${courseId}`
+      `${BASE_URL}/api/courses/${courseId}`
     );
     setCourse(courseRes.data);
 
     const lessonRes = await axios.get(
-      `http://localhost:8080/api/lessons/${lessonId}`,
+      `${BASE_URL}/api/lessons/${lessonId}`,
       getAuthConfig() // ✅ ĐÚNG CHỖ
       
     );
@@ -247,7 +250,7 @@ console.log("CONFIG:", getAuthConfig());
   
 useEffect(() => {
   axios
-    .get(`http://localhost:8080/api/progress/user`, getAuthConfig())
+    .get(`${BASE_URL}/api/progress/user`, getAuthConfig())
     .then((res) => setCompletedLessons(res.data))
     .catch(() => setCompletedLessons([]));
 }, []);
@@ -331,7 +334,7 @@ useEffect(() => {
     if (percent - lastSentRef.current > 5) {
       lastSentRef.current = percent;
 
-      axios.post(`http://localhost:8080/api/progress`, null, {
+      axios.post(`${BASE_URL}/api/progress`, null, {
         params: {
           lessonId,
           percent,
@@ -343,7 +346,7 @@ useEffect(() => {
 
     // Khi gần hết video thì chỉ lưu 100%, không chặn luồng hoàn tất bài
     if (percent >= 95) {
-      axios.post(`http://localhost:8080/api/progress`, null, {
+      axios.post(`${BASE_URL}/api/progress`, null, {
         params: {
           lessonId,
           percent: 100,
@@ -385,7 +388,7 @@ const completeLessonAndGoNext = async () => {
   });
 
   try {
-    await axios.post(`http://localhost:8080/api/progress`, null, {
+    await axios.post(`${BASE_URL}/api/progress`, null, {
       params: {
         lessonId,
         percent: 100,
@@ -395,7 +398,7 @@ const completeLessonAndGoNext = async () => {
     });
 
     const res = await axios.get(
-      `http://localhost:8080/api/progress/user`,
+      `${BASE_URL}/api/progress/user`,
       getAuthConfig()
     );
 
@@ -431,7 +434,7 @@ const handleVideoEnd = () => {
   setDuration(videoRef.current.duration);
 
   axios
-    .get(`http://localhost:8080/api/progress/${lessonId}`, getAuthConfig())
+    .get(`${BASE_URL}/api/progress/${lessonId}`, getAuthConfig())
     .then((res) => {
       const time = res.data?.currentTime;
 
@@ -471,10 +474,10 @@ const handleVideoEnd = () => {
 
     const normalized = String(videoUrl).replace(/\\/g, "/").replace(/^\/+/, "");
     if (/^(uploads|upload)\//i.test(normalized)) {
-      return `http://localhost:8080/${normalized}`;
+      return `${BASE_URL}/${normalized}`;
     }
 
-    return `http://localhost:8080/uploads/${normalized}`;
+    return `${BASE_URL}/uploads/${normalized}`;
   };
 
   const lessonDocuments = lesson?.attachmentUrl

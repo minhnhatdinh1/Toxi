@@ -10,8 +10,8 @@ export default function LoginModal({
   isOpen,
   onClose,
   onSuccess,
-  title = "Dang nhap",
-  description = "Dang nhap de tiep tuc hoc va mo noi dung khoa hoc.",
+  title = "Đăng nhập",
+  description = "Đăng nhập để tiếp tục học và mở nội dung khóa học.",
 }) {
   const [userName, setUserName] = useState("");
   const [passWord, setPassWord] = useState("");
@@ -57,10 +57,10 @@ export default function LoginModal({
     setError("");
 
     const errors = {};
-    if (!userName.trim()) errors.userName = "Vui long nhap tai khoan";
-    if (!passWord) errors.passWord = "Vui long nhap mat khau";
+    if (!userName.trim()) errors.userName = "Vui lòng nhập tài khoản";
+    if (!passWord) errors.passWord = "Vui lòng nhập mật khẩu";
     if (passWord && passWord.length < 5) {
-      errors.passWord = "Mat khau phai co it nhat 5 ky tu";
+      errors.passWord = "Mật khẩu phải có ít nhất 5 ký tự";
     }
 
     setFieldErrors(errors);
@@ -89,7 +89,7 @@ export default function LoginModal({
       await mergeCartAfterLogin(token);
 
       const decoded = jwtDecode(token);
-      toast.addToast("Dang nhap thanh cong", "success");
+      toast.addToast("Đăng nhập thành công", "success");
 
       if (decoded?.role === "ADMIN") {
         onClose?.();
@@ -99,7 +99,7 @@ export default function LoginModal({
 
       onSuccess?.(res.data);
     } catch (err) {
-      const message = err.response?.data?.message || "Dang nhap that bai";
+      const message = err.response?.data?.message || "Đăng nhập thất bại";
       setError(message);
       toast.addToast(message, "error");
     } finally {
@@ -120,7 +120,7 @@ export default function LoginModal({
           type="button"
           onClick={onClose}
           className="absolute right-4 top-4 z-20 rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
-          aria-label="Dong form dang nhap"
+          aria-label="Đóng form đăng nhập"
         >
           <span className="material-symbols-outlined">close</span>
         </button>
@@ -139,11 +139,11 @@ export default function LoginModal({
               TOXI
             </p>
             <h2 className="mt-4 text-3xl font-black leading-tight">
-              Hoc tiep khong bi gian doan
+              Học tiếp không bị gián đoạn
             </h2>
             <p className="mt-4 text-sm leading-6 text-white/80">
-              Dang nhap de vao bai hoc, theo doi tien do va dong bo du lieu cua
-              ban.
+              Đăng nhập để vào bài học, theo dõi tiến độ và đồng bộ dữ liệu của
+              bạn.
             </p>
           </div>
         </div>
@@ -162,7 +162,7 @@ export default function LoginModal({
           <form className="space-y-5" onSubmit={handleLogin}>
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Tai khoan
+                Tài khoản
               </label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -173,7 +173,7 @@ export default function LoginModal({
                   value={userName}
                   autoComplete="username"
                   onChange={(e) => setUserName(e.target.value)}
-                  placeholder="Nhap ten dang nhap"
+                  placeholder="Nhập tên đăng nhập"
                   className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
                 />
               </div>
@@ -185,14 +185,14 @@ export default function LoginModal({
             <div>
               <div className="mb-2 flex items-center justify-between">
                 <label className="text-sm font-semibold text-slate-700">
-                  Mat khau
+                  Mật khẩu
                 </label>
                 <Link
                   to="/MissingPassword"
                   onClick={onClose}
                   className="text-sm font-medium text-slate-500 transition-colors hover:text-primary"
                 >
-                  Quen mat khau?
+                  Quên mật khẩu?
                 </Link>
               </div>
 
@@ -205,14 +205,14 @@ export default function LoginModal({
                   value={passWord}
                   autoComplete="current-password"
                   onChange={(e) => setPassWord(e.target.value)}
-                  placeholder="Nhap mat khau"
+                  placeholder="Nhập mật khẩu"
                   className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-primary"
-                  aria-label={showPassword ? "An mat khau" : "Hien mat khau"}
+                  aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                 >
                   <span className="material-symbols-outlined">
                     {showPassword ? "visibility_off" : "visibility"}
@@ -231,18 +231,18 @@ export default function LoginModal({
               disabled={submitting}
               className="flex h-12 w-full items-center justify-center rounded-2xl bg-secondary px-4 font-bold text-primary transition-all hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {submitting ? "Dang xu ly..." : "Dang nhap"}
+              {submitting ? "Đang xử lý..." : "Đăng nhập"}
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm text-slate-500">
-            Chua co tai khoan?{" "}
+            Chưa có tài khoản?{" "}
             <Link
               to="/register"
               onClick={onClose}
               className="font-bold text-primary hover:underline"
             >
-              Dang ky ngay
+              Đăng ký ngay
             </Link>
           </p>
         </div>

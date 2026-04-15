@@ -2,6 +2,8 @@ import { useState,useEffect  } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import logo from "../../../assets/image/LOGO (1).png";
 import { useCart } from "../../../context/CartContext";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 // ── Mock data ──
 const QUIZ = {
@@ -216,7 +218,7 @@ const mappedQuiz = quiz
 
 
 useEffect(() => {
-  fetch(`http://localhost:8080/api/quizzes/${id}`)
+  fetch(`${BASE_URL}/api/quizzes/${id}`)
     .then(res => res.json())
     .then(data => setQuiz(data.data));
 }, [id]);
@@ -230,7 +232,7 @@ useEffect(() => {
     return;
   }
 
-  fetch(`http://localhost:8080/api/exam/history/${id}`, {
+  fetch(`${BASE_URL}/api/exam/history/${id}`, {
     headers: {
       Authorization: `Bearer ${token}`
     }

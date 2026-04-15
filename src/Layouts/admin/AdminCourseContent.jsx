@@ -772,19 +772,19 @@ function ChapterCard({ ch, ci, onEditChapter, onEditLesson, onEditQuiz, onAddLes
           <button
             onClick={handleAddQuiz}
             className="flex sm:hidden p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors"
-            title="ThÃªm quiz"
+            title="Them quiz"
           >
             <span className="material-symbols-outlined text-[18px]">quiz</span>
           </button>
           <button
             onClick={() => onEditChapter(ch, ci)}
             className="p-2 text-slate-400 hover:text-primary hover:bg-blue-50 rounded-lg transition-colors"
-            title="Chỉnh sửa chương">
+            title="Chinh sua chuong">
             <span className="material-symbols-outlined text-[18px]">edit</span>
           </button>
           <button
             onClick={() => onDeleteChapter(chapterId, ch.title)}
-            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Xóa chương">
+            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Xoa chuong">
             <span className="material-symbols-outlined text-[18px]">delete</span>
           </button>
           <div className="w-px h-5 bg-slate-200 mx-0.5"></div>
@@ -807,18 +807,18 @@ function ChapterCard({ ch, ci, onEditChapter, onEditLesson, onEditQuiz, onAddLes
               <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
                 <span className="material-symbols-outlined text-2xl text-slate-300">playlist_add</span>
               </div>
-              <p className="text-sm text-slate-400 font-medium">Chương này chưa có bài giảng.</p>
+              <p className="text-sm text-slate-400 font-medium">Chuong nay chua co bai giang.</p>
               <button
                 onClick={handleAddLesson}
                 className="text-xs font-bold text-primary hover:underline uppercase tracking-widest"
               >
-                Bắt đầu tạo bài học
+                Bat dau tao bai hoc
               </button>
               <button
                 onClick={handleAddQuiz}
                 className="text-xs font-bold text-orange-500 hover:underline uppercase tracking-widest"
               >
-                ThÃªm quiz cÃ³ sáºµn
+                Them quiz co san
               </button>
             </div>
           ) : (
@@ -920,7 +920,7 @@ export default function AdminCourseContent() {
 
   const fetchCourse = async () => {
     const token = localStorage.getItem("token") || "";
-    const res = await fetch(`http://localhost:8080/api/courses/${courseId}`, {
+    const res = await fetch(`${API_BASE}/api/courses/${courseId}`, {
       headers: { ...(token && { Authorization: `Bearer ${token}` }) },
     });
     const data = await res.json();

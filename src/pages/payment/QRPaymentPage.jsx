@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 
 function getQRUrl(amount, orderCode, bankInfo) {
   const info = encodeURIComponent(bankInfo.transferContent || orderCode);
@@ -54,7 +56,7 @@ function CopyBtn({ text, label = "Sao chép", small = false }) {
           : "bg-secondary text-primary hover:brightness-95 active:scale-95"
       }`}
     >
-      {copied ? "ĐÃ SAO" : label}
+      {copied ? "DA SAO CHEP" : label}
     </button>
   );
 }
@@ -92,7 +94,7 @@ export default function QRPaymentPage() {
   const handleConfirm = async () => {
     setLoading(true);
     try {
-      await fetch(`http://localhost:8080/api/orders/${order.orderCode}/pending-confirm`, {
+      await fetch(`${BASE_URL}/api/orders/${order.orderCode}/pending-confirm`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

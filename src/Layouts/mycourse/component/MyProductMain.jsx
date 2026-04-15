@@ -2,8 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import MyUser from "./MyUser";
 import MyHeader from "./MyHeader";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
-const API = "http://localhost:8080/api";
+
+const API = `${BASE_URL}/api`;
 const buildOrderEndpoints = (userId) =>
   [
     `${API}/orders/my`,
@@ -86,11 +88,11 @@ const buildFileUrl = (value) => {
   const normalizedValue = value.replace(/^\/+/, "");
 
   if (normalizedValue.startsWith("api/files/")) {
-    return `http://localhost:8080/${normalizedValue}`;
+    return `${BASE_URL}/${normalizedValue}`;
   }
 
   if (normalizedValue.startsWith("uploads/")) {
-    return `http://localhost:8080/${normalizedValue}`;
+    return `${BASE_URL}/${normalizedValue}`;
   }
 
   return `${API}/files/${normalizedValue}`;

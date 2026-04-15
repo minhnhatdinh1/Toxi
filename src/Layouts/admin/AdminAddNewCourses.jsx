@@ -4,6 +4,9 @@ import AdminSidebar from "./AdminSidebar";
 import { Link , useNavigate } from "react-router-dom";
 import { useApi } from "../service/useApi";
 import { uploadImage } from "./api/apiFile";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+
 export default function AdminAddNewCourses() {
   
     const navigate = useNavigate();
@@ -113,7 +116,7 @@ const handleChange = (e) => {
       }
 
       const response = await fetch(
-        "http://localhost:8080/api/admin/courses",
+        `${BASE_URL}/api/admin/courses`,
         {
           method: "POST",
           headers: {
