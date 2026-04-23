@@ -12,7 +12,7 @@ import AdminRoute from "./AdminRoute";
 import Register from './Layouts/auth/Register.jsx'
 
 import QRPaymentPage from "./pages/payment/QRPaymentPage";
-import WaitingPage from "./pages/payment/WaitingPage";
+import WaitingPage from "./pages/payment/WaitingPage";` `
 import SuccessPage from "./pages/payment/SuccessPage";
 import Login from './Layouts/auth/Login'
 import Productdetail from './Layouts/products/Productdetail'
@@ -87,7 +87,12 @@ import AdminQuizPreview from './Layouts/admin/AdminQuizPreview.jsx';
 import AdminVideo from './Layouts/admin/AdminVideo.jsx';
 import AdminAddNewVideo from './Layouts/admin/AdminAddNewVideo.jsx';
 import AdminCourseContent from './Layouts/admin/AdminCourseContent.jsx';
+import AdminFlashCard from './Layouts/admin/AdminFlashCard.jsx';
 import DocumentPage from './Layouts/document/DocumentPage.jsx';
+import Flashcard from './Layouts/flashcard/FlashCard.jsx';
+import FlashcardMain from './Layouts/flashcard/FlashcardMain.jsx';
+import AdminFlashCardPage from './Layouts/admin/AdminFlashCardPage.jsx';
+import AddNewFlashcard from './Layouts/admin/addflashcard/AddNewFlashcard.jsx';
 import LearnRoute from './LearnRoute.jsx';
 
 function App() {
@@ -109,9 +114,11 @@ function App() {
         <Route path="/Introduction" element={<IntroSection />} />
         <Route path="/blogintroduce" element={<BlogIntrodution />} />
         <Route path="/documents" element={<DocumentPage />} />
-      </Route>
+          <Route path="/flashcard" element={<Flashcard />} />
+         
+        </Route>
 
-      <Route path="/payment/qr"      element={<QRPaymentPage />} />
+      <Route path="/payment/qr"element={<QRPaymentPage />} />
       <Route path="/payment/waiting" element={<WaitingPage />} />
       <Route path="/payment/success" element={<SuccessPage />} />
 
@@ -122,9 +129,9 @@ function App() {
       <Route path="/cart" element={<Cartpage />} />
       <Route path="/checkout" element={<CheckOutPage />} />
       <Route path="/learn/:courseId/:lessonId" element={<LearnRoute><VideoPage /></LearnRoute>} />
-      <Route path="/flashcard" element={<FlashcardPage />} />
       <Route path="/Exam/:id" element={<ExamPage />} />
       <Route path="/result/:id" element={<ExamResultPage />} />
+       <Route path="/flashcard/session" element={<FlashcardMain />} />
       <Route path="/MyCourse" element={<MyCoursePage />} />
       <Route path="/Profile" element={<MyInformationPage />} />
       <Route path="/MyProduct" element={<MyProductMain />} />
@@ -150,6 +157,10 @@ function App() {
       <Route path="/adminaddnewquiz" element={<AdminAddNewQuiz />} />
    
       <Route path="/AddNewFillOfWord" element={<AddNewFillOfWord />} />
+      <Route path="/listenQuiz" element={<AdminRoute><AddNewListenQuiz /></AdminRoute>} />
+      <Route path="/readQuiz" element={<AdminRoute><AddNewReadQuiz /></AdminRoute>} />
+      <Route path="/writtingQuiz" element={<AdminRoute><AddNewWritting /></AdminRoute>} />
+      <Route path="/listenquiz" element={<AdminRoute><AddNewListenQuiz /></AdminRoute>} />
       <Route path="/editlisten" element={<EditListen />} />
   
 <Route path="/quiz/:id" element={<QuizDetailPage />} />
@@ -203,6 +214,9 @@ function App() {
 <Route path="/adminQuiz/:quizId/edit-question/listen/:questionId" element={<AdminRoute><AddNewListenQuiz /></AdminRoute>} />
 <Route path="/adminQuiz/:quizId/edit-question/read/:questionId" element={<AdminRoute><AddNewReadQuiz /></AdminRoute>} />
 <Route path="/adminQuiz/:quizId/edit-question/write/:questionId" element={<AdminRoute><AddNewWritting /></AdminRoute>} />
+<Route path="/adminFlashCards" element={<AdminRoute><AdminFlashCard /></AdminRoute>} />
+<Route path="/adminflashcardPage" element={<AdminRoute><AdminFlashCardPage /></AdminRoute>} />
+<Route path="/adminAddNewFlashcard" element={<AdminRoute><AddNewFlashcard /></AdminRoute>} />
 
     </Routes>
   )

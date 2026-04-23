@@ -1,6 +1,11 @@
 const BASE_URL = import.meta.env.VITE_API_URL;
 const API = `${BASE_URL}/api`;
 
+const offlineErrorMessages = new Set([
+  "Failed to fetch",
+  "Network Error",
+]);
+
 /**
  * Fetch có đính kèm Authorization header tự động.
  * Nếu nhận 401/403 → thử refresh token → retry request.
@@ -41,6 +46,26 @@ export async function fetchWithAuth(url, options = {}) {
   }
 
   return res;
+}
+
+export function isOfflineApiError(error) {
+  if (!error) return false;
+  if (error.name === "TypeError" && offlineErrorMessages.has(error.message)) return true;
+  if (typeof error.message === "string" && error.message.includes("Network Error")) return true;
+  return false;
+}
+
+export async function fetchJsonOrFallback(url, fallbackValue, options = {}) {
+  try {
+    const res = await fetch(url, options);
+    if (!res.ok) return fallbackValue;
+    return await res.json();
+  } catch (error) {
+    if (!isOfflineApiError(error)) {
+      console.error(`fetchJsonOrFallback error for ${url}:`, error);
+    }
+    return fallbackValue;
+  }
 }
 
 async function tryRefreshToken() {

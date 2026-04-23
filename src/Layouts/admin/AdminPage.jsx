@@ -6,10 +6,10 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 
 const API = `${BASE_URL}/api`;
 const REPORT_RANGES = [
-  { value: "7d", label: "7 ng‡y", days: 7 },
-  { value: "1m", label: "1 th·ng", days: 30 },
-  { value: "6m", label: "6 th·ng", days: 180 },
-  { value: "1y", label: "1 nam", days: 365 },
+  { value: "7d", label: "7 ng√†y", days: 7 },
+  { value: "1m", label: "1 th√°ng", days: 30 },
+  { value: "6m", label: "6 th√°ng", days: 180 },
+  { value: "1y", label: "1 nƒÉm", days: 365 },
 ];
 const SNAPSHOT_DAYS = 30;
 const CHART_DAYS = 180;
@@ -54,7 +54,7 @@ const itemAmount = (item) =>
 const tone = (type) =>
   type === "BOOK"
     ? {
-        label: "S·ch",
+        label: "S√°ch",
         pill: "bg-amber-50 text-amber-700 border-amber-100",
         iconWrap: "bg-amber-100",
         icon: "text-amber-600",
@@ -69,7 +69,7 @@ const tone = (type) =>
           progress: "bg-violet-500",
         }
       : {
-          label: "KhÛa h?c",
+          label: "Kh√≥a h·ªçc",
           pill: "bg-blue-50 text-blue-700 border-blue-100",
           iconWrap: "bg-blue-100",
           icon: "text-blue-600",
@@ -144,20 +144,20 @@ function chartSeries(orders) {
 
 function exportCsv(rangeLabel, orders, quizzes, typeRevenue) {
   const rows = [
-    ["B·o c·o dashboard", rangeLabel],
-    ["Xu?t l˙c", new Date().toLocaleString("vi-VN")],
+    ["B√°o c√°o dashboard", rangeLabel],
+    ["Xu·∫•t l√∫c", new Date().toLocaleString("vi-VN")],
     [],
-    ["T?ng doanh thu", orders.reduce((s, o) => s + Number(o.amount || 0), 0)],
-    ["Doanh thu khÛa h?c", typeRevenue.find((x) => x.key === "COURSE")?.amount || 0],
-    ["Doanh thu s·ch", typeRevenue.find((x) => x.key === "BOOK")?.amount || 0],
+    ["T·ªïng doanh thu", orders.reduce((s, o) => s + Number(o.amount || 0), 0)],
+    ["Doanh thu kh√≥a h·ªçc", typeRevenue.find((x) => x.key === "COURSE")?.amount || 0],
+    ["Doanh thu s√°ch", typeRevenue.find((x) => x.key === "BOOK")?.amount || 0],
     ["Doanh thu combo", typeRevenue.find((x) => x.key === "COMBO")?.amount || 0],
     [],
-    ["–on h‡ng"],
-    ["M„ don", "H?c viÍn", "Gi· tr?", "Tr?ng th·i", "Ng‡y t?o"],
+    ["ƒê∆°n h√†ng"],
+    ["M√£ ƒë∆°n", "H·ªçc vi√™n", "Gi√° tr·ªã", "Tr·∫°ng th√°i", "Ng√†y t·∫°o"],
     ...orders.map((o) => [o.id, o.customer, o.amount, o.status, fmtDate(o.createdAt)]),
     [],
-    ["–? thi"],
-    ["TiÍu d?", "HSK", "Tr?ng th·i", "S? c‚u", "Lu?t l‡m"],
+    ["ƒê·ªÅ thi"],
+    ["Ti√™u ƒë·ªÅ", "HSK", "Tr·∫°ng th√°i", "S·ªë c√¢u", "L∆∞·ª£t l√†m"],
     ...quizzes.map((q) => [q.title, q.hsklevel || "--", q.status || "--", q.totalQuestions || 0, q.playCount || 0]),
   ];
 
@@ -189,7 +189,7 @@ function Card({ icon, label, value, delta, toneData, footer }) {
             {`${up ? "+" : ""}${delta.toFixed(1)}%`}
           </div>
         ) : (
-          <div className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-500">To‡n th?i gian</div>
+          <div className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-500">To√†n th·ªùi gian</div>
         )}
       </div>
 
@@ -250,7 +250,7 @@ export default function AdminPage() {
         });
       } catch (err) {
         console.error(err);
-        setError("KhÙng t?i du?c d? li?u dashboard.");
+        setError("Kh√¥ng t·∫£i ƒë∆∞·ª£c d·ªØ li·ªáu dashboard.");
       } finally {
         setLoading(false);
       }
@@ -260,13 +260,13 @@ export default function AdminPage() {
 
   const orders = useMemo(() => (dashboard.orders || []).map((o, i) => ({
     id: o.orderCode || o.id || `OD-${i + 1}`,
-    customer: o.username || o.fullName || o.customerName || "H?c viÍn",
+    customer: o.username || o.fullName || o.customerName || "H·ªçc vi√™n",
     amount: Number(o.totalAmount || o.amount || 0),
     status: o.status || "PENDING",
     createdAt: o.createdAt || o.created_at || "",
     items: (o.orderItems || o.items || []).map((item) => ({
       type: item.itemType || item.type || "OTHER",
-      name: item.course?.title || item.book?.title || item.combo?.name || item.name || "S?n ph?m",
+      name: item.course?.title || item.book?.title || item.combo?.name || item.name || "S·∫£n ph·∫©m",
       quantity: item.quantity || item.qty || 1,
       finalPrice: item.finalPrice || item.price || item.unitPrice || item.discountPrice || item.amount || 0,
     })),
@@ -300,8 +300,8 @@ export default function AdminPage() {
       id: `order-${o.id}-${index}`,
       icon: "shopping_bag",
       iconWrap: "bg-blue-100 text-blue-600",
-      title: `–on h‡ng m?i ${o.id}`,
-      desc: `${o.customer} v?a t?o don tr? gi· ${money(o.amount)}.`,
+      title: `ƒê∆°n h√†ng m·ªõi ${o.id}`,
+      desc: `${o.customer} v·ª´a t·∫°o ƒë∆°n tr·ªã gi√° ${money(o.amount)}.`,
       time: fmtDate(o.createdAt),
       unread: index === 0,
     })),
@@ -309,8 +309,8 @@ export default function AdminPage() {
       id: `quiz-${q.quizId || q.id || q.title}`,
       icon: "quiz",
       iconWrap: "bg-violet-100 text-violet-600",
-      title: `–? thi ${q.title} v?a c?p nh?t`,
-      desc: `Quiz HSK ${q.hsklevel || "--"} hi?n cÛ ${q.totalQuestions || 0} c‚u. Ki?m tra ph?n h?i h?c viÍn n?u c?n.`,
+      title: `ƒê·ªÅ thi ${q.title} v·ª´a c·∫≠p nh·∫≠t`,
+      desc: `Quiz HSK ${q.hsklevel || "--"} hi·ªán c√≥ ${q.totalQuestions || 0} c√¢u. Ki·ªÉm tra ph·∫£n h·ªìi h·ªçc vi√™n n·∫øu c·∫ßn.`,
       time: fmtDate(q.createdAt),
       unread: false,
     })),
@@ -318,46 +318,46 @@ export default function AdminPage() {
       id: "course-review-watch",
       icon: "star",
       iconWrap: "bg-amber-100 text-amber-600",
-      title: "–·nh gi· khÛa h?c c?n theo dıi",
+      title: "ƒê√°nh gi√° kh√≥a h·ªçc c·∫ßn theo d√µi",
       desc: recentCourseOrders.length
-        ? `${recentCourseOrders.length} don khÛa h?c g?n d‚y. Uu tiÍn ki?m tra d·nh gi· m?i c?a h?c viÍn ? trang course.`
-        : "Chua cÛ API d·nh gi· khÛa h?c riÍng. Khi backend b? sung, m?c n‡y s? hi?n th? review m?i t? d?ng.",
-      time: recentCourseOrders[0] ? fmtDate(recentCourseOrders[0].createdAt) : "HÙm nay",
+        ? `${recentCourseOrders.length} ƒë∆°n khÔøΩa h?c g?n dÔøΩy. Uu tiÔøΩn ki?m tra dÔøΩnh giÔøΩ m·ªõi c?a h?c viÔøΩn ? trang course.`
+        : "Chua cÔøΩ API dÔøΩnh giÔøΩ khÔøΩa h?c riÔøΩng. Khi backend b? sung, m·ª•c nÔøΩy s? hi?n th? review m·ªõi t? d?ng.",
+      time: recentCourseOrders[0] ? fmtDate(recentCourseOrders[0].createdAt) : "H√¥m nay",
       unread: recentCourseOrders.length > 0,
     },
     {
       id: "product-feedback-watch",
       icon: "chat",
       iconWrap: "bg-emerald-100 text-emerald-600",
-      title: "Ph?n h?i s?n ph?m c?n theo dıi",
+      title: "Ph·∫£n h·ªìi s·∫£n ph·∫©m c·∫ßn theo d√µi",
       desc: recentBookOrders.length
-        ? `${recentBookOrders.length} don s·ch g?n d‚y. Ki?m tra ph?n h?i v‡ bÏnh lu?n c?a kh·ch ? trang product.`
-        : "Chua cÛ ph?n h?i s?n ph?m m?i ho?c backend chua tr? feed ph?n h?i riÍng.",
-      time: recentBookOrders[0] ? fmtDate(recentBookOrders[0].createdAt) : "HÙm nay",
+        ? `${recentBookOrders.length} ƒë∆°n s√°ch g·∫ßn ƒë√¢y. Ki·ªÉm tra ph·∫£n h·ªìi v√† b√¨nh lu·∫≠n c·ªßa kh√°ch ·ªü trang product.`
+        : "Chua cÔøΩ ph?n h?i s?n ph?m m·ªõi ho?c backend chua tr? feed ph?n h?i riÔøΩng.",
+      time: recentBookOrders[0] ? fmtDate(recentBookOrders[0].createdAt) : "H√¥m nay",
       unread: recentBookOrders.length > 0,
     },
     {
       id: "quiz-plays",
       icon: "insights",
       iconWrap: "bg-slate-200 text-slate-700",
-      title: "TÛm t?t ho?t d?ng quiz",
-      desc: `${dashboard.quizStats?.totalPlays || 0} lu?t l‡m quiz hi?n cÛ trong h? th?ng.`,
-      time: "T?c th?i",
+      title: "T√≥m t·∫Øt ho·∫°t ƒë·ªông quiz",
+      desc: `${dashboard.quizStats?.totalPlays || 0} lu?t lÔøΩm quiz hi·ªán c√≥ trong h? th?ng.`,
+      time: "T·ª©c th·ªùi",
       unread: false,
     },
   ];
   const unreadNotifications = notificationItems.filter((item) => item.unread).length;
   const feed = [
-    ...recentOrders.slice(0, 3).map((o) => ({ time: fmtDate(o.createdAt), title: `–on h‡ng ${o.id}`, desc: `${o.customer} v?a t?o don gi· tr? ${money(o.amount)}.`, tone: "bg-primary" })),
-    ...recentQuizzes.map((q) => ({ time: fmtDate(q.createdAt), title: q.title, desc: `Quiz HSK ${q.hsklevel || "--"} du?c c?p nh?t v?i ${q.totalQuestions || 0} c‚u.`, tone: "bg-amber-400" })),
-    snapshotCourses[0] ? { time: fmtDate(snapshotCourses[0].createdAt || snapshotCourses[0].created_at), title: snapshotCourses[0].title || "KhÛa h?c m?i", desc: `–„ ghi nh?n ${snapshotCourses.length} khÛa h?c m?i trong h? th?ng.`, tone: "bg-emerald-500" } : null,
+    ...recentOrders.slice(0, 3).map((o) => ({ time: fmtDate(o.createdAt), title: `ƒê∆°n h√†ng ${o.id}`, desc: `${o.customer} v·ª´a t·∫°o ƒë∆°n giÔøΩ tr? ${money(o.amount)}.`, tone: "bg-primary" })),
+    ...recentQuizzes.map((q) => ({ time: fmtDate(q.createdAt), title: q.title, desc: `Quiz HSK ${q.hsklevel || "--"} ƒë∆∞·ª£c c·∫≠p nh·∫≠t v·ªõi ${q.totalQuestions || 0} c√¢u.`, tone: "bg-amber-400" })),
+    snapshotCourses[0] ? { time: fmtDate(snapshotCourses[0].createdAt || snapshotCourses[0].created_at), title: snapshotCourses[0].title || "Kh√≥a h·ªçc m·ªõi", desc: `ƒê√£ ghi nh·∫≠n ${snapshotCourses.length} khÔøΩa h?c m·ªõi trong h? th?ng.`, tone: "bg-emerald-500" } : null,
   ].filter(Boolean);
   const suggestion = (() => {
     const top = [...typeRevenue].sort((a, b) => b.amount - a.amount)[0];
-    if (!top || top.amount <= 0) return "Chua cÛ d? li?u doanh thu mua h‡ng th?c t? d? dua ra g?i ˝ trong l˙c n‡y.";
-    if (top.key === "BOOK") return "Doanh thu s·ch dang d?n d?u. B?n cÛ th? d?y m?nh combo s·ch + d? thi th? d? tang gi· tr? don h‡ng.";
-    if (top.key === "COURSE") return "KhÛa h?c dang l‡ nhÛm b·n t?t nh?t. NÍn k?t h?p qu‡ t?ng s·ch ho?c workbook d? tang t? l? ch?t don.";
-    return "Combo dang ho?t d?ng hi?u qu?. B?n cÛ th? m? r?ng thÍm gÛi combo HSK c?p d? cao hon.";
+    if (!top || top.amount <= 0) return "Chua cÔøΩ d? li?u doanh thu mua hÔøΩng th?c t? d? dua ra g·ª£i √Ω trong l√∫c n√†y.";
+    if (top.key === "BOOK") return "Doanh thu s√°ch dang d?n d?u. B?n cÔøΩ th? d?y m?nh combo s√°ch + d? thi th? d? tang giÔøΩ tr? ƒë∆°n hÔøΩng.";
+    if (top.key === "COURSE") return "Kh√≥a h·ªçc dang lÔøΩ nhÔøΩm bÔøΩn t?t nh?t. NÔøΩn k?t h?p quÔøΩ t?ng s√°ch ho?c workbook d? tang t? l? ch?t ƒë∆°n.";
+    return "Combo ƒëang ho·∫°t ƒë·ªông hi·ªáu qu·∫£. B·∫°n c√≥ th·ªÉ m·ªü r·ªông th√™m g√≥i combo HSK c·∫•p ƒë·ªô cao h∆°n.";
   })();
   const handleExport = (range) => {
     const reportOrders = orders.filter((o) => inRange(o.createdAt, range.days));
@@ -367,7 +367,7 @@ export default function AdminPage() {
   };
 
   if (loading) {
-    return <div className="flex min-h-screen overflow-hidden"><AdminSidebar /><main className="flex min-w-0 flex-1 items-center justify-center bg-slate-50 px-4"><div className="text-center"><div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-primary" /><p className="text-sm font-semibold text-slate-600">–ang t?i dashboard...</p></div></main></div>;
+    return <div className="flex min-h-screen overflow-hidden"><AdminSidebar /><main className="flex min-w-0 flex-1 items-center justify-center bg-slate-50 px-4"><div className="text-center"><div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-primary" /><p className="text-sm font-semibold text-slate-600">ƒêang t·∫£i dashboard...</p></div></main></div>;
   }
 
   return (
@@ -379,7 +379,7 @@ export default function AdminPage() {
             <div className="flex w-full flex-1 items-center gap-4">
               <div className="group relative w-full max-w-lg">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary">search</span>
-                <input type="text" placeholder="TÏm ki?m h?c viÍn, don h‡ng, khÛa h?c..." className="w-full rounded-2xl border border-transparent bg-slate-100 py-3 pl-12 pr-4 text-sm transition-all focus:border-primary/20 focus:bg-white focus:ring-4 focus:ring-primary/5" />
+                <input type="text" placeholder="T√¨m ki·∫øm h·ªçc vi√™n, ƒë∆°n h√†ng, kh√≥a h·ªçc..." className="w-full rounded-2xl border border-transparent bg-slate-100 py-3 pl-12 pr-4 text-sm transition-all focus:border-primary/20 focus:bg-white focus:ring-4 focus:ring-primary/5" />
               </div>
             </div>
             <div className="flex w-full items-center justify-end gap-3 sm:gap-4 lg:w-auto lg:gap-8">
@@ -402,11 +402,11 @@ export default function AdminPage() {
                     <div className="border-b border-slate-100 px-5 py-4">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <p className="text-sm font-black text-slate-900">ThÙng b·o qu?n tr?</p>
-                          <p className="mt-1 text-xs font-medium text-slate-500">Theo dıi don m?i, ph?n h?i kh·ch h‡ng v‡ d·nh gi· khÛa h?c.</p>
+                          <p className="text-sm font-black text-slate-900">Th√¥ng b√°o qu·∫£n tr·ªã</p>
+                          <p className="mt-1 text-xs font-medium text-slate-500">Theo dÔøΩi ƒë∆°n m·ªõi, ph?n h?i khÔøΩch hÔøΩng vÔøΩ dÔøΩnh giÔøΩ khÔøΩa h?c.</p>
                         </div>
                         <div className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-600">
-                          {notificationItems.length} m?c
+                          {notificationItems.length} m·ª•c
                         </div>
                       </div>
                     </div>
@@ -433,7 +433,7 @@ export default function AdminPage() {
                   </div>
                 ) : null}
               </div>
-              <div className="group hidden cursor-pointer items-center gap-2 rounded-full bg-slate-100 px-4 py-2 transition-all hover:bg-primary hover:text-white sm:flex"><span className="material-symbols-outlined text-xl text-primary group-hover:text-white">language</span><span className="text-xs font-bold">VI / ?</span></div>
+              <div className="group hidden cursor-pointer items-center gap-2 rounded-full bg-slate-100 px-4 py-2 transition-all hover:bg-primary hover:text-white sm:flex"><span className="material-symbols-outlined text-xl text-primary group-hover:text-white">language</span><span className="text-xs font-bold">VI / EN</span></div>
               <div className="hidden h-10 w-px bg-slate-200 lg:block" />
               <div className="flex cursor-pointer items-center gap-3"><div className="text-right"><p className="text-sm font-bold text-slate-900">Admin TOXI</p><p className="text-[11px] font-medium text-slate-500">Super Admin</p></div><span className="material-symbols-outlined text-slate-400">expand_more</span></div>
             </div>
@@ -442,31 +442,31 @@ export default function AdminPage() {
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10">
             <div className="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-center">
               <div>
-                <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">T?ng quan h? th?ng</h2>
-                <div className="mt-2 flex items-center gap-2"><span className="size-2 animate-pulse rounded-full bg-green-500" /><p className="text-sm font-medium text-slate-500">{error || `H? th?ng dang ho?t d?ng ?n d?nh. ${orders.length} don h‡ng, ${totalCourseUnits} khÛa h?c v‡ ${totalBookUnits} s·ch d„ du?c ghi nh?n.`}</p></div>
+                <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">T·ªïng quan h·ªá th·ªëng</h2>
+                <div className="mt-2 flex items-center gap-2"><span className="size-2 animate-pulse rounded-full bg-green-500" /><p className="text-sm font-medium text-slate-500">{error || `H·ªá th·ªëng ƒëang ho·∫°t ƒë·ªông ·ªïn ƒë·ªãnh. ${orders.length} ƒë∆°n hÔøΩng, ${totalCourseUnits} khÔøΩa h?c vÔøΩ ${totalBookUnits} s√°ch ƒë√£ ƒë∆∞·ª£c ghi nh·∫≠n.`}</p></div>
               </div>
               <div className="flex w-full gap-4 sm:w-auto">
                 <div className="relative" ref={exportRef}>
-                  <button type="button" onClick={() => setShowExportMenu((v) => !v)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 sm:w-auto sm:px-6"><span className="material-symbols-outlined text-xl">download</span>Xu?t b·o c·o<span className="material-symbols-outlined text-base">expand_more</span></button>
-                  {showExportMenu ? <div className="absolute right-0 top-14 z-40 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">{REPORT_RANGES.map((range) => <button key={range.value} type="button" onClick={() => handleExport(range)} className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"><span>B·o c·o {range.label}</span><span className="material-symbols-outlined text-base text-slate-400">download</span></button>)}</div> : null}
+                  <button type="button" onClick={() => setShowExportMenu((v) => !v)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 sm:w-auto sm:px-6"><span className="material-symbols-outlined text-xl">download</span>Xu·∫•t b√°o c√°o<span className="material-symbols-outlined text-base">expand_more</span></button>
+                  {showExportMenu ? <div className="absolute right-0 top-14 z-40 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">{REPORT_RANGES.map((range) => <button key={range.value} type="button" onClick={() => handleExport(range)} className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"><span>B√°o c√°o {range.label}</span><span className="material-symbols-outlined text-base text-slate-400">download</span></button>)}</div> : null}
                 </div>
               </div>
             </div>
 
             <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-              <Card icon="payments" label="T?ng doanh thu" value={money(totalRevenue)} delta={null} toneData={{ iconWrap: "bg-primary/10", icon: "text-primary", progress: "bg-primary" }} footer={{ left: "To‡n th?i gian", right: `${orders.length} don`, progress: "100%" }} />
-              <Card icon="school" label="Doanh thu khÛa h?c" value={money(courseRevenue)} delta={null} toneData={tone("COURSE")} footer={{ left: "T?ng khÛa h?c d„ b·n", right: `${totalCourseUnits} khÛa h?c`, progress: `${Math.max(courseShare, totalSalesRevenue > 0 ? 8 : 0)}%` }} />
-              <Card icon="auto_stories" label="Doanh thu s·ch" value={money(bookRevenue)} delta={null} toneData={tone("BOOK")} footer={{ left: "T?ng s·ch d„ b·n", right: `${totalBookUnits} quy?n`, progress: `${Math.max(bookShare, totalSalesRevenue > 0 ? 8 : 0)}%` }} />
-              <Card icon="person_add" label="T?ng h?c viÍn" value={totalCustomers} delta={null} toneData={{ iconWrap: "bg-emerald-100", icon: "text-emerald-600", progress: "bg-emerald-500" }} footer={{ left: "Kh·ch h‡ng d„ mua", right: `${totalPaidOrders} don`, progress: `${Math.max(comboShare || Math.min(totalCustomers * 5, 100), totalPaidOrders > 0 ? 8 : 0)}%` }} />
+              <Card icon="payments" label="T·ªïng doanh thu" value={money(totalRevenue)} delta={null} toneData={{ iconWrap: "bg-primary/10", icon: "text-primary", progress: "bg-primary" }} footer={{ left: "To√†n th·ªùi gian", right: `${orders.length} ƒë∆°n`, progress: "100%" }} />
+              <Card icon="school" label="Doanh thu kh√≥a h·ªçc" value={money(courseRevenue)} delta={null} toneData={tone("COURSE")} footer={{ left: "T·ªïng kh√≥a h·ªçc ƒë√£ b√°n", right: `${totalCourseUnits} khÔøΩa h?c`, progress: `${Math.max(courseShare, totalSalesRevenue > 0 ? 8 : 0)}%` }} />
+              <Card icon="auto_stories" label="Doanh thu s√°ch" value={money(bookRevenue)} delta={null} toneData={tone("BOOK")} footer={{ left: "T?ng s√°ch ƒë√£ b√°n", right: `${totalBookUnits} quy·ªÉn`, progress: `${Math.max(bookShare, totalSalesRevenue > 0 ? 8 : 0)}%` }} />
+              <Card icon="person_add" label="T?ng h?c viÔøΩn" value={totalCustomers} delta={null} toneData={{ iconWrap: "bg-emerald-100", icon: "text-emerald-600", progress: "bg-emerald-500" }} footer={{ left: "Kh√°ch h√†ng dÔøΩ mua", right: `${totalPaidOrders} ƒë∆°n`, progress: `${Math.max(comboShare || Math.min(totalCustomers * 5, 100), totalPaidOrders > 0 ? 8 : 0)}%` }} />
             </div>
 
             <div className="mb-10 rounded-3xl border border-slate-100 bg-white p-4 shadow-sm sm:p-6 lg:p-10">
               <div className="mb-12 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-                <div className="flex items-center gap-5"><div className="flex size-14 items-center justify-center rounded-2xl bg-primary/5"><span className="material-symbols-outlined text-3xl text-primary">analytics</span></div><div><h3 className="text-2xl font-bold text-slate-900">So s·nh doanh thu</h3><p className="mt-1 text-sm font-medium text-slate-500">T? tr?ng gi?a khÛa h?c v‡ s·ch trong 6 th·ng g?n d‚y</p></div></div>
-                <div className="flex gap-4 rounded-2xl bg-slate-50 p-1.5"><div className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-white px-4 py-2 shadow-sm"><div className="size-3.5 rounded-full bg-gradient-to-b from-blue-600 to-sky-400" /><span className="text-xs font-bold text-slate-700">Doanh thu khÛa h?c</span></div><div className="flex items-center gap-2.5 px-4 py-2"><div className="size-3.5 rounded-full bg-gradient-to-b from-amber-500 to-yellow-300" /><span className="text-xs font-bold text-slate-500">S·ch v‡ s?n ph?m</span></div></div>
+                <div className="flex items-center gap-5"><div className="flex size-14 items-center justify-center rounded-2xl bg-primary/5"><span className="material-symbols-outlined text-3xl text-primary">analytics</span></div><div><h3 className="text-2xl font-bold text-slate-900">So s√°nh doanh thu</h3><p className="mt-1 text-sm font-medium text-slate-500">T? tr?ng gi?a khÔøΩa h?c vÔøΩ s√°ch trong 6 th√°ng g?n dÔøΩy</p></div></div>
+                <div className="flex gap-4 rounded-2xl bg-slate-50 p-1.5"><div className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-white px-4 py-2 shadow-sm"><div className="size-3.5 rounded-full bg-gradient-to-b from-blue-600 to-sky-400" /><span className="text-xs font-bold text-slate-700">Doanh thu kh√≥a h·ªçc</span></div><div className="flex items-center gap-2.5 px-4 py-2"><div className="size-3.5 rounded-full bg-gradient-to-b from-amber-500 to-yellow-300" /><span className="text-xs font-bold text-slate-500">S√°ch vÔøΩ s?n ph?m</span></div></div>
               </div>
               {graph.length === 0 || maxGraph === 0 ? (
-                <div className="mt-8 flex h-[260px] items-center justify-center rounded-3xl bg-slate-50 text-sm font-semibold text-slate-400">Chua cÛ d? li?u doanh thu trong kho?ng th?i gian n‡y.</div>
+                <div className="mt-8 flex h-[260px] items-center justify-center rounded-3xl bg-slate-50 text-sm font-semibold text-slate-400">Ch∆∞a c√≥ d·ªØ li·ªáu doanh thu trong kho·∫£ng th·ªùi gian n√†y.</div>
               ) : (
                 <div className="relative mt-8 h-[320px] w-full sm:h-[360px] lg:h-[400px]">
                   <div className="pointer-events-none absolute inset-0 flex flex-col justify-between">{[100, 75, 50, 25, 0].map((l) => <div key={l} className="relative h-px w-full border-t border-slate-100"><span className="absolute -left-10 -top-2 text-[10px] font-bold text-slate-400">{l}%</span></div>)}</div>
@@ -490,12 +490,12 @@ export default function AdminPage() {
             </div>
 
             <div className="mb-10 overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
-              <div className="flex flex-col gap-4 border-b border-slate-50 p-4 sm:p-6 lg:flex-row lg:items-center lg:justify-between lg:p-8"><div><h3 className="text-xl font-bold text-slate-900">–on h‡ng v‡ dang k˝ g?n d‚y</h3><p className="mt-1 text-sm font-medium text-slate-500">Theo dıi c·c giao d?ch m?i nh?t trong h? th?ng</p></div><Link to="/admin/orders" className="inline-flex w-full items-center justify-center rounded-xl bg-slate-50 px-6 py-2.5 text-sm font-bold text-primary transition-all hover:bg-primary hover:text-white sm:w-auto">Xem t?t c?</Link></div>
+              <div className="flex flex-col gap-4 border-b border-slate-50 p-4 sm:p-6 lg:flex-row lg:items-center lg:justify-between lg:p-8"><div><h3 className="text-xl font-bold text-slate-900">ƒê∆°n h√†ng vÔøΩ ƒëƒÉng k√Ω g·∫ßn ƒë√¢y</h3><p className="mt-1 text-sm font-medium text-slate-500">Theo dÔøΩi cÔøΩc giao d?ch m·ªõi nh?t trong h? th?ng</p></div><Link to="/admin/orders" className="inline-flex w-full items-center justify-center rounded-xl bg-slate-50 px-6 py-2.5 text-sm font-bold text-primary transition-all hover:bg-primary hover:text-white sm:w-auto">Xem t·∫•t c·∫£</Link></div>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[860px] text-left text-sm">
-                  <thead className="bg-slate-50/60 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400"><tr><th className="px-8 py-5">M„ don</th><th className="px-8 py-5">H?c viÍn</th><th className="px-8 py-5">Lo?i hÏnh</th><th className="px-8 py-5">S?n ph?m</th><th className="px-8 py-5 text-right">Gi· tr?</th><th className="px-8 py-5 text-center">Tr?ng th·i</th></tr></thead>
+                  <thead className="bg-slate-50/60 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400"><tr><th className="px-8 py-5">M√£ ƒë∆°n</th><th className="px-8 py-5">H·ªçc vi√™n</th><th className="px-8 py-5">Lo·∫°i h√¨nh</th><th className="px-8 py-5">S·∫£n ph·∫©m</th><th className="px-8 py-5 text-right">Gi√° tr·ªã</th><th className="px-8 py-5 text-center">Tr·∫°ng th√°i</th></tr></thead>
                   <tbody className="divide-y divide-slate-50">
-                    {recentOrders.length === 0 ? <tr><td colSpan={6} className="px-8 py-10 text-center text-sm text-slate-400">Chua cÛ don h‡ng d? hi?n th?.</td></tr> : recentOrders.map((o) => {
+                    {recentOrders.length === 0 ? <tr><td colSpan={6} className="px-8 py-10 text-center text-sm text-slate-400">Chua cÔøΩ ƒë∆°n hÔøΩng d? hi?n th?.</td></tr> : recentOrders.map((o) => {
                       const t = tone(o.items[0]?.type === "BOOK" ? "BOOK" : o.items[0]?.type === "COMBO" ? "COMBO" : "COURSE");
                       return <tr key={o.id} className="cursor-pointer transition-all hover:bg-slate-50/80"><td className="px-8 py-5 font-mono text-xs font-bold text-primary">#{o.id}</td><td className="px-8 py-5 font-bold text-slate-700">{o.customer}</td><td className="px-8 py-5"><span className={`rounded-lg border px-2.5 py-1 text-[10px] font-bold uppercase ${t.pill}`}>{t.label}</span></td><td className="px-8 py-5 font-medium text-slate-600">{o.items.map((i) => i.name).join(", ") || "--"}</td><td className="px-8 py-5 text-right font-extrabold text-slate-900">{money(o.amount)}</td><td className="px-8 py-5"><div className="flex justify-center"><span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase text-slate-600">{o.status}</span></div></td></tr>;
                     })}
@@ -508,14 +508,14 @@ export default function AdminPage() {
 
         <aside className="hidden w-[360px] border-l border-slate-200 bg-white 2xl:flex 2xl:flex-col">
           <div className="border-b border-slate-100 p-8">
-            <h3 className="text-2xl font-extrabold tracking-tight text-slate-900">Ho?t d?ng h? th?ng</h3>
-            <p className="mt-1 text-sm font-medium text-slate-500">C?p nh?t tr?c ti?p t? d? li?u hi?n cÛ</p>
+            <h3 className="text-2xl font-extrabold tracking-tight text-slate-900">Ho·∫°t ƒë·ªông h·ªá th·ªëng</h3>
+            <p className="mt-1 text-sm font-medium text-slate-500">C?p nh?t tr?c ti?p t? d? li?u hi·ªán c√≥</p>
           </div>
 
           <div className="flex-1 overflow-y-auto p-8">
             <div className="space-y-4">
               {feed.length === 0 ? (
-                <div className="rounded-3xl border border-slate-100 bg-slate-50 p-6 text-sm text-slate-400">Chua cÛ ho?t d?ng n‡o trong kho?ng th?i gian n‡y.</div>
+                <div className="rounded-3xl border border-slate-100 bg-slate-50 p-6 text-sm text-slate-400">Ch∆∞a c√≥ ho·∫°t ƒë·ªông n√†o trong kho·∫£ng th·ªùi gian n√†y.</div>
               ) : (
                 feed.map((f, i) => (
                   <div key={`${f.title}-${i}`} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
@@ -534,18 +534,18 @@ export default function AdminPage() {
 
             <div className="relative mt-8 overflow-hidden rounded-3xl border border-primary/10 bg-primary/5 p-8">
               <div className="absolute -right-6 -top-6 opacity-5"><span className="material-symbols-outlined text-[100px] text-primary">psychology</span></div>
-              <div className="mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-xl text-primary">auto_awesome</span><h4 className="text-sm font-bold uppercase tracking-wider text-primary">L?i khuyÍn AI</h4></div>
+              <div className="mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-xl text-primary">auto_awesome</span><h4 className="text-sm font-bold uppercase tracking-wider text-primary">L·ªùi khuy√™n AI</h4></div>
               <p className="text-sm leading-7 text-slate-600">{suggestion}</p>
-              <button className="mt-6 w-full rounded-xl bg-primary py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:brightness-110">¡p d?ng ngay</button>
+              <button className="mt-6 w-full rounded-xl bg-primary py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:brightness-110">√Åp d·ª•ng ngay</button>
             </div>
 
             <div className="mt-8 rounded-3xl border border-slate-100 bg-slate-50 p-6">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">Ch? s? nhanh</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">Ch·ªâ s·ªë nhanh</p>
               <div className="mt-4 space-y-3">
-                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">T?ng lu?t l‡m quiz</span><span className="font-black text-slate-900">{dashboard.quizStats?.totalPlays || 0}</span></div>
-                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">–? thi cÙng khai</span><span className="font-black text-slate-900">{dashboard.quizStats?.activeQuizzes || 0}</span></div>
-                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">T?ng khÛa h?c d„ b·n</span><span className="font-black text-slate-900">{totalCourseUnits}</span></div>
-                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">T?ng s·ch d„ b·n</span><span className="font-black text-slate-900">{totalBookUnits}</span></div>
+                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">T·ªïng l∆∞·ª£t l√†m quiz</span><span className="font-black text-slate-900">{dashboard.quizStats?.totalPlays || 0}</span></div>
+                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">ƒê·ªÅ thi c√¥ng khai</span><span className="font-black text-slate-900">{dashboard.quizStats?.activeQuizzes || 0}</span></div>
+                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">T·ªïng kh√≥a h·ªçc ƒë√£ b√°n</span><span className="font-black text-slate-900">{totalCourseUnits}</span></div>
+                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">T?ng s√°ch ƒë√£ b√°n</span><span className="font-black text-slate-900">{totalBookUnits}</span></div>
               </div>
             </div>
           </div>
@@ -554,3 +554,4 @@ export default function AdminPage() {
     </div>
   );
 }
+
