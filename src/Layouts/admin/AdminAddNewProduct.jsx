@@ -139,13 +139,15 @@ export default function AdminAddNewProduct() {
     setLoading(true);
 
     try {
-      let imageUrl = thumbnail;
+    let uploadedImageUrl = "";
 
-      if (selectedFile) {
-          console.log("UPLOADING IMAGE..."); // ← thêm
-        imageUrl = await uploadImage(selectedFile);
-            console.log("IMAGE URL:", imageUrl); // ← thêm
-      }
+if (selectedFile) {
+  const uploadRes = await uploadImage(selectedFile);
+  uploadedImageUrl = uploadRes?.url || "";
+} else if (thumbnail && !thumbnail.startsWith("blob:")) {
+  uploadedImageUrl = thumbnail;
+}
+
 
       const payload = {
         title: formData.title.trim(),
@@ -154,7 +156,7 @@ export default function AdminAddNewProduct() {
         discountPrice: Number(formData.discountPrice),
         stock: Number(formData.stock),
         categoryIds: formData.category,
-        imageUrls: imageUrl ? [imageUrl] : [],
+     imageUrls: uploadedImageUrl ? [uploadedImageUrl] : [],
       };
 console.log("CREATING PRODUCT...");
 console.log("TOKEN:", localStorage.getItem("token"));
@@ -165,6 +167,11 @@ await createProduct(payload);
       alert("Thêm sản phẩm thành công!");
       navigate("/adminProduct");
     } catch (err) {
+       console.error("FULL ERROR:", err);
+  console.error("ERROR MESSAGE:", err?.message);
+  console.error("ERROR RESPONSE:", err?.response);
+  console.error("ERROR RESPONSE DATA:", err?.response?.data);
+  console.error("ERROR STATUS:", err?.response?.status);
       console.error("BACKEND ERROR:", err.response?.data);
       setError(err.response?.data?.message || "Không thể thêm sản phẩm.");
     } finally {

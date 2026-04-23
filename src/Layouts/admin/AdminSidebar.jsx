@@ -8,6 +8,8 @@ export default function AdminSidebar() {
     { name: "Quản lý học viên", path: "/adminStudent", icon: "group" },
     { name: "Quản lý khóa học", path: "/adminCourse", icon: "menu_book" },
     { name: "Review khóa học", path: "/adminCourseComment", icon: "reviews" },
+    { name: "Quản lý danh mục sách", path: "/adminCategory", icon: "category" },
+
     { name: "Quản lý Store (Sách)", path: "/adminProduct", icon: "shopping_bag" },
     { name: "Ngân hàng đề thi HSK", path: "/adminQuiz", icon: "quiz" },
     { name: "Ngân hàng câu hỏi", path: "/adminExam", icon: "quiz" },

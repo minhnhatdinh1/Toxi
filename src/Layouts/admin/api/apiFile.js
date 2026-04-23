@@ -9,7 +9,7 @@ const DELETE_IMAGE_BY_BOOK_URL =
 
 // ================= UPLOAD IMAGE =================
 export const uploadImage = async (file) => {
-  const token = localStorage.getItem("token");
+const token = localStorage.getItem("authToken") || localStorage.getItem("token");
 
   const formData = new FormData();
   formData.append("file", file);
@@ -17,7 +17,7 @@ export const uploadImage = async (file) => {
   const response = await axios.post(UPLOAD_URL, formData, {
     headers: {
       Authorization: `Bearer ${token}`,
-      "Content-Type": "multipart/form-data",
+     
     },
   });
 
@@ -26,7 +26,8 @@ export const uploadImage = async (file) => {
 
 // ================= EXPORT EXCEL =================
 export const exportBooksExcel = async () => {
-  const token = localStorage.getItem("token");
+const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+
 
   const response = await axios.get(EXPORT_URL, {
     responseType: "blob",
@@ -40,7 +41,7 @@ export const exportBooksExcel = async () => {
 
 // ================= DELETE IMAGE BY BOOK ID =================
 export const deleteImagesByBook = async (bookId) => {
-  const token = localStorage.getItem("token");
+const token = localStorage.getItem("authToken") || localStorage.getItem("token");
 
   const response = await axios.delete(`${DELETE_IMAGE_BY_BOOK_URL}/${bookId}`, {
     headers: {

@@ -6,8 +6,8 @@ const API = `${BASE_URL}/api`;
 const ordersPerPage = 5;
 
 const typeConfig = {
-  COURSE: { label: "Khóa", className: "bg-blue-50 text-blue-600 border border-blue-100" },
-  BOOK: { label: "Sách", className: "bg-emerald-50 text-emerald-600 border border-emerald-100" },
+  COURSE: { label: "Khï¿½a", className: "bg-blue-50 text-blue-600 border border-blue-100" },
+  BOOK: { label: "Sï¿½ch", className: "bg-emerald-50 text-emerald-600 border border-emerald-100" },
   COMBO: { label: "Combo", className: "bg-purple-50 text-purple-600 border border-purple-100" },
 };
 
@@ -25,7 +25,7 @@ const shippingStatusConfig = {
   NONE: { label: "Chua giao ship", className: "bg-slate-100 text-slate-600 border border-slate-200" },
   PREPARING: { label: "Dang chuan bi", className: "bg-blue-50 text-blue-700 border border-blue-200" },
   SHIPPING: { label: "Da ban giao ship", className: "bg-amber-50 text-amber-700 border border-amber-200" },
-  DELIVERED: { label: "Giao thành công", className: "bg-green-50 text-green-700 border border-green-200" },
+  DELIVERED: { label: "Giao thï¿½nh cï¿½ng", className: "bg-green-50 text-green-700 border border-green-200" },
   CANCELLED: { label: "Giao that bai", className: "bg-red-50 text-red-600 border border-red-200" },
 };
 
@@ -63,7 +63,7 @@ const getShippingBadge = (order) => {
 
   if (shippingStatus === "DELIVERED") {
     return {
-      label: "Giao thành công",
+      label: "Giao thï¿½nh cï¿½ng",
       className: "border border-green-100 bg-green-50 text-green-700",
     };
   }
@@ -77,13 +77,13 @@ const getShippingBadge = (order) => {
 
   if (shippingStatus === "SHIPPING") {
     return {
-      label: "Ðã bàn giao ship",
+      label: "ï¿½ï¿½ bï¿½n giao ship",
       className: "border border-amber-100 bg-amber-50 text-amber-700",
     };
   }
 
   return {
-    label: "C?n giao hàng",
+    label: "C?n giao hï¿½ng",
     className: "border border-emerald-100 bg-emerald-50 text-emerald-700",
   };
 };
@@ -124,17 +124,17 @@ const buildPrintHtml = (title, orders) => `
     </head>
     <body>
       <h1>${title}</h1>
-      <p>T?ng don: ${orders.length}</p>
+      <p>T?ng ??n: ${orders.length}</p>
       ${orders
         .map(
           (order) => `
             <div class="card">
-              <div class="row"><div class="label">Mã don</div><div class="value">#${order.id}</div></div>
-              <div class="row"><div class="label">Ngu?i nh?n</div><div class="value">${order.shippingInfo?.fullName || order.student || "--"}</div></div>
-              <div class="row"><div class="label">S? di?n tho?i</div><div class="value">${order.shippingInfo?.phone || order.phone || "--"}</div></div>
+              <div class="row"><div class="label">Mï¿½ don</div><div class="value">#${order.id}</div></div>
+              <div class="row"><div class="label">Ng??i nh?n</div><div class="value">${order.shippingInfo?.fullName || order.student || "--"}</div></div>
+              <div class="row"><div class="label">S? ?i?n tho?i</div><div class="value">${order.shippingInfo?.phone || order.phone || "--"}</div></div>
               <div class="row"><div class="label">Email</div><div class="value">${order.email || "--"}</div></div>
-              <div class="row"><div class="label">Ð?a ch? giao hàng</div><div class="value">${order.shippingInfo?.address || "--"}</div></div>
-              <div class="row"><div class="label">Ngày thanh toán</div><div class="value">${formatDateTime(order.paymentAt)}</div></div>
+              <div class="row"><div class="label">ï¿½?a ch? giao hï¿½ng</div><div class="value">${order.shippingInfo?.address || "--"}</div></div>
+              <div class="row"><div class="label">Ngï¿½y thanh toï¿½n</div><div class="value">${formatDateTime(order.paymentAt)}</div></div>
               <div class="row"><div class="label">T?ng ti?n</div><div class="value">${formatMoney(order.amount)}</div></div>
               <div class="items">
                 <div class="label">S?n ph?m</div>
@@ -171,11 +171,11 @@ export default function AdminOrderPage() {
     setError("");
     try {
       const res = await fetch(`${API}/admin/orders`, { headers: getAuthHeaders() });
-      if (!res.ok) throw new Error("Không th? t?i don hàng");
+      if (!res.ok) throw new Error("Khï¿½ng th? t?i don hï¿½ng");
       const data = await res.json();
       const normalized = data.map((o) => ({
         id: o.orderCode || o.id,
-        student: o.username || o.fullName || "H?c viên",
+        student: o.username || o.fullName || "H?c viï¿½n",
         email: o.email || "",
         phone: o.phone || "",
         shippingInfo: o.shippingInfo || null,
@@ -225,7 +225,7 @@ export default function AdminOrderPage() {
   };
 
   const handleReject = async (id) => {
-    if (!window.confirm("Xác nh?n h?y don hàng này?")) return;
+    if (!window.confirm("Xï¿½c nh?n h?y don hï¿½ng nï¿½y?")) return;
     try {
       const res = await fetch(`${API}/admin/orders/${id}/reject`, {
         method: "PATCH",
@@ -245,7 +245,7 @@ export default function AdminOrderPage() {
         `${API}/admin/orders/${id}/shipping-status?status=${shippingStatus}`,
         { method: "POST", headers: getAuthHeaders() }
       );
-      if (!res.ok) throw new Error("C?p nh?t tr?ng thái giao hàng th?t b?i");
+      if (!res.ok) throw new Error("C?p nh?t tr?ng thï¿½i giao hï¿½ng th?t b?i");
       setOrders((prev) =>
         prev.map((o) => (o.id === id ? { ...o, shippingStatus } : o))
       );
@@ -292,12 +292,12 @@ export default function AdminOrderPage() {
 
   const printOrders = (title, printList) => {
     if (!printList.length) {
-      alert("Không có don phù h?p d? in.");
+      alert("Khï¿½ng cï¿½ don phï¿½ h?p d? in.");
       return;
     }
     const printWindow = window.open("", "_blank", "width=900,height=700");
     if (!printWindow) {
-      alert("Trình duy?t dang ch?n c?a s? in.");
+      alert("Trï¿½nh duy?t dang ch?n c?a s? in.");
       return;
     }
     printWindow.document.write(buildPrintHtml(title, printList));
@@ -312,7 +312,7 @@ export default function AdminOrderPage() {
       <main className="flex min-h-screen flex-1 flex-col overflow-y-auto chinese-pattern">
         <div className="sticky top-0 z-10 h-20 shrink-0 border-b border-slate-200 bg-white px-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h2 className="text-2xl font-bold text-slate-900">Qu?n lý Ðon hàng</h2>
+            <h2 className="text-2xl font-bold text-slate-900">Qu?n lï¿½ ï¿½on hï¿½ng</h2>
             {pendingConfirmCount > 0 && (
               <span className="animate-pulse rounded-full bg-amber-400 px-2.5 py-1 text-xs font-black text-slate-900">
                 {pendingConfirmCount} ch? duy?t
@@ -323,16 +323,16 @@ export default function AdminOrderPage() {
           <div className="flex items-center gap-6">
             <button
               type="button"
-              onClick={() => printOrders("Phi?u giao hàng hôm nay", shippableToday)}
+              onClick={() => printOrders("Phi?u giao hï¿½ng hï¿½m nay", shippableToday)}
               className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 transition-all hover:bg-emerald-100"
             >
-              In phi?u hôm nay
+              In phi?u hï¿½m nay
             </button>
             <div className="group relative w-72">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-slate-400 group-focus-within:text-primary">search</span>
               <input
                 type="text"
-                placeholder="Tìm don hàng, h?c viên..."
+                placeholder="Tï¿½m don hï¿½ng, h?c viï¿½n..."
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -353,24 +353,24 @@ export default function AdminOrderPage() {
           <div className="flex min-w-0 flex-1 flex-col gap-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">Ðon m?i hôm nay</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">ï¿½on m?i hï¿½m nay</p>
                 <p className="mt-2 text-3xl font-black text-slate-900">{newOrdersToday.length}</p>
-                <p className="mt-1 text-sm text-slate-600">Có {newOrdersToday.filter((o) => isAwaitingShipping(o)).length} don có s?n ph?m c?n giao.</p>
+                <p className="mt-1 text-sm text-slate-600">Cï¿½ {newOrdersToday.filter((o) => isAwaitingShipping(o)).length} don cï¿½ s?n ph?m c?n giao.</p>
               </div>
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700">Ðon c?n giao</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700">ï¿½on c?n giao</p>
                 <p className="mt-2 text-3xl font-black text-slate-900">{awaitingShipCount}</p>
-                <p className="mt-1 text-sm text-slate-600">Ðây là các don mua sách/combo dã thanh toán và c?n x? lý giao hàng.</p>
+                <p className="mt-1 text-sm text-slate-600">ï¿½ï¿½y lï¿½ cï¿½c don mua sï¿½ch/combo dï¿½ thanh toï¿½n vï¿½ c?n x? lï¿½ giao hï¿½ng.</p>
               </div>
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-700">Giao hàng thành công</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-700">Giao hï¿½ng thï¿½nh cï¿½ng</p>
                 <p className="mt-2 text-3xl font-black text-slate-900">{deliveredCount}</p>
-                <p className="mt-1 text-sm text-slate-600">Các don dã giao hoàn t?t cho khách hàng.</p>
+                <p className="mt-1 text-sm text-slate-600">Cï¿½c don dï¿½ giao hoï¿½n t?t cho khï¿½ch hï¿½ng.</p>
               </div>
               <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-rose-700">Giao hàng th?t b?i</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-rose-700">Giao hï¿½ng th?t b?i</p>
                 <p className="mt-2 text-3xl font-black text-slate-900">{failedShippingCount}</p>
-                <p className="mt-1 text-sm text-slate-600">Các don giao không thành công c?n ki?m tra l?i.</p>
+                <p className="mt-1 text-sm text-slate-600">Cï¿½c don giao khï¿½ng thï¿½nh cï¿½ng c?n ki?m tra l?i.</p>
               </div>
             </div>
 
@@ -378,16 +378,16 @@ export default function AdminOrderPage() {
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
                 <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
                   <span className="rounded-full bg-blue-50 px-3 py-1 font-semibold text-blue-700">
-                    {newOrdersToday.length} don m?i hôm nay
+                    {newOrdersToday.length} don m?i hï¿½m nay
                   </span>
                   <span className="rounded-full bg-emerald-50 px-3 py-1 font-semibold text-emerald-700">
-                    {awaitingShipCount} don c?n giao
+                    {awaitingShipCount} ??n c?n giao
                   </span>
                   <span className="rounded-full bg-green-50 px-3 py-1 font-semibold text-green-700">
-                    {deliveredCount} don giao thành công
+                    {deliveredCount} don giao thï¿½nh cï¿½ng
                   </span>
                   <span className="rounded-full bg-rose-50 px-3 py-1 font-semibold text-rose-700">
-                    {failedShippingCount} don giao th?t b?i
+                    {failedShippingCount} ??n giao th?t b?i
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -410,14 +410,14 @@ export default function AdminOrderPage() {
                     }}
                     className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
                   >
-                    L?c don c?n giao
+                    L?c ??n c?n giao
                   </button>
                   <button
                     type="button"
-                    onClick={() => printOrders("Phi?u giao hàng c?n x? lý", awaitingShippingOrders)}
+                    onClick={() => printOrders("Phi?u giao hï¿½ng c?n x? lï¿½", awaitingShippingOrders)}
                     className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white hover:bg-primary/90"
                   >
-                    In t?t c? don c?n giao
+                    In t?t c? ??n c?n giao
                   </button>
                 </div>
               </div>
@@ -433,9 +433,9 @@ export default function AdminOrderPage() {
 
             <div className="grid grid-cols-4 gap-4">
               {[
-                { label: "T?ng don", value: orders.length, icon: "receipt_long", iconColor: "text-blue-500 bg-blue-50" },
-                { label: "Giao thành công", value: deliveredCount, icon: "local_shipping", iconColor: "text-green-500 bg-green-50" },
-                { label: "Ðã thanh toán", value: paidCount, icon: "check_circle", iconColor: "text-green-500 bg-green-50" },
+                { label: "T?ng ??n", value: orders.length, icon: "receipt_long", iconColor: "text-blue-500 bg-blue-50" },
+                { label: "Giao thï¿½nh cï¿½ng", value: deliveredCount, icon: "local_shipping", iconColor: "text-green-500 bg-green-50" },
+                { label: "ï¿½ï¿½ thanh toï¿½n", value: paidCount, icon: "check_circle", iconColor: "text-green-500 bg-green-50" },
                 { label: "Doanh thu", value: formatMoney(revenue), icon: "payments", iconColor: "text-purple-500 bg-purple-50" },
               ].map((s) => (
                 <div key={s.label} className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -452,7 +452,7 @@ export default function AdminOrderPage() {
             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/50 p-4">
                 <div className="flex gap-1">
-                  {[["all", "T?t c?"], ["approved", "Ðã duy?t"], ["shipping", "C?n giao"], ["delivered", "Giao hàng thành công"], ["shipping_failed", "Giao hàng th?t b?i"]].map(([key, label]) => (
+                  {[["all", "T?t c?"], ["approved", "ï¿½ï¿½ duy?t"], ["shipping", "C?n giao"], ["delivered", "Giao hï¿½ng thï¿½nh cï¿½ng"], ["shipping_failed", "Giao hï¿½ng th?t b?i"]].map(([key, label]) => (
                     <button
                       key={key}
                       onClick={() => {
@@ -465,26 +465,26 @@ export default function AdminOrderPage() {
                     </button>
                   ))}
                 </div>
-                <div className="text-xs text-slate-400">{filtered.length} don hàng</div>
+                <div className="text-xs text-slate-400">{filtered.length} don hï¿½ng</div>
               </div>
 
               <div className="overflow-x-auto">
                 {loading && orders.length === 0 ? (
                   <div className="py-20 text-center">
                     <span className="material-symbols-outlined mb-3 block animate-spin text-4xl text-slate-300">refresh</span>
-                    <p className="text-sm text-slate-400">Ðang t?i don hàng...</p>
+                    <p className="text-sm text-slate-400">ï¿½ang t?i don hï¿½ng...</p>
                   </div>
                 ) : (
                   <table className="w-full text-left">
                     <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
                         <tr>
-                          <th className="px-6 py-4">Mã don</th>
-                          <th className="px-6 py-4">Ngày</th>
-                          <th className="px-6 py-4">H?c viên</th>
-                          <th className="px-6 py-4">S?n ph?m / Khóa h?c</th>
+                          <th className="px-6 py-4">Mï¿½ don</th>
+                          <th className="px-6 py-4">Ngï¿½y</th>
+                          <th className="px-6 py-4">H?c viï¿½n</th>
+                          <th className="px-6 py-4">S?n ph?m / Khï¿½a h?c</th>
                           <th className="px-6 py-4">T?ng ti?n</th>
-                        <th className="px-6 py-4">Tr?ng thái</th>
-                        <th className="px-6 py-4 text-right">Thao tác</th>
+                        <th className="px-6 py-4">Tr?ng thï¿½i</th>
+                        <th className="px-6 py-4 text-right">Thao tï¿½c</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -493,7 +493,7 @@ export default function AdminOrderPage() {
                           <td className="px-6 py-4">
                             <div>
                               <span className="text-sm font-black text-primary">#{order.id}</span>
-                              {order.customerConfirmed && <div className="mt-0.5 flex items-center gap-0.5 text-[10px] font-semibold text-amber-600"><span className="material-symbols-outlined text-[11px]">info</span>KH dã xác nh?n CK</div>}
+                              {order.customerConfirmed && <div className="mt-0.5 flex items-center gap-0.5 text-[10px] font-semibold text-amber-600"><span className="material-symbols-outlined text-[11px]">info</span>KH dï¿½ xï¿½c nh?n CK</div>}
                             </div>
                           </td>
                           <td className="px-6 py-4">
@@ -523,7 +523,7 @@ export default function AdminOrderPage() {
                                   <span className={`shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-black ${typeConfig[item.type]?.className || ""}`}>{typeConfig[item.type]?.label || item.type}</span>
                                   <span className="truncate text-xs text-slate-600">{item.name}</span>
                                 </div>
-                              )) : <span className="text-xs text-slate-400">—</span>}
+                              )) : <span className="text-xs text-slate-400">ï¿½</span>}
                             </div>
                           </td>
                           <td className="px-6 py-4"><span className="text-sm font-black text-slate-800">{formatMoney(order.amount)}</span></td>
@@ -558,7 +558,7 @@ export default function AdminOrderPage() {
                 )}
 
                 {!loading && filtered.length === 0 && (
-                  <div className="py-20 text-center"><span className="material-symbols-outlined text-5xl text-slate-200">inbox</span><p className="mt-3 text-sm text-slate-400">Không có don hàng nào</p></div>
+                  <div className="py-20 text-center"><span className="material-symbols-outlined text-5xl text-slate-200">inbox</span><p className="mt-3 text-sm text-slate-400">Khï¿½ng cï¿½ don hï¿½ng nï¿½o</p></div>
                 )}
               </div>
 
@@ -578,19 +578,19 @@ export default function AdminOrderPage() {
           {selected && (
             <aside className="sticky top-24 max-h-[calc(100vh-8rem)] w-80 shrink-0 self-start overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-                <h3 className="text-sm font-bold text-slate-800">Chi ti?t don hàng</h3>
+                <h3 className="text-sm font-bold text-slate-800">Chi ti?t don hï¿½ng</h3>
                 <button onClick={() => setSelected(null)} className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 transition-colors hover:bg-slate-200"><span className="material-symbols-outlined text-[16px] text-slate-500">close</span></button>
               </div>
 
               <div className="space-y-5 p-5">
                 <div className="rounded-xl bg-slate-50 p-3 text-center">
-                  <p className="mb-1 text-xs text-slate-400">Mã don hàng</p>
+                  <p className="mb-1 text-xs text-slate-400">Mï¿½ don hï¿½ng</p>
                   <p className="text-base font-black text-primary">#{selected.id}</p>
-                  {selected.customerConfirmed && <span className="mt-2 inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-600"><span className="material-symbols-outlined text-[12px]">payments</span>Khách dã xác nh?n chuy?n kho?n</span>}
+                  {selected.customerConfirmed && <span className="mt-2 inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-600"><span className="material-symbols-outlined text-[12px]">payments</span>Khï¿½ch dï¿½ xï¿½c nh?n chuy?n kho?n</span>}
                 </div>
 
                 <div>
-                  <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">H?c viên</p>
+                  <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">H?c viï¿½n</p>
                   <div className="flex items-center gap-3">
                     <div className={`flex h-10 w-10 items-center justify-center rounded-full ${avatarColor(selected.student)} text-sm font-bold text-white`}>{initials(selected.student)}</div>
                     <div>
@@ -605,28 +605,28 @@ export default function AdminOrderPage() {
                   <div className="space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700">Phi?u giao hàng</p>
-                        <p className="mt-1 text-sm font-semibold text-slate-700">Ðon có s?n ph?m v?t lý c?n giao</p>
+                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700">Phi?u giao hï¿½ng</p>
+                        <p className="mt-1 text-sm font-semibold text-slate-700">ï¿½on cï¿½ s?n ph?m v?t lï¿½ c?n giao</p>
                       </div>
-                      <button type="button" onClick={() => printOrders(`Phi?u giao hàng #${selected.id}`, [selected])} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2.5 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-50"><span className="material-symbols-outlined text-[14px]">print</span>In phi?u</button>
+                      <button type="button" onClick={() => printOrders(`Phi?u giao hï¿½ng #${selected.id}`, [selected])} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2.5 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-50"><span className="material-symbols-outlined text-[14px]">print</span>In phi?u</button>
                     </div>
 
                     <div className="grid gap-2 text-xs">
-                      <div className="rounded-xl border border-emerald-100 bg-white px-3 py-2"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ngu?i nh?n</p><p className="mt-1 font-semibold text-slate-700">{selected.shippingInfo.fullName || selected.student}</p></div>
-                      <div className="rounded-xl border border-emerald-100 bg-white px-3 py-2"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">S? di?n tho?i</p><p className="mt-1 font-semibold text-slate-700">{selected.shippingInfo.phone || selected.phone || "--"}</p></div>
+                      <div className="rounded-xl border border-emerald-100 bg-white px-3 py-2"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ng??i nh?n</p><p className="mt-1 font-semibold text-slate-700">{selected.shippingInfo.fullName || selected.student}</p></div>
+                      <div className="rounded-xl border border-emerald-100 bg-white px-3 py-2"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">S? ?i?n tho?i</p><p className="mt-1 font-semibold text-slate-700">{selected.shippingInfo.phone || selected.phone || "--"}</p></div>
                       <div className="rounded-xl border border-emerald-100 bg-white px-3 py-2"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Email</p><p className="mt-1 break-all font-semibold text-slate-700">{selected.email || "--"}</p></div>
-                      <div className="rounded-xl border border-emerald-100 bg-white px-3 py-2"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ð?a ch? giao hàng</p><p className="mt-1 leading-5 font-semibold text-slate-700">{selected.shippingInfo.address || "--"}</p></div>
-                      <div className="rounded-xl border border-emerald-100 bg-white px-3 py-2"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ngày thanh toán</p><p className="mt-1 font-semibold text-slate-700">{formatDateTime(selected.paymentAt)}</p></div>
+                      <div className="rounded-xl border border-emerald-100 bg-white px-3 py-2"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">ï¿½?a ch? giao hï¿½ng</p><p className="mt-1 leading-5 font-semibold text-slate-700">{selected.shippingInfo.address || "--"}</p></div>
+                      <div className="rounded-xl border border-emerald-100 bg-white px-3 py-2"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ngï¿½y thanh toï¿½n</p><p className="mt-1 font-semibold text-slate-700">{formatDateTime(selected.paymentAt)}</p></div>
                     </div>
                   </div>
                 )}
 
                 {hasShippingItems(selected) && !selected.shippingInfo && (
-                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4"><p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-700">Thi?u thông tin giao hàng</p><p className="mt-2 text-sm text-slate-600">Ðon này có s?n ph?m c?n ship nhung backend chua tr? v? d?a ch? giao hàng.</p></div>
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4"><p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-700">Thi?u thï¿½ng tin giao hï¿½ng</p><p className="mt-2 text-sm text-slate-600">ï¿½on nï¿½y cï¿½ s?n ph?m c?n ship nhung backend chua tr? v? d?a ch? giao hï¿½ng.</p></div>
                 )}
 
                 {!hasShippingItems(selected) && (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">Ðon s?</p><p className="mt-2 text-sm text-slate-600">Ðon này ch? g?m khóa h?c ho?c s?n ph?m s?, không c?n phi?u giao hàng.</p></div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">ï¿½on s?</p><p className="mt-2 text-sm text-slate-600">ï¿½on nï¿½y ch? g?m khï¿½a h?c ho?c s?n ph?m s?, khï¿½ng c?n phi?u giao hï¿½ng.</p></div>
                 )}
 
                 <div>
@@ -639,14 +639,14 @@ export default function AdminOrderPage() {
                 </div>
 
                 <div>
-                  <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">Thanh toán</p>
+                  <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">Thanh toï¿½n</p>
                   <div className="space-y-2.5">
-                    <div className="flex justify-between text-sm"><span className="text-slate-400">Phuong th?c</span><span className="font-semibold text-slate-700">{selected.method}</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-slate-400">Ngày thanh toán</span><span className="font-semibold text-slate-700">{formatDateTime(selected.paymentAt)}</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-slate-400">Tr?ng thái</span><span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-bold ${statusConfig[selected.status]?.className || ""}`}><span className={`h-1.5 w-1.5 rounded-full ${statusConfig[selected.status]?.dot || "bg-slate-300"}`} />{statusConfig[selected.status]?.label || selected.status}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-slate-400">Ph??ng th?c</span><span className="font-semibold text-slate-700">{selected.method}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-slate-400">Ngï¿½y thanh toï¿½n</span><span className="font-semibold text-slate-700">{formatDateTime(selected.paymentAt)}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-slate-400">Tr?ng thï¿½i</span><span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-bold ${statusConfig[selected.status]?.className || ""}`}><span className={`h-1.5 w-1.5 rounded-full ${statusConfig[selected.status]?.dot || "bg-slate-300"}`} />{statusConfig[selected.status]?.label || selected.status}</span></div>
                     {hasShippingItems(selected) && ["PAID", "APPROVED"].includes(selected.status) && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-400">Giao hàng</span>
+                        <span className="text-slate-400">Giao hï¿½ng</span>
                         <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-bold ${shippingStatusConfig[selected.shippingStatus || "NONE"]?.className || shippingStatusConfig.NONE.className}`}>
                           {shippingStatusConfig[selected.shippingStatus || "NONE"]?.label || shippingStatusConfig.NONE.label}
                         </span>
@@ -658,29 +658,29 @@ export default function AdminOrderPage() {
 
                 {canApproveOrder(selected) && (
                   <div className="space-y-2">
-                    <button onClick={() => handleApprove(selected.id)} disabled={approving} className="w-full rounded-xl bg-primary py-3 text-sm font-black text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 disabled:opacity-50">{approving ? "Ðang duy?t..." : "Xác nh?n duy?t don"}</button>
-                    <button onClick={() => handleReject(selected.id)} className="w-full rounded-xl border border-red-200 bg-red-50 py-2.5 text-sm font-bold text-red-500 transition-all hover:bg-red-100">H?y don hàng</button>
+                    <button onClick={() => handleApprove(selected.id)} disabled={approving} className="w-full rounded-xl bg-primary py-3 text-sm font-black text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 disabled:opacity-50">{approving ? "ï¿½ang duy?t..." : "Xï¿½c nh?n duy?t don"}</button>
+                    <button onClick={() => handleReject(selected.id)} className="w-full rounded-xl border border-red-200 bg-red-50 py-2.5 text-sm font-bold text-red-500 transition-all hover:bg-red-100">H?y don hï¿½ng</button>
                   </div>
                 )}
-                {["PAID", "APPROVED"].includes(selected.status) && <div className="w-full rounded-xl border border-green-200 bg-green-50 py-3 text-center text-sm font-bold text-green-600">Ðon hàng dã du?c duy?t</div>}
+                {["PAID", "APPROVED"].includes(selected.status) && <div className="w-full rounded-xl border border-green-200 bg-green-50 py-3 text-center text-sm font-bold text-green-600">ï¿½on hï¿½ng dï¿½ du?c duy?t</div>}
 
                 {hasShippingItems(selected) && ["PAID", "APPROVED"].includes(selected.status) && (
                   <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">X? lý giao hàng</p>
+                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">X? lï¿½ giao hï¿½ng</p>
                     <div className="grid grid-cols-1 gap-2">
                       <button
                         type="button"
                         onClick={() => handleShippingStatus(selected.id, "SHIPPING")}
                         className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700 hover:bg-amber-100"
                       >
-                        Ðã bàn giao ship
+                        ï¿½ï¿½ bï¿½n giao ship
                       </button>
                       <button
                         type="button"
                         onClick={() => handleShippingStatus(selected.id, "DELIVERED")}
                         className="rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-sm font-bold text-green-700 hover:bg-green-100"
                       >
-                        Giao thành công
+                        Giao thï¿½nh cï¿½ng
                       </button>
                       <button
                         type="button"

@@ -1,0 +1,14 @@
+node_modules
+# -> sẽ cài lại -> không cần copy
+dist
+# sẽ build lại
+.git
+# không cần
+.vscode
+# file cá nhân
+.idea
+npm-debug.log
+Dockerfile
+docker-compose.yml
+
+#--->không copy mấy file này vào docker image

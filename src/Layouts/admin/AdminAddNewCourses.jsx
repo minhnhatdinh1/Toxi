@@ -3,7 +3,7 @@ import { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
 import { Link , useNavigate } from "react-router-dom";
 import { useApi } from "../service/useApi";
-import { uploadImage } from "./api/apiFile";
+
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 
@@ -44,19 +44,7 @@ export default function AdminAddNewCourses() {
   const [introVideoFile, setIntroVideoFile] = useState(null);
   const [introVideoName, setIntroVideoName] = useState("");
 
-  const resolveUploadedPath = (uploaded) => {
-    if (!uploaded) return "";
-    if (typeof uploaded === "string") return uploaded;
-    return (
-      uploaded.url ||
-      uploaded.path ||
-      uploaded.fileUrl ||
-      uploaded.downloadUrl ||
-      uploaded.data?.url ||
-      uploaded.data?.path ||
-      ""
-    );
-  };
+ 
 
 const handleChange = (e) => {
     setFormData({
@@ -93,15 +81,12 @@ const handleChange = (e) => {
     try {
       const data = new FormData();
 
-      let introVideoUrl = formData.introVideoUrl?.trim() || "";
-      if (!introVideoUrl && introVideoFile) {
-        const uploadedVideo = await uploadImage(introVideoFile);
-        introVideoUrl = resolveUploadedPath(uploadedVideo);
-      }
+
 
       const courseData = {
         ...formData,
-        introVideoUrl,
+             introVideoUrl: formData.introVideoUrl?.trim() || "",
+
         status: status,
       };
 
@@ -114,13 +99,17 @@ const handleChange = (e) => {
       if (ThumbnailFile) {
         data.append("thumbnail", ThumbnailFile);
       }
+   if (introVideoFile) {
+      data.append("introVideo", introVideoFile);
+    }
 
       const response = await fetch(
         `${BASE_URL}/api/admin/courses`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${localStorage.getItem("authToken") || localStorage.getItem("token")}`
+
           },
           body: data,
         }

@@ -49,15 +49,17 @@ const normalizeBook = (raw = {}) => {
     image,
   };
 };
-
 const getAuthHeader = () => {
-  const token = localStorage.getItem("token");
-  return {
+
+const getToken = () => localStorage.getItem("authToken") || localStorage.getItem("token");
+return{
     headers: {
-      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
     },
   };
 };
+
 
 // ================= GET ALL (Page) =================
 export const getAllProducts = async (page = 0, size = 10) => {

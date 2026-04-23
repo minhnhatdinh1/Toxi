@@ -6,9 +6,9 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 
 const API = `${BASE_URL}/api`;
 const REPORT_RANGES = [
-  { value: "7d", label: "7 ngày", days: 7 },
-  { value: "1m", label: "1 tháng", days: 30 },
-  { value: "6m", label: "6 tháng", days: 180 },
+  { value: "7d", label: "7 ngï¿½y", days: 7 },
+  { value: "1m", label: "1 thï¿½ng", days: 30 },
+  { value: "6m", label: "6 thï¿½ng", days: 180 },
   { value: "1y", label: "1 nam", days: 365 },
 ];
 const SNAPSHOT_DAYS = 30;
@@ -54,7 +54,7 @@ const itemAmount = (item) =>
 const tone = (type) =>
   type === "BOOK"
     ? {
-        label: "Sách",
+        label: "Sï¿½ch",
         pill: "bg-amber-50 text-amber-700 border-amber-100",
         iconWrap: "bg-amber-100",
         icon: "text-amber-600",
@@ -69,7 +69,7 @@ const tone = (type) =>
           progress: "bg-violet-500",
         }
       : {
-          label: "Khóa h?c",
+          label: "Khï¿½a h?c",
           pill: "bg-blue-50 text-blue-700 border-blue-100",
           iconWrap: "bg-blue-100",
           icon: "text-blue-600",
@@ -144,20 +144,20 @@ function chartSeries(orders) {
 
 function exportCsv(rangeLabel, orders, quizzes, typeRevenue) {
   const rows = [
-    ["Báo cáo dashboard", rangeLabel],
-    ["Xu?t lúc", new Date().toLocaleString("vi-VN")],
+    ["Bï¿½o cï¿½o dashboard", rangeLabel],
+    ["Xu?t lï¿½c", new Date().toLocaleString("vi-VN")],
     [],
     ["T?ng doanh thu", orders.reduce((s, o) => s + Number(o.amount || 0), 0)],
-    ["Doanh thu khóa h?c", typeRevenue.find((x) => x.key === "COURSE")?.amount || 0],
-    ["Doanh thu sách", typeRevenue.find((x) => x.key === "BOOK")?.amount || 0],
+    ["Doanh thu khï¿½a h?c", typeRevenue.find((x) => x.key === "COURSE")?.amount || 0],
+    ["Doanh thu sï¿½ch", typeRevenue.find((x) => x.key === "BOOK")?.amount || 0],
     ["Doanh thu combo", typeRevenue.find((x) => x.key === "COMBO")?.amount || 0],
     [],
-    ["Ðon hàng"],
-    ["Mã don", "H?c viên", "Giá tr?", "Tr?ng thái", "Ngày t?o"],
+    ["ï¿½on hï¿½ng"],
+    ["Mï¿½ don", "H?c viï¿½n", "Giï¿½ tr?", "Tr?ng thï¿½i", "Ngï¿½y t?o"],
     ...orders.map((o) => [o.id, o.customer, o.amount, o.status, fmtDate(o.createdAt)]),
     [],
-    ["Ð? thi"],
-    ["Tiêu d?", "HSK", "Tr?ng thái", "S? câu", "Lu?t làm"],
+    ["ï¿½? thi"],
+    ["Tiï¿½u d?", "HSK", "Tr?ng thï¿½i", "S? cï¿½u", "Lu?t lï¿½m"],
     ...quizzes.map((q) => [q.title, q.hsklevel || "--", q.status || "--", q.totalQuestions || 0, q.playCount || 0]),
   ];
 
@@ -189,7 +189,7 @@ function Card({ icon, label, value, delta, toneData, footer }) {
             {`${up ? "+" : ""}${delta.toFixed(1)}%`}
           </div>
         ) : (
-          <div className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-500">Toàn th?i gian</div>
+          <div className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-500">Toï¿½n th?i gian</div>
         )}
       </div>
 
@@ -250,7 +250,7 @@ export default function AdminPage() {
         });
       } catch (err) {
         console.error(err);
-        setError("Không t?i du?c d? li?u dashboard.");
+        setError("Khï¿½ng t?i du?c d? li?u dashboard.");
       } finally {
         setLoading(false);
       }
@@ -260,7 +260,7 @@ export default function AdminPage() {
 
   const orders = useMemo(() => (dashboard.orders || []).map((o, i) => ({
     id: o.orderCode || o.id || `OD-${i + 1}`,
-    customer: o.username || o.fullName || o.customerName || "H?c viên",
+    customer: o.username || o.fullName || o.customerName || "H?c viï¿½n",
     amount: Number(o.totalAmount || o.amount || 0),
     status: o.status || "PENDING",
     createdAt: o.createdAt || o.created_at || "",
@@ -300,8 +300,8 @@ export default function AdminPage() {
       id: `order-${o.id}-${index}`,
       icon: "shopping_bag",
       iconWrap: "bg-blue-100 text-blue-600",
-      title: `Ðon hàng m?i ${o.id}`,
-      desc: `${o.customer} v?a t?o don tr? giá ${money(o.amount)}.`,
+      title: `ï¿½on hï¿½ng m?i ${o.id}`,
+      desc: `${o.customer} v?a t?o don tr? giï¿½ ${money(o.amount)}.`,
       time: fmtDate(o.createdAt),
       unread: index === 0,
     })),
@@ -309,8 +309,8 @@ export default function AdminPage() {
       id: `quiz-${q.quizId || q.id || q.title}`,
       icon: "quiz",
       iconWrap: "bg-violet-100 text-violet-600",
-      title: `Ð? thi ${q.title} v?a c?p nh?t`,
-      desc: `Quiz HSK ${q.hsklevel || "--"} hi?n có ${q.totalQuestions || 0} câu. Ki?m tra ph?n h?i h?c viên n?u c?n.`,
+      title: `ï¿½? thi ${q.title} v?a c?p nh?t`,
+      desc: `Quiz HSK ${q.hsklevel || "--"} hi?n cï¿½ ${q.totalQuestions || 0} cï¿½u. Ki?m tra ph?n h?i h?c viï¿½n n?u c?n.`,
       time: fmtDate(q.createdAt),
       unread: false,
     })),
@@ -318,46 +318,46 @@ export default function AdminPage() {
       id: "course-review-watch",
       icon: "star",
       iconWrap: "bg-amber-100 text-amber-600",
-      title: "Ðánh giá khóa h?c c?n theo dõi",
+      title: "ï¿½ï¿½nh giï¿½ khï¿½a h?c c?n theo dï¿½i",
       desc: recentCourseOrders.length
-        ? `${recentCourseOrders.length} don khóa h?c g?n dây. Uu tiên ki?m tra dánh giá m?i c?a h?c viên ? trang course.`
-        : "Chua có API dánh giá khóa h?c riêng. Khi backend b? sung, m?c này s? hi?n th? review m?i t? d?ng.",
-      time: recentCourseOrders[0] ? fmtDate(recentCourseOrders[0].createdAt) : "Hôm nay",
+        ? `${recentCourseOrders.length} don khï¿½a h?c g?n dï¿½y. Uu tiï¿½n ki?m tra dï¿½nh giï¿½ m?i c?a h?c viï¿½n ? trang course.`
+        : "Chua cï¿½ API dï¿½nh giï¿½ khï¿½a h?c riï¿½ng. Khi backend b? sung, m?c nï¿½y s? hi?n th? review m?i t? d?ng.",
+      time: recentCourseOrders[0] ? fmtDate(recentCourseOrders[0].createdAt) : "Hï¿½m nay",
       unread: recentCourseOrders.length > 0,
     },
     {
       id: "product-feedback-watch",
       icon: "chat",
       iconWrap: "bg-emerald-100 text-emerald-600",
-      title: "Ph?n h?i s?n ph?m c?n theo dõi",
+      title: "Ph?n h?i s?n ph?m c?n theo dï¿½i",
       desc: recentBookOrders.length
-        ? `${recentBookOrders.length} don sách g?n dây. Ki?m tra ph?n h?i và bình lu?n c?a khách ? trang product.`
-        : "Chua có ph?n h?i s?n ph?m m?i ho?c backend chua tr? feed ph?n h?i riêng.",
-      time: recentBookOrders[0] ? fmtDate(recentBookOrders[0].createdAt) : "Hôm nay",
+        ? `${recentBookOrders.length} don sï¿½ch g?n dï¿½y. Ki?m tra ph?n h?i vï¿½ bï¿½nh lu?n c?a khï¿½ch ? trang product.`
+        : "Chua cï¿½ ph?n h?i s?n ph?m m?i ho?c backend chua tr? feed ph?n h?i riï¿½ng.",
+      time: recentBookOrders[0] ? fmtDate(recentBookOrders[0].createdAt) : "Hï¿½m nay",
       unread: recentBookOrders.length > 0,
     },
     {
       id: "quiz-plays",
       icon: "insights",
       iconWrap: "bg-slate-200 text-slate-700",
-      title: "Tóm t?t ho?t d?ng quiz",
-      desc: `${dashboard.quizStats?.totalPlays || 0} lu?t làm quiz hi?n có trong h? th?ng.`,
+      title: "Tï¿½m t?t ho?t d?ng quiz",
+      desc: `${dashboard.quizStats?.totalPlays || 0} lu?t lï¿½m quiz hi?n cï¿½ trong h? th?ng.`,
       time: "T?c th?i",
       unread: false,
     },
   ];
   const unreadNotifications = notificationItems.filter((item) => item.unread).length;
   const feed = [
-    ...recentOrders.slice(0, 3).map((o) => ({ time: fmtDate(o.createdAt), title: `Ðon hàng ${o.id}`, desc: `${o.customer} v?a t?o don giá tr? ${money(o.amount)}.`, tone: "bg-primary" })),
-    ...recentQuizzes.map((q) => ({ time: fmtDate(q.createdAt), title: q.title, desc: `Quiz HSK ${q.hsklevel || "--"} du?c c?p nh?t v?i ${q.totalQuestions || 0} câu.`, tone: "bg-amber-400" })),
-    snapshotCourses[0] ? { time: fmtDate(snapshotCourses[0].createdAt || snapshotCourses[0].created_at), title: snapshotCourses[0].title || "Khóa h?c m?i", desc: `Ðã ghi nh?n ${snapshotCourses.length} khóa h?c m?i trong h? th?ng.`, tone: "bg-emerald-500" } : null,
+    ...recentOrders.slice(0, 3).map((o) => ({ time: fmtDate(o.createdAt), title: `ï¿½on hï¿½ng ${o.id}`, desc: `${o.customer} v?a t?o don giï¿½ tr? ${money(o.amount)}.`, tone: "bg-primary" })),
+    ...recentQuizzes.map((q) => ({ time: fmtDate(q.createdAt), title: q.title, desc: `Quiz HSK ${q.hsklevel || "--"} ???c c?p nh?t v?i ${q.totalQuestions || 0} cï¿½u.`, tone: "bg-amber-400" })),
+    snapshotCourses[0] ? { time: fmtDate(snapshotCourses[0].createdAt || snapshotCourses[0].created_at), title: snapshotCourses[0].title || "Khï¿½a h?c m?i", desc: `ï¿½ï¿½ ghi nh?n ${snapshotCourses.length} khï¿½a h?c m?i trong h? th?ng.`, tone: "bg-emerald-500" } : null,
   ].filter(Boolean);
   const suggestion = (() => {
     const top = [...typeRevenue].sort((a, b) => b.amount - a.amount)[0];
-    if (!top || top.amount <= 0) return "Chua có d? li?u doanh thu mua hàng th?c t? d? dua ra g?i ý trong lúc này.";
-    if (top.key === "BOOK") return "Doanh thu sách dang d?n d?u. B?n có th? d?y m?nh combo sách + d? thi th? d? tang giá tr? don hàng.";
-    if (top.key === "COURSE") return "Khóa h?c dang là nhóm bán t?t nh?t. Nên k?t h?p quà t?ng sách ho?c workbook d? tang t? l? ch?t don.";
-    return "Combo dang ho?t d?ng hi?u qu?. B?n có th? m? r?ng thêm gói combo HSK c?p d? cao hon.";
+    if (!top || top.amount <= 0) return "Chua cï¿½ d? li?u doanh thu mua hï¿½ng th?c t? d? dua ra g?i ï¿½ trong lï¿½c nï¿½y.";
+    if (top.key === "BOOK") return "Doanh thu sï¿½ch dang d?n d?u. B?n cï¿½ th? d?y m?nh combo sï¿½ch + d? thi th? d? tang giï¿½ tr? don hï¿½ng.";
+    if (top.key === "COURSE") return "Khï¿½a h?c dang lï¿½ nhï¿½m bï¿½n t?t nh?t. Nï¿½n k?t h?p quï¿½ t?ng sï¿½ch ho?c workbook d? tang t? l? ch?t don.";
+    return "Combo dang ho?t d?ng hi?u qu?. B?n cï¿½ th? m? r?ng thï¿½m gï¿½i combo HSK c?p d? cao hon.";
   })();
   const handleExport = (range) => {
     const reportOrders = orders.filter((o) => inRange(o.createdAt, range.days));
@@ -367,7 +367,7 @@ export default function AdminPage() {
   };
 
   if (loading) {
-    return <div className="flex min-h-screen overflow-hidden"><AdminSidebar /><main className="flex min-w-0 flex-1 items-center justify-center bg-slate-50 px-4"><div className="text-center"><div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-primary" /><p className="text-sm font-semibold text-slate-600">Ðang t?i dashboard...</p></div></main></div>;
+    return <div className="flex min-h-screen overflow-hidden"><AdminSidebar /><main className="flex min-w-0 flex-1 items-center justify-center bg-slate-50 px-4"><div className="text-center"><div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-primary" /><p className="text-sm font-semibold text-slate-600">ï¿½ang t?i dashboard...</p></div></main></div>;
   }
 
   return (
@@ -379,7 +379,7 @@ export default function AdminPage() {
             <div className="flex w-full flex-1 items-center gap-4">
               <div className="group relative w-full max-w-lg">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary">search</span>
-                <input type="text" placeholder="Tìm ki?m h?c viên, don hàng, khóa h?c..." className="w-full rounded-2xl border border-transparent bg-slate-100 py-3 pl-12 pr-4 text-sm transition-all focus:border-primary/20 focus:bg-white focus:ring-4 focus:ring-primary/5" />
+                <input type="text" placeholder="Tï¿½m ki?m h?c viï¿½n, don hï¿½ng, khï¿½a h?c..." className="w-full rounded-2xl border border-transparent bg-slate-100 py-3 pl-12 pr-4 text-sm transition-all focus:border-primary/20 focus:bg-white focus:ring-4 focus:ring-primary/5" />
               </div>
             </div>
             <div className="flex w-full items-center justify-end gap-3 sm:gap-4 lg:w-auto lg:gap-8">
@@ -402,8 +402,8 @@ export default function AdminPage() {
                     <div className="border-b border-slate-100 px-5 py-4">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <p className="text-sm font-black text-slate-900">Thông báo qu?n tr?</p>
-                          <p className="mt-1 text-xs font-medium text-slate-500">Theo dõi don m?i, ph?n h?i khách hàng và dánh giá khóa h?c.</p>
+                          <p className="text-sm font-black text-slate-900">Thï¿½ng bï¿½o qu?n tr?</p>
+                          <p className="mt-1 text-xs font-medium text-slate-500">Theo dï¿½i don m?i, ph?n h?i khï¿½ch hï¿½ng vï¿½ dï¿½nh giï¿½ khï¿½a h?c.</p>
                         </div>
                         <div className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-600">
                           {notificationItems.length} m?c
@@ -433,7 +433,7 @@ export default function AdminPage() {
                   </div>
                 ) : null}
               </div>
-              <div className="group hidden cursor-pointer items-center gap-2 rounded-full bg-slate-100 px-4 py-2 transition-all hover:bg-primary hover:text-white sm:flex"><span className="material-symbols-outlined text-xl text-primary group-hover:text-white">language</span><span className="text-xs font-bold">VI / ?</span></div>
+              <div className="group hidden cursor-pointer items-center gap-2 rounded-full bg-slate-100 px-4 py-2 transition-all hover:bg-primary hover:text-white sm:flex"><span className="material-symbols-outlined text-xl text-primary group-hover:text-white">language</span><span className="text-xs font-bold">VI / EN</span></div>
               <div className="hidden h-10 w-px bg-slate-200 lg:block" />
               <div className="flex cursor-pointer items-center gap-3"><div className="text-right"><p className="text-sm font-bold text-slate-900">Admin TOXI</p><p className="text-[11px] font-medium text-slate-500">Super Admin</p></div><span className="material-symbols-outlined text-slate-400">expand_more</span></div>
             </div>
@@ -443,30 +443,30 @@ export default function AdminPage() {
             <div className="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-center">
               <div>
                 <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">T?ng quan h? th?ng</h2>
-                <div className="mt-2 flex items-center gap-2"><span className="size-2 animate-pulse rounded-full bg-green-500" /><p className="text-sm font-medium text-slate-500">{error || `H? th?ng dang ho?t d?ng ?n d?nh. ${orders.length} don hàng, ${totalCourseUnits} khóa h?c và ${totalBookUnits} sách dã du?c ghi nh?n.`}</p></div>
+                <div className="mt-2 flex items-center gap-2"><span className="size-2 animate-pulse rounded-full bg-green-500" /><p className="text-sm font-medium text-slate-500">{error || `H? th?ng ?ang ho?t ??ng ?n ??nh. ${orders.length} don hï¿½ng, ${totalCourseUnits} khï¿½a h?c vï¿½ ${totalBookUnits} sï¿½ch dï¿½ du?c ghi nh?n.`}</p></div>
               </div>
               <div className="flex w-full gap-4 sm:w-auto">
                 <div className="relative" ref={exportRef}>
-                  <button type="button" onClick={() => setShowExportMenu((v) => !v)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 sm:w-auto sm:px-6"><span className="material-symbols-outlined text-xl">download</span>Xu?t báo cáo<span className="material-symbols-outlined text-base">expand_more</span></button>
-                  {showExportMenu ? <div className="absolute right-0 top-14 z-40 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">{REPORT_RANGES.map((range) => <button key={range.value} type="button" onClick={() => handleExport(range)} className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"><span>Báo cáo {range.label}</span><span className="material-symbols-outlined text-base text-slate-400">download</span></button>)}</div> : null}
+                  <button type="button" onClick={() => setShowExportMenu((v) => !v)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 sm:w-auto sm:px-6"><span className="material-symbols-outlined text-xl">download</span>Xu?t bï¿½o cï¿½o<span className="material-symbols-outlined text-base">expand_more</span></button>
+                  {showExportMenu ? <div className="absolute right-0 top-14 z-40 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">{REPORT_RANGES.map((range) => <button key={range.value} type="button" onClick={() => handleExport(range)} className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"><span>Bï¿½o cï¿½o {range.label}</span><span className="material-symbols-outlined text-base text-slate-400">download</span></button>)}</div> : null}
                 </div>
               </div>
             </div>
 
             <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-              <Card icon="payments" label="T?ng doanh thu" value={money(totalRevenue)} delta={null} toneData={{ iconWrap: "bg-primary/10", icon: "text-primary", progress: "bg-primary" }} footer={{ left: "Toàn th?i gian", right: `${orders.length} don`, progress: "100%" }} />
-              <Card icon="school" label="Doanh thu khóa h?c" value={money(courseRevenue)} delta={null} toneData={tone("COURSE")} footer={{ left: "T?ng khóa h?c dã bán", right: `${totalCourseUnits} khóa h?c`, progress: `${Math.max(courseShare, totalSalesRevenue > 0 ? 8 : 0)}%` }} />
-              <Card icon="auto_stories" label="Doanh thu sách" value={money(bookRevenue)} delta={null} toneData={tone("BOOK")} footer={{ left: "T?ng sách dã bán", right: `${totalBookUnits} quy?n`, progress: `${Math.max(bookShare, totalSalesRevenue > 0 ? 8 : 0)}%` }} />
-              <Card icon="person_add" label="T?ng h?c viên" value={totalCustomers} delta={null} toneData={{ iconWrap: "bg-emerald-100", icon: "text-emerald-600", progress: "bg-emerald-500" }} footer={{ left: "Khách hàng dã mua", right: `${totalPaidOrders} don`, progress: `${Math.max(comboShare || Math.min(totalCustomers * 5, 100), totalPaidOrders > 0 ? 8 : 0)}%` }} />
+              <Card icon="payments" label="T?ng doanh thu" value={money(totalRevenue)} delta={null} toneData={{ iconWrap: "bg-primary/10", icon: "text-primary", progress: "bg-primary" }} footer={{ left: "Toï¿½n th?i gian", right: `${orders.length} don`, progress: "100%" }} />
+              <Card icon="school" label="Doanh thu khï¿½a h?c" value={money(courseRevenue)} delta={null} toneData={tone("COURSE")} footer={{ left: "T?ng khï¿½a h?c dï¿½ bï¿½n", right: `${totalCourseUnits} khï¿½a h?c`, progress: `${Math.max(courseShare, totalSalesRevenue > 0 ? 8 : 0)}%` }} />
+              <Card icon="auto_stories" label="Doanh thu sï¿½ch" value={money(bookRevenue)} delta={null} toneData={tone("BOOK")} footer={{ left: "T?ng sï¿½ch dï¿½ bï¿½n", right: `${totalBookUnits} quy?n`, progress: `${Math.max(bookShare, totalSalesRevenue > 0 ? 8 : 0)}%` }} />
+              <Card icon="person_add" label="T?ng h?c viï¿½n" value={totalCustomers} delta={null} toneData={{ iconWrap: "bg-emerald-100", icon: "text-emerald-600", progress: "bg-emerald-500" }} footer={{ left: "Khï¿½ch hï¿½ng dï¿½ mua", right: `${totalPaidOrders} don`, progress: `${Math.max(comboShare || Math.min(totalCustomers * 5, 100), totalPaidOrders > 0 ? 8 : 0)}%` }} />
             </div>
 
             <div className="mb-10 rounded-3xl border border-slate-100 bg-white p-4 shadow-sm sm:p-6 lg:p-10">
               <div className="mb-12 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-                <div className="flex items-center gap-5"><div className="flex size-14 items-center justify-center rounded-2xl bg-primary/5"><span className="material-symbols-outlined text-3xl text-primary">analytics</span></div><div><h3 className="text-2xl font-bold text-slate-900">So sánh doanh thu</h3><p className="mt-1 text-sm font-medium text-slate-500">T? tr?ng gi?a khóa h?c và sách trong 6 tháng g?n dây</p></div></div>
-                <div className="flex gap-4 rounded-2xl bg-slate-50 p-1.5"><div className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-white px-4 py-2 shadow-sm"><div className="size-3.5 rounded-full bg-gradient-to-b from-blue-600 to-sky-400" /><span className="text-xs font-bold text-slate-700">Doanh thu khóa h?c</span></div><div className="flex items-center gap-2.5 px-4 py-2"><div className="size-3.5 rounded-full bg-gradient-to-b from-amber-500 to-yellow-300" /><span className="text-xs font-bold text-slate-500">Sách và s?n ph?m</span></div></div>
+                <div className="flex items-center gap-5"><div className="flex size-14 items-center justify-center rounded-2xl bg-primary/5"><span className="material-symbols-outlined text-3xl text-primary">analytics</span></div><div><h3 className="text-2xl font-bold text-slate-900">So sï¿½nh doanh thu</h3><p className="mt-1 text-sm font-medium text-slate-500">T? tr?ng gi?a khï¿½a h?c vï¿½ sï¿½ch trong 6 thï¿½ng g?n dï¿½y</p></div></div>
+                <div className="flex gap-4 rounded-2xl bg-slate-50 p-1.5"><div className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-white px-4 py-2 shadow-sm"><div className="size-3.5 rounded-full bg-gradient-to-b from-blue-600 to-sky-400" /><span className="text-xs font-bold text-slate-700">Doanh thu khï¿½a h?c</span></div><div className="flex items-center gap-2.5 px-4 py-2"><div className="size-3.5 rounded-full bg-gradient-to-b from-amber-500 to-yellow-300" /><span className="text-xs font-bold text-slate-500">Sï¿½ch vï¿½ s?n ph?m</span></div></div>
               </div>
               {graph.length === 0 || maxGraph === 0 ? (
-                <div className="mt-8 flex h-[260px] items-center justify-center rounded-3xl bg-slate-50 text-sm font-semibold text-slate-400">Chua có d? li?u doanh thu trong kho?ng th?i gian này.</div>
+                <div className="mt-8 flex h-[260px] items-center justify-center rounded-3xl bg-slate-50 text-sm font-semibold text-slate-400">Chua cï¿½ d? li?u doanh thu trong kho?ng th?i gian nï¿½y.</div>
               ) : (
                 <div className="relative mt-8 h-[320px] w-full sm:h-[360px] lg:h-[400px]">
                   <div className="pointer-events-none absolute inset-0 flex flex-col justify-between">{[100, 75, 50, 25, 0].map((l) => <div key={l} className="relative h-px w-full border-t border-slate-100"><span className="absolute -left-10 -top-2 text-[10px] font-bold text-slate-400">{l}%</span></div>)}</div>
@@ -490,12 +490,12 @@ export default function AdminPage() {
             </div>
 
             <div className="mb-10 overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
-              <div className="flex flex-col gap-4 border-b border-slate-50 p-4 sm:p-6 lg:flex-row lg:items-center lg:justify-between lg:p-8"><div><h3 className="text-xl font-bold text-slate-900">Ðon hàng và dang ký g?n dây</h3><p className="mt-1 text-sm font-medium text-slate-500">Theo dõi các giao d?ch m?i nh?t trong h? th?ng</p></div><Link to="/admin/orders" className="inline-flex w-full items-center justify-center rounded-xl bg-slate-50 px-6 py-2.5 text-sm font-bold text-primary transition-all hover:bg-primary hover:text-white sm:w-auto">Xem t?t c?</Link></div>
+              <div className="flex flex-col gap-4 border-b border-slate-50 p-4 sm:p-6 lg:flex-row lg:items-center lg:justify-between lg:p-8"><div><h3 className="text-xl font-bold text-slate-900">ï¿½on hï¿½ng vï¿½ dang kï¿½ g?n dï¿½y</h3><p className="mt-1 text-sm font-medium text-slate-500">Theo dï¿½i cï¿½c giao d?ch m?i nh?t trong h? th?ng</p></div><Link to="/admin/orders" className="inline-flex w-full items-center justify-center rounded-xl bg-slate-50 px-6 py-2.5 text-sm font-bold text-primary transition-all hover:bg-primary hover:text-white sm:w-auto">Xem t?t c?</Link></div>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[860px] text-left text-sm">
-                  <thead className="bg-slate-50/60 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400"><tr><th className="px-8 py-5">Mã don</th><th className="px-8 py-5">H?c viên</th><th className="px-8 py-5">Lo?i hình</th><th className="px-8 py-5">S?n ph?m</th><th className="px-8 py-5 text-right">Giá tr?</th><th className="px-8 py-5 text-center">Tr?ng thái</th></tr></thead>
+                  <thead className="bg-slate-50/60 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400"><tr><th className="px-8 py-5">Mï¿½ don</th><th className="px-8 py-5">H?c viï¿½n</th><th className="px-8 py-5">Lo?i hï¿½nh</th><th className="px-8 py-5">S?n ph?m</th><th className="px-8 py-5 text-right">Giï¿½ tr?</th><th className="px-8 py-5 text-center">Tr?ng thï¿½i</th></tr></thead>
                   <tbody className="divide-y divide-slate-50">
-                    {recentOrders.length === 0 ? <tr><td colSpan={6} className="px-8 py-10 text-center text-sm text-slate-400">Chua có don hàng d? hi?n th?.</td></tr> : recentOrders.map((o) => {
+                    {recentOrders.length === 0 ? <tr><td colSpan={6} className="px-8 py-10 text-center text-sm text-slate-400">Chua cï¿½ don hï¿½ng d? hi?n th?.</td></tr> : recentOrders.map((o) => {
                       const t = tone(o.items[0]?.type === "BOOK" ? "BOOK" : o.items[0]?.type === "COMBO" ? "COMBO" : "COURSE");
                       return <tr key={o.id} className="cursor-pointer transition-all hover:bg-slate-50/80"><td className="px-8 py-5 font-mono text-xs font-bold text-primary">#{o.id}</td><td className="px-8 py-5 font-bold text-slate-700">{o.customer}</td><td className="px-8 py-5"><span className={`rounded-lg border px-2.5 py-1 text-[10px] font-bold uppercase ${t.pill}`}>{t.label}</span></td><td className="px-8 py-5 font-medium text-slate-600">{o.items.map((i) => i.name).join(", ") || "--"}</td><td className="px-8 py-5 text-right font-extrabold text-slate-900">{money(o.amount)}</td><td className="px-8 py-5"><div className="flex justify-center"><span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase text-slate-600">{o.status}</span></div></td></tr>;
                     })}
@@ -508,14 +508,14 @@ export default function AdminPage() {
 
         <aside className="hidden w-[360px] border-l border-slate-200 bg-white 2xl:flex 2xl:flex-col">
           <div className="border-b border-slate-100 p-8">
-            <h3 className="text-2xl font-extrabold tracking-tight text-slate-900">Ho?t d?ng h? th?ng</h3>
-            <p className="mt-1 text-sm font-medium text-slate-500">C?p nh?t tr?c ti?p t? d? li?u hi?n có</p>
+            <h3 className="text-2xl font-extrabold tracking-tight text-slate-900">Ho?t ??ng h? th?ng</h3>
+            <p className="mt-1 text-sm font-medium text-slate-500">C?p nh?t tr?c ti?p t? d? li?u hi?n cï¿½</p>
           </div>
 
           <div className="flex-1 overflow-y-auto p-8">
             <div className="space-y-4">
               {feed.length === 0 ? (
-                <div className="rounded-3xl border border-slate-100 bg-slate-50 p-6 text-sm text-slate-400">Chua có ho?t d?ng nào trong kho?ng th?i gian này.</div>
+                <div className="rounded-3xl border border-slate-100 bg-slate-50 p-6 text-sm text-slate-400">Chua cï¿½ ho?t d?ng nï¿½o trong kho?ng th?i gian nï¿½y.</div>
               ) : (
                 feed.map((f, i) => (
                   <div key={`${f.title}-${i}`} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
@@ -534,18 +534,18 @@ export default function AdminPage() {
 
             <div className="relative mt-8 overflow-hidden rounded-3xl border border-primary/10 bg-primary/5 p-8">
               <div className="absolute -right-6 -top-6 opacity-5"><span className="material-symbols-outlined text-[100px] text-primary">psychology</span></div>
-              <div className="mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-xl text-primary">auto_awesome</span><h4 className="text-sm font-bold uppercase tracking-wider text-primary">L?i khuyên AI</h4></div>
+              <div className="mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-xl text-primary">auto_awesome</span><h4 className="text-sm font-bold uppercase tracking-wider text-primary">L?i khuyï¿½n AI</h4></div>
               <p className="text-sm leading-7 text-slate-600">{suggestion}</p>
-              <button className="mt-6 w-full rounded-xl bg-primary py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:brightness-110">Áp d?ng ngay</button>
+              <button className="mt-6 w-full rounded-xl bg-primary py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:brightness-110">ï¿½p d?ng ngay</button>
             </div>
 
             <div className="mt-8 rounded-3xl border border-slate-100 bg-slate-50 p-6">
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">Ch? s? nhanh</p>
               <div className="mt-4 space-y-3">
-                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">T?ng lu?t làm quiz</span><span className="font-black text-slate-900">{dashboard.quizStats?.totalPlays || 0}</span></div>
-                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">Ð? thi công khai</span><span className="font-black text-slate-900">{dashboard.quizStats?.activeQuizzes || 0}</span></div>
-                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">T?ng khóa h?c dã bán</span><span className="font-black text-slate-900">{totalCourseUnits}</span></div>
-                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">T?ng sách dã bán</span><span className="font-black text-slate-900">{totalBookUnits}</span></div>
+                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">T?ng lu?t lï¿½m quiz</span><span className="font-black text-slate-900">{dashboard.quizStats?.totalPlays || 0}</span></div>
+                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">ï¿½? thi cï¿½ng khai</span><span className="font-black text-slate-900">{dashboard.quizStats?.activeQuizzes || 0}</span></div>
+                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">T?ng khï¿½a h?c dï¿½ bï¿½n</span><span className="font-black text-slate-900">{totalCourseUnits}</span></div>
+                <div className="flex items-center justify-between text-sm"><span className="text-slate-500">T?ng sï¿½ch dï¿½ bï¿½n</span><span className="font-black text-slate-900">{totalBookUnits}</span></div>
               </div>
             </div>
           </div>

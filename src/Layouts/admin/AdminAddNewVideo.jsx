@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useParams } from "react-router-dom";
 import {
   createLessonApi,
+  createLessonMultipartApi,
   addLessonToChapterApi,
   addQuizToChapterApi,
   fetchChaptersApi,
@@ -12,7 +13,6 @@ import {
   deleteChapterApi,
 } from "./api/apiCourseContent.js";
 import { fetchQuizzes } from "./api/apiquiz";
-import { uploadImage } from "./api/apiFile";
 import toxiLogo from "../../assets/image/LOGO (1).png";
 import { useEffect } from 'react';
 
@@ -229,10 +229,27 @@ export default function AdminCourseContent() {
       )
     );
 
-  const resolveUploadedPath = (uploaded) => {
-    if (!uploaded) return "";
-    if (typeof uploaded === "string") return uploaded;
-    return uploaded.url || uploaded.path || uploaded.fileUrl || uploaded.filePath || uploaded.location || uploaded.data || "";
+  const createLessonFromItem = async (item) => {
+    const lessonPayload = {
+      title: item.title,
+      videoUrl: item.url?.trim() || "",
+      duration: 120,
+      isFree: item.visibility === "free",
+      attachmentUrl: item.attachmentUrl?.trim() || "",
+    };
+
+    const videoFile = item.videoFile || null;
+    const attachmentFile = item.fileUploads?.[0] || null;
+
+    if (videoFile || attachmentFile) {
+      return createLessonMultipartApi({
+        lesson: lessonPayload,
+        videoFile,
+        attachmentFile,
+      });
+    }
+
+    return createLessonApi(lessonPayload);
   };
 
   const handleDeleteSavedContent = async (chapterId, courseContentId, contentTitle) => {
@@ -288,26 +305,7 @@ export default function AdminCourseContent() {
       }
 
       for (const item of videoItems) {
-        let videoUrl = item.url?.trim();
-        let attachmentUrl = item.files[0] || null;
-
-        if (!videoUrl && item.videoFile) {
-          const uploadedVideo = await uploadImage(item.videoFile);
-          videoUrl = resolveUploadedPath(uploadedVideo);
-        }
-
-        if ((!attachmentUrl || attachmentUrl === item.files[0]) && item.fileUploads?.[0]) {
-          const uploadedAttachment = await uploadImage(item.fileUploads[0]);
-          attachmentUrl = resolveUploadedPath(uploadedAttachment) || item.files[0] || null;
-        }
-
-        const lessonRes = await createLessonApi({
-          title: item.title,
-          videoUrl,
-          duration: 120,
-          isFree: item.visibility === "free",
-          attachmentUrl,
-        });
+        const lessonRes = await createLessonFromItem(item);
         await addLessonToChapterApi(realChapterId, lessonRes.data.lessonId);
       }
 
@@ -351,26 +349,7 @@ export default function AdminCourseContent() {
       }
 
       for (const item of videoItems) {
-        let videoUrl = item.url?.trim();
-        let attachmentUrl = item.files[0] || null;
-
-        if (!videoUrl && item.videoFile) {
-          const uploadedVideo = await uploadImage(item.videoFile);
-          videoUrl = resolveUploadedPath(uploadedVideo);
-        }
-
-        if ((!attachmentUrl || attachmentUrl === item.files[0]) && item.fileUploads?.[0]) {
-          const uploadedAttachment = await uploadImage(item.fileUploads[0]);
-          attachmentUrl = resolveUploadedPath(uploadedAttachment) || item.files[0] || null;
-        }
-
-        const lessonRes = await createLessonApi({
-          title: item.title,
-          videoUrl,
-          duration: 120,
-          isFree: item.visibility === "free",
-          attachmentUrl,
-        });
+        const lessonRes = await createLessonFromItem(item);
 
         await addLessonToChapterApi(realChapterId, lessonRes.data.lessonId);
       }

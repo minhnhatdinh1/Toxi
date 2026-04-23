@@ -9,7 +9,8 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 export default function AdminEditCourses() {
   const navigate = useNavigate();
   const { id: routeCourseId } = useParams();
-  const token = localStorage.getItem("token");
+const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+
 
   const initialFormData = {
 
@@ -152,76 +153,89 @@ export default function AdminEditCourses() {
     return true;
   };
 
-  const handleSubmit = async () => {
-    setError("");
-    if (!validateForm()) return;
+const handleSubmit = async () => {
+  setError("");
+  if (!validateForm()) return;
 
-    setSaving(true);
-    try {
-      let introVideoUrl = formData.introVideoUrl?.trim() || "";
-      if (!introVideoUrl && introVideoFile) {
-        const uploadedVideo = await uploadImage(introVideoFile);
-        introVideoUrl = resolveUploadedPath(uploadedVideo);
-      }
+  setSaving(true);
+  try {
+    const updatedFormData = {
+      ...formData,
+      courseType: formData.courseType || formData.type,
+      type: formData.courseType || formData.type,
+      description,
+      introVideoUrl: formData.introVideoUrl?.trim() || "",
+      thumbnailUrl: thumbnail?.trim?.() ? thumbnail.trim() : "",
+    };
 
-      let thumbnailUrl = thumbnail?.trim?.() ? thumbnail.trim() : "";
-      if (thumbnailFile) {
-        const uploadedThumbnail = await uploadImage(thumbnailFile);
-        thumbnailUrl = resolveUploadedPath(uploadedThumbnail);
-      }
+    const payload = new FormData();
+    payload.append(
+      "course",
+      new Blob([JSON.stringify(updatedFormData)], {
+        type: "application/json",
+      })
+    );
 
-      const updatedFormData = {
-        ...formData,
-        courseType: formData.courseType || formData.type,
-        type: formData.courseType || formData.type,
-        description,
-        introVideoUrl,
-        thumbnailUrl,
-      };
-
-      const payload = new FormData();
-      payload.append(
-        "course",
-        new Blob([JSON.stringify(updatedFormData)], {
-          type: "application/json",
-        })
-      );
-      if (thumbnailFile) {
-        payload.append("thumbnail", thumbnailFile);
-      }
-
-      const response = await fetch(
-        `${BASE_URL}/api/admin/courses/${routeCourseId || formData.courseId}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: payload,
-        }
-      );
-
-      if (!response.ok) {
-        const message = await response.text().catch(() => "");
-        throw new Error(message || "Failed to update course");
-      }
-
-      setThumbnail(thumbnailUrl || thumbnail);
-      setThumbnailFile(null);
-      setIntroVideoFile(null);
-      setIntroVideoName("");
-      setFormData(updatedFormData);
-      setOriginalFormData(updatedFormData);
-      setHasChanges(false);
-      setSuccessMessage("Cập nhật khóa học thành công ");
-      setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (err) {
-      setError(err.message || "Failed to update course");
-      console.error("Update error:", err);
-    } finally {
-      setSaving(false);
+    if (thumbnailFile) {
+      payload.append("thumbnail", thumbnailFile);
     }
-  };
+
+    if (introVideoFile) {
+      payload.append("introVideo", introVideoFile);
+    }
+
+    const response = await fetch(
+      `${BASE_URL}/api/admin/courses/${routeCourseId || formData.courseId}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: payload,
+      }
+    );
+
+    if (!response.ok) {
+      const message = await response.text().catch(() => "");
+      throw new Error(message || "Failed to update course");
+    }
+
+    const savedCourse = await response.json().catch(() => null);
+
+    const nextThumbnail =
+      savedCourse?.thumbnailUrl ||
+      updatedFormData.thumbnailUrl ||
+      thumbnail;
+
+    const nextIntroVideoUrl =
+      savedCourse?.introVideoUrl ||
+      updatedFormData.introVideoUrl ||
+      formData.introVideoUrl;
+
+    setThumbnail(nextThumbnail);
+    setThumbnailFile(null);
+    setIntroVideoFile(null);
+    setIntroVideoName("");
+
+    const nextFormData = {
+      ...updatedFormData,
+      introVideoUrl: nextIntroVideoUrl,
+      thumbnailUrl: nextThumbnail,
+    };
+
+    setFormData(nextFormData);
+    setOriginalFormData(nextFormData);
+    setHasChanges(false);
+    setSuccessMessage("Cập nhật khóa học thành công");
+    setTimeout(() => setSuccessMessage(""), 3000);
+  } catch (err) {
+    setError(err.message || "Failed to update course");
+    console.error("Update error:", err);
+  } finally {
+    setSaving(false);
+  }
+};
+
 
   const handleCancel = () => {
     if (hasChanges) {
@@ -244,7 +258,7 @@ export default function AdminEditCourses() {
     alert(`Clicked: ${action}`);
   };
     const [thumbnail, setThumbnail] = useState(
-    "https://cdn.hanacademy.com/assets/hsk1_thumb.jpg"
+    ""
   );
   /* bên trong component */
 

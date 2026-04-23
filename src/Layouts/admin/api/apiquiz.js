@@ -30,7 +30,7 @@ console.log("TOKEN:", getToken());
 
 const getHeaders = () => {
   const token = getToken();
-  console.log("TOKEN USED:", token);
+
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),

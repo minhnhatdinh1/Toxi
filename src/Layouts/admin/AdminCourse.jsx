@@ -170,8 +170,10 @@ export default function AdminCourse() {
   const [activeTab, setActiveTab] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const [updatingStatusId, setUpdatingStatusId] = useState(null);
-  const token =
-    localStorage.getItem("token") || localStorage.getItem("accessToken");
+const token =
+  localStorage.getItem("authToken") ||
+  localStorage.getItem("token") ||
+  localStorage.getItem("accessToken");
   const headers = { Authorization: `Bearer ${token}` };
   const coursesPerPage = 5;
 
@@ -222,17 +224,29 @@ export default function AdminCourse() {
   useEffect(() => {
     setCurrentPage(1);
   }, [activeTab]);
+const handleDelete = async (id) => {
+  if (!window.confirm("Bạn chắc chắn muốn xóa khóa học này?")) return;
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Bạn chắc chắn muốn xóa khóa học này?")) return;
-
-    await fetch(`${BASE_URL}/api/admin/courses/${id}`, {
+  try {
+    const response = await fetch(`${BASE_URL}/api/admin/courses/${id}`, {
       method: "DELETE",
       headers,
     });
 
-    fetchCourses();
-  };
+    const message = await response.text();
+
+    if (!response.ok) {
+      throw new Error(message || "Không thể xóa khóa học");
+    }
+
+    alert("Xóa khóa học thành công");
+    await fetchCourses();
+  } catch (err) {
+    console.error("DELETE ERROR:", err);
+    alert(err.message || "Xóa khóa học thất bại");
+  }
+};
+
 
   const handleToggleStatus = async (course) => {
     const nextStatus =

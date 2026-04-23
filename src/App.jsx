@@ -88,6 +88,7 @@ import AdminVideo from './Layouts/admin/AdminVideo.jsx';
 import AdminAddNewVideo from './Layouts/admin/AdminAddNewVideo.jsx';
 import AdminCourseContent from './Layouts/admin/AdminCourseContent.jsx';
 import LearnRoute from './LearnRoute.jsx';
+import AdminCategory from './Layouts/admin/AdminCategory.jsx';
 function App() {
   return (
     <Routes>
@@ -165,7 +166,7 @@ function App() {
       <Route path="/adminTeacher" element={<AdminRoute><AdminTeacher /></AdminRoute>} />
       <Route path="/adminAddNewStudent" element={<AdminRoute><AdminAddNewStudent /></AdminRoute>} />
       <Route path="/adminAddNewTeacher" element={<AdminRoute><AdminAddNewTeacher /></AdminRoute>} />
-      
+      <Route path="/adminCategory" element={<AdminRoute><AdminCategory /></AdminRoute>} />
       <Route path="/admin/courses/edit/:id" element={<AdminRoute><AdminEditCourses /></AdminRoute>} />
       <Route path="/editCourse/:id" element={<AdminRoute><AdminEditCourses /></AdminRoute>} />
       <Route path="/admin/products/edit/:id" element={<AdminRoute><AdminEditProduct /></AdminRoute>} />
