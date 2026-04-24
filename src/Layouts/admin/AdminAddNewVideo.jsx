@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { useParams } from "react-router-dom";
 import {
   createLessonApi,
-  createLessonMultipartApi,
   addLessonToChapterApi,
   addQuizToChapterApi,
   fetchChaptersApi,
@@ -13,6 +12,7 @@ import {
   deleteChapterApi,
 } from "./api/apiCourseContent.js";
 import { fetchQuizzes } from "./api/apiquiz";
+import { uploadImage } from "./api/apiFile";
 import toxiLogo from "../../assets/image/LOGO (1).png";
 import { useEffect } from 'react';
 
@@ -230,24 +230,26 @@ export default function AdminCourseContent() {
     );
 
   const createLessonFromItem = async (item) => {
+    let videoUrl = item.url?.trim() || "";
+    let attachmentUrl = item.attachmentUrl?.trim() || "";
+
+    if (item.videoFile) {
+      const uploadedVideo = await uploadImage(item.videoFile);
+      videoUrl = uploadedVideo?.url || "";
+    }
+
+    if (item.fileUploads?.[0]) {
+      const uploadedAttachment = await uploadImage(item.fileUploads[0]);
+      attachmentUrl = uploadedAttachment?.url || "";
+    }
+
     const lessonPayload = {
       title: item.title,
-      videoUrl: item.url?.trim() || "",
+      videoUrl,
       duration: 120,
       isFree: item.visibility === "free",
-      attachmentUrl: item.attachmentUrl?.trim() || "",
+      attachmentUrl,
     };
-
-    const videoFile = item.videoFile || null;
-    const attachmentFile = item.fileUploads?.[0] || null;
-
-    if (videoFile || attachmentFile) {
-      return createLessonMultipartApi({
-        lesson: lessonPayload,
-        videoFile,
-        attachmentFile,
-      });
-    }
 
     return createLessonApi(lessonPayload);
   };

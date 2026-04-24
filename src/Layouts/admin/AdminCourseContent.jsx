@@ -917,9 +917,10 @@ export default function AdminCourseContent() {
   const [modal, setModal] = useState(null);
   const [addLessonModal, setAddLessonModal] = useState(null);
   const [addQuizModal, setAddQuizModal] = useState(null);
-
+const API_BASE = import.meta.env.VITE_API_URL;
   const fetchCourse = async () => {
-    const token = localStorage.getItem("token") || "";
+     const token =
+    localStorage.getItem("authToken") || localStorage.getItem("token") || "";
     const res = await fetch(`${API_BASE}/api/courses/${courseId}`, {
       headers: { ...(token && { Authorization: `Bearer ${token}` }) },
     });

@@ -225,7 +225,7 @@ useEffect(() => {
     { icon: "home_app_logo", label: "Trang chủ", to: "/home" },
     { icon: "self_improvement", label: "Khóa học", to: "/course" },
     { icon: "school", label: "Sản phẩm", to: "/store" },
-    { icon: "school", label: "Sản phẩm", to: "/store" },
+    { icon: "folder_open", label: "Tài liệu", to: "/documents" },
   ];
 
   const quickLinks = [
@@ -280,28 +280,9 @@ useEffect(() => {
           {/* NAV */}
        <nav className="flex-1 px-5 py-6 space-y-2.5 bg-white">
   {/* TRANG CHU */}
-  <a
-    href="/home"
-    className={`group flex items-center gap-3 px-5 py-4 rounded-2xl border transition-all ${
-      isActiveLink("/home")
-        ? "text-white bg-primary shadow-lg border-primary"
-        : "text-slate-600 bg-transparent border-transparent hover:bg-blue-50 hover:text-primary hover:border-blue-100"
-    }`}
-  >
-    <span className={`material-symbols-outlined group-hover:scale-110 transition-transform ${
-      isActiveLink("/home") ? "text-secondary" : "text-slate-400 group-hover:text-primary"
-    }`}>
-      home_app_logo
-    </span>
-    <span className="font-bold">Trang chủ</span>
-  </a>
+ 
 
-  {[
-    { icon: "self_improvement", label: "Khóa học", to: "/course" },
-    { icon: "school", label: "Sản phẩm", to: "/store" },
-     
-   
-  ].map((item) => (
+  {navItems.filter((item) => item.to !== "/Home").map((item) => (
     <Link
       key={item.label}
       to={item.to}
@@ -366,7 +347,7 @@ useEffect(() => {
                 <span className="material-symbols-outlined">
                   headset_mic
                 </span>
-              </div>
+              </div>3
 
               <p className="text-xs text-slate-500 mb-1">Cần tư vấn ngay?</p>
               <p className="text-lg font-bold text-primary tracking-wide">

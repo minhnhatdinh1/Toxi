@@ -87,8 +87,11 @@ import AdminQuizPreview from './Layouts/admin/AdminQuizPreview.jsx';
 import AdminVideo from './Layouts/admin/AdminVideo.jsx';
 import AdminAddNewVideo from './Layouts/admin/AdminAddNewVideo.jsx';
 import AdminCourseContent from './Layouts/admin/AdminCourseContent.jsx';
+import DocumentPage from './Layouts/document/DocumentPage.jsx';
 import LearnRoute from './LearnRoute.jsx';
+
 import AdminCategory from './Layouts/admin/AdminCategory.jsx';
+
 function App() {
   return (
     <Routes>
@@ -107,6 +110,7 @@ function App() {
         <Route path="/course" element={<Course />} />
         <Route path="/Introduction" element={<IntroSection />} />
         <Route path="/blogintroduce" element={<BlogIntrodution />} />
+        <Route path="/documents" element={<DocumentPage />} />
       </Route>
 
       <Route path="/payment/qr"      element={<QRPaymentPage />} />

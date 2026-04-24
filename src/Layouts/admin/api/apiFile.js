@@ -2,7 +2,7 @@ import axios from "axios";
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 
-const UPLOAD_URL = `${BASE_URL}/api/admin/upload`;
+const UPLOAD_URL = `${BASE_URL}/api/files/upload`;
 const EXPORT_URL = `${BASE_URL}/api/admin/books/export-excel`;
 const DELETE_IMAGE_BY_BOOK_URL =
   `${BASE_URL}/api/images/delete-by-book`;
