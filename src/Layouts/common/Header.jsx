@@ -2,6 +2,7 @@
 import { useState,useRef, useEffect } from "react";
 import ThemeToggle from "./ThemeToggle";
 import NotificationBell from "../../components/NotificationBell";
+import { fetchJsonOrFallback } from "../../utils/apiClient";
 
 import toxiLogo from "../../assets/image/LOGO (1).png";
 
@@ -108,8 +109,7 @@ useEffect(() => {
 
     const fetchCourses = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/api/courses`);
-        const payload = await response.json();
+        const payload = await fetchJsonOrFallback(`${BASE_URL}/api/courses`, []);
         const rawCourses = Array.isArray(payload)
           ? payload
           : Array.isArray(payload?.data)
@@ -226,6 +226,7 @@ useEffect(() => {
     { icon: "self_improvement", label: "Khóa học", to: "/course" },
     { icon: "school", label: "Sản phẩm", to: "/store" },
     { icon: "folder_open", label: "Tài liệu", to: "/documents" },
+    { icon: "folder_open", label: "Thẻ học", to: "/flashcard" },
   ];
 
   const quickLinks = [
@@ -279,10 +280,7 @@ useEffect(() => {
 
           {/* NAV */}
        <nav className="flex-1 px-5 py-6 space-y-2.5 bg-white">
-  {/* TRANG CHU */}
- 
-
-  {navItems.filter((item) => item.to !== "/Home").map((item) => (
+  {navItems.map((item) => (
     <Link
       key={item.label}
       to={item.to}
@@ -308,12 +306,7 @@ useEffect(() => {
     Danh mục nhanh
   </p>
 
-  {[
-    { icon: "article", label: "Blog", to: "/blog" },
-    { icon: "quiz", label: "Luyện thi HSK", to: "/Practice" },
-    { icon: "chat", label: "Giới thiệu", to: "/blogintroduce" },
-    
-  ].map((item) => (
+  {quickLinks.map((item) => (
     <Link
       key={item.label}
       to={item.to}

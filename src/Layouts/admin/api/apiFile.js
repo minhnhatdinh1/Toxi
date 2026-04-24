@@ -9,15 +9,22 @@ const DELETE_IMAGE_BY_BOOK_URL =
 
 // ================= UPLOAD IMAGE =================
 export const uploadImage = async (file) => {
+
 const token = localStorage.getItem("authToken") || localStorage.getItem("token");
 
+  if (!file) {
+    throw new Error("uploadImage requires a file to upload.");
+  }
+
+
+  const token = localStorage.getItem("token");
   const formData = new FormData();
   formData.append("file", file);
 
   const response = await axios.post(UPLOAD_URL, formData, {
     headers: {
       Authorization: `Bearer ${token}`,
-     
+
     },
   });
 

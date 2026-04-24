@@ -1,8 +1,8 @@
-import FlascardMain from "./component/FlashcardMain";
+import FlashcardMain from "../flashcard/FlashcardMain.jsx";
 export default function FlashcardPage() {
     return(
         <>
-            <FlascardMain/>
+            <FlashcardMain/>
         </>
     )
 };

@@ -14,6 +14,9 @@ import {
 import { uploadImage } from "./api/apiFile";
 import { fetchQuizzes } from "./api/apiquiz";
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE = `${BASE_URL}/api`;
+
 // ─── HELPER: lấy đúng ID của chapter dù API trả về chapterId hay id ────────────
 const getChapterId = (ch) => ch?.chapterId ?? ch?.id ?? null;
 
@@ -919,9 +922,10 @@ export default function AdminCourseContent() {
   const [addQuizModal, setAddQuizModal] = useState(null);
 const API_BASE = import.meta.env.VITE_API_URL;
   const fetchCourse = async () => {
-     const token =
-    localStorage.getItem("authToken") || localStorage.getItem("token") || "";
-    const res = await fetch(`${API_BASE}/api/courses/${courseId}`, {
+
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    const res = await fetch(`${BASE_URL}/api/courses/${courseId}`, {
+
       headers: { ...(token && { Authorization: `Bearer ${token}` }) },
     });
     const data = await res.json();

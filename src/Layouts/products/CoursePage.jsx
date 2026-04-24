@@ -4,6 +4,7 @@ import axios from "axios";
 import FilterSidebar from "../../components/FilterSidebar";
 import StarRating from "../../components/StarRating";
 import LoadingSpinner from "../common/LoadingSpinner";
+import { fetchJsonOrFallback, isOfflineApiError } from "../../utils/apiClient";
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 
@@ -96,15 +97,22 @@ export default function Course() {
     }).format(number || 0);
 
   useEffect(() => {
-    fetch(`${BASE_URL}/api/courses`)
-      .then((res) => res.json())
+    fetchJsonOrFallback(`${BASE_URL}/api/courses`, [])
       .then((data) => {
-        const courseList = Array.isArray(data) ? data : [];
+        const courseList = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data?.content)
+          ? data.content
+          : [];
         setCourses(courseList.filter(isVisibleCourse));
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Fetch courses error:", err);
+        if (!isOfflineApiError(err)) {
+          console.error("Fetch courses error:", err);
+        }
         setLoading(false);
       });
   }, []);
@@ -117,10 +125,9 @@ export default function Course() {
       return;
     }
 
-    fetch(`${BASE_URL}/api/my-courses`, {
+    fetchJsonOrFallback(`${BASE_URL}/api/my-courses`, [], {
       headers: getAuthHeaders(),
     })
-      .then((res) => res.json())
       .then(async (data) => {
         const ownedCourses = Array.isArray(data) ? data : [];
         setMyCourses(ownedCourses.map((c) => Number(c.courseId)));
@@ -154,7 +161,10 @@ export default function Course() {
           setCourseProgressMap(Object.fromEntries(progressEntries));
         }
       })
-      .catch(() => {
+      .catch((error) => {
+        if (!isOfflineApiError(error)) {
+          console.error("Fetch my courses error:", error);
+        }
         setMyCourses([]);
         setCourseProgressMap({});
       });

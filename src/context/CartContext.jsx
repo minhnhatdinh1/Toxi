@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { isOfflineApiError } from "../utils/apiClient";
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 
@@ -214,7 +215,10 @@ export const CartProvider = ({ children }) => {
         : [];
       setCartItems(normalizedItems);
     } catch (err) {
-      console.error("fetchCart error:", err);
+      if (!isOfflineApiError(err)) {
+        console.error("fetchCart error:", err);
+      }
+      setCartItems([]);
     }
   };
 

@@ -11,6 +11,8 @@ export default function AdminSidebar() {
     { name: "Quản lý danh mục sách", path: "/adminCategory", icon: "category" },
 
     { name: "Quản lý Store (Sách)", path: "/adminProduct", icon: "shopping_bag" },
+    {name : "Quản lý học từ vựng HSK", path: "/adminFlashCardPage", icon: "library_books"},
+    { name: "Quản lý Flashcards", path: "/adminFlashCards", icon: "flash_on" },
     { name: "Ngân hàng đề thi HSK", path: "/adminQuiz", icon: "quiz" },
     { name: "Ngân hàng câu hỏi", path: "/adminExam", icon: "quiz" },
     { name: "Bài viết Blog", path: "/AdminBlog", icon: "article" },

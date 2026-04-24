@@ -121,8 +121,7 @@ className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:tex
 </Link>
 
 <Link
-to="/listenquiz"
-className="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary text-white"
+to="/listenQuiz"
 >
 <span className="material-symbols-outlined text-xl">inventory_2</span>
 <span className="font-medium">bài nghe </span>
