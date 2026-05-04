@@ -17,7 +17,6 @@ const token = localStorage.getItem("authToken") || localStorage.getItem("token")
   }
 
 
-  const token = localStorage.getItem("token");
   const formData = new FormData();
   formData.append("file", file);
 
