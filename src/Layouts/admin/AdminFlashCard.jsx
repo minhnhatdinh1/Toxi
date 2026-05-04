@@ -1,104 +1,55 @@
-import React, { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
+import { deleteDeck, getDecks } from "./api/apiFlashCard";
 
-// ===== MOCK DATA =====
-const INIT_DECKS = [
-  { id: 1, title: "Chào hỏi cơ bản", description: "Các từ vựng chào hỏi thông dụng", level: "HSK 1", type: "Từ vựng", cardCount: 12, status: "Công khai", createdAt: "27/03/2026", views: 5 },
-  { id: 2, title: "Gia đình", description: "Từ vựng về các thành viên trong gia đình", level: "HSK 1", type: "Từ vựng", cardCount: 8, status: "Công khai", createdAt: "27/03/2026", views: 3 },
-  { id: 3, title: "Màu sắc & Hình dạng", description: "Miêu tả màu sắc và hình dạng cơ bản", level: "HSK 2", type: "Tổng hợp", cardCount: 15, status: "Nháp", createdAt: "25/03/2026", views: 0 },
-  { id: 4, title: "Mua sắm & Giá cả", description: "Từ vựng thương mại và mua bán", level: "HSK 2", type: "Tổng hợp", cardCount: 10, status: "Công khai", createdAt: "25/03/2026", views: 7 },
-  { id: 5, title: "Thành ngữ HSK 4", description: "Thành ngữ và cụm từ cố định HSK 4", level: "HSK 4", type: "Thành ngữ", cardCount: 20, status: "Ẩn", createdAt: "20/03/2026", views: 1 },
-  { id: 6, title: "Hán tự phức tạp HSK 6", description: "Chữ Hán nâng cao cấp độ 6", level: "HSK 6", type: "Hán tự", cardCount: 30, status: "Công khai", createdAt: "15/03/2026", views: 2 },
-  { id: 7, title: "Giao tiếp hàng ngày", description: "Câu giao tiếp thực tế cuộc sống", level: "HSK 1", type: "Giao tiếp", cardCount: 18, status: "Công khai", createdAt: "10/03/2026", views: 9 },
-];
-
-
-const LEVELS = ["HSK 1", "HSK 2", "HSK 3", "HSK 4", "HSK 5", "HSK 6"];
-const TYPES = ["Từ vựng", "Tổng hợp", "Thành ngữ", "Hán tự", "Giao tiếp"];
-const BAR_COLORS = ["#4ade80", "#60a5fa", "#c084fc", "#fb923c", "#f472b6", "#94a3b8"];
+const LEVELS = ["Tat ca", "HSK 1", "HSK 2", "HSK 3", "HSK 4", "HSK 5", "HSK 6"];
 
 function LevelBadge({ level }) {
   const map = {
-    "HSK 1": { bg: "#e8f5e9", color: "#2e7d32", border: "#a5d6a7" },
-    "HSK 2": { bg: "#e3f2fd", color: "#1565c0", border: "#90caf9" },
-    "HSK 3": { bg: "#f3e5f5", color: "#6a1b9a", border: "#ce93d8" },
-    "HSK 4": { bg: "#fff3e0", color: "#e65100", border: "#ffcc80" },
-    "HSK 5": { bg: "#fce4ec", color: "#880e4f", border: "#f48fb1" },
-    "HSK 6": { bg: "#1a237e", color: "#fff", border: "#1a237e" },
+    "HSK 1": "bg-emerald-50 text-emerald-700 border-emerald-200",
+    "HSK 2": "bg-sky-50 text-sky-700 border-sky-200",
+    "HSK 3": "bg-violet-50 text-violet-700 border-violet-200",
+    "HSK 4": "bg-amber-50 text-amber-700 border-amber-200",
+    "HSK 5": "bg-rose-50 text-rose-700 border-rose-200",
+    "HSK 6": "bg-slate-900 text-white border-slate-900",
   };
-  const s = map[level] || { bg: "#f5f5f5", color: "#616161", border: "#e0e0e0" };
+
   return (
-    <span style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}`, fontFamily: "inherit" }}
-      className="text-[11px] font-black px-2.5 py-1 rounded-lg inline-block whitespace-nowrap">
-      {level}
+    <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold ${map[level] || "bg-slate-50 text-slate-600 border-slate-200"}`}>
+      {level || "Chua phan cap"}
     </span>
   );
 }
 
-function StatusBadge({ status }) {
-  const map = {
-    "Công khai": { dot: "#22c55e", text: "#15803d" },
-    "Nháp": { dot: "#f59e0b", text: "#b45309" },
-    "Ẩn": { dot: "#94a3b8", text: "#64748b" },
-  };
-  const s = map[status] || map["Ẩn"];
-  return (
-    <span className="flex items-center gap-1.5 text-xs font-bold" style={{ color: s.text }}>
-      <span className="size-2 rounded-full inline-block shrink-0" style={{ background: s.dot }} />
-      {status}
-    </span>
-  );
-}
+function DeleteModal({ deck, onClose, onConfirm, deleting }) {
+  if (!deck) return null;
 
-function DeckFormModal({ deck, onSave, onClose }) {
-  const [form, setForm] = useState(
-    deck ? { ...deck } : { title: "", description: "", level: "HSK 1", type: "Từ vựng", status: "Nháp" }
-  );
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.5)" }}
-      onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ background: "#fff", borderRadius: 20, boxShadow: "0 20px 60px rgba(0,0,0,0.2)", width: "100%", maxWidth: 480, margin: "0 16px" }}>
-        <div style={{ padding: "20px 24px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontWeight: 800, fontSize: 15, color: "#1e293b" }}>{deck ? "Chỉnh sửa bộ thẻ" : "Tạo bộ thẻ mới"}</span>
-          <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 20, color: "#94a3b8", padding: 4 }}>edit</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4" onClick={(event) => event.target === event.currentTarget && onClose()}>
+      <div className="w-full max-w-md rounded-[28px] bg-white p-7 shadow-2xl">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-500">
+          <span className="material-symbols-outlined">delete</span>
         </div>
-        <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
-          {[
-            { label: "Tên bộ thẻ *", key: "title", type: "input", placeholder: "Vd: Chào hỏi cơ bản" },
-            { label: "Mô tả", key: "description", type: "textarea", placeholder: "Mô tả ngắn về bộ thẻ..." },
-          ].map(f => (
-            <div key={f.key}>
-              <label style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>{f.label}</label>
-              {f.type === "textarea"
-                ? <textarea value={form[f.key]} onChange={e => set(f.key, e.target.value)} rows={2} placeholder={f.placeholder}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 14, color: "#1e293b", resize: "none", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
-                : <input value={form[f.key]} onChange={e => set(f.key, e.target.value)} placeholder={f.placeholder}
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 14, color: "#1e293b", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
-              }
-            </div>
-          ))}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-            {[
-              { label: "Cấp độ", key: "level", options: LEVELS },
-              { label: "Dạng thẻ", key: "type", options: TYPES },
-              { label: "Trạng thái", key: "status", options: ["Nháp", "Công khai", "Ẩn"] },
-            ].map(f => (
-              <div key={f.key}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 6 }}>{f.label}</label>
-                <select value={form[f.key]} onChange={e => set(f.key, e.target.value)}
-                  style={{ width: "100%", padding: "10px 10px", borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 13, color: "#1e293b", outline: "none", fontFamily: "inherit", cursor: "pointer", background: "#fff" }}>
-                  {f.options.map(o => <option key={o}>{o}</option>)}
-                </select>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div style={{ padding: "16px 24px", borderTop: "1px solid #f1f5f9", display: "flex", justifyContent: "flex-end", gap: 10 }}>
-          <button onClick={onClose} style={{ padding: "9px 18px", borderRadius: 12, border: "1px solid #e2e8f0", background: "#fff", fontSize: 13, fontWeight: 700, color: "#64748b", cursor: "pointer", fontFamily: "inherit" }}>Hủy</button>
-          <button onClick={() => form.title.trim() && onSave(form)}
-            style={{ padding: "9px 18px", borderRadius: 12, border: "none", background: "#1a237e", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6 }}>
-            💾 {deck ? "Lưu thay đổi" : "Tạo bộ thẻ"}
+        <h2 className="mt-4 text-center text-2xl font-black text-slate-900">Xoa bo the?</h2>
+        <p className="mt-2 text-center text-sm leading-6 text-slate-500">
+          Bo the <span className="font-bold text-slate-700">{deck.title}</span> se bi xoa khoi he thong.
+        </p>
+        <div className="mt-6 flex gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50"
+          >
+            Huy
+          </button>
+          <button
+            type="button"
+            disabled={deleting}
+            onClick={onConfirm}
+            className="flex-1 rounded-2xl bg-red-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {deleting ? "Dang xoa..." : "Xoa"}
           </button>
         </div>
       </div>
@@ -106,292 +57,255 @@ function DeckFormModal({ deck, onSave, onClose }) {
   );
 }
 
-function DeleteConfirm({ onConfirm, onClose }) {
-  return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.5)" }}>
-      <div style={{ background: "#fff", borderRadius: 20, boxShadow: "0 20px 60px rgba(0,0,0,0.2)", width: "100%", maxWidth: 360, margin: "0 16px", padding: 32, textAlign: "center" }}>
-        <div style={{ width: 56, height: 56, background: "#fef2f2", borderRadius: 28, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 24 }}>🗑️</div>
-        <h3 style={{ fontWeight: 800, fontSize: 16, color: "#1e293b", marginBottom: 8 }}>Xác nhận xóa</h3>
-        <p style={{ fontSize: 13, color: "#94a3b8", marginBottom: 24, lineHeight: 1.6 }}>Bạn có chắc muốn xóa bộ thẻ này? Hành động này không thể hoàn tác.</p>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={onClose} style={{ flex: 1, padding: "10px 0", borderRadius: 12, border: "1px solid #e2e8f0", background: "#fff", fontSize: 13, fontWeight: 700, color: "#64748b", cursor: "pointer", fontFamily: "inherit" }}>Hủy</button>
-          <button onClick={onConfirm} style={{ flex: 1, padding: "10px 0", borderRadius: 12, border: "none", background: "#ef4444", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Xóa</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function AdminFlashcard() {
-  const [decks, setDecks] = useState(INIT_DECKS);
+export default function AdminFlashCard() {
+  const navigate = useNavigate();
+  const [decks, setDecks] = useState([]);
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState("Tất cả");
-  const [sort, setSort] = useState("Mới nhất");
-  const [modal, setModal] = useState(null);
-  const [deleteId, setDeleteId] = useState(null);
-  const [filterLevel, setFilterLevel] = useState(null);
+  const [levelFilter, setLevelFilter] = useState("Tat ca");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const total = decks.length;
-  const cPublic = decks.filter(d => d.status === "Công khai").length;
-  const cDraft = decks.filter(d => d.status !== "Công khai").length;
-  const totalViews = decks.reduce((s, d) => s + d.views, 0);
+  useEffect(() => {
+    let mounted = true;
 
-  const hskCounts = LEVELS.map(l => ({ level: l, count: decks.filter(d => d.level === l).length }));
-  const maxCount = Math.max(...hskCounts.map(h => h.count), 1);
+    const fetchDecks = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const response = await getDecks();
+        if (!mounted) return;
+        setDecks(Array.isArray(response.data) ? response.data : []);
+      } catch (err) {
+        if (!mounted) return;
+        setError(err.response?.data?.message || "Khong the tai danh sach bo the.");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
 
-  let filtered = decks.filter(d => {
-    const matchSearch = d.title.toLowerCase().includes(search.toLowerCase()) || d.description.toLowerCase().includes(search.toLowerCase());
-    const matchTab = tab === "Tất cả" || (tab === "Công khai" ? d.status === "Công khai" : tab === "Nháp" ? d.status === "Nháp" : d.status === "Ẩn");
-    const matchLevel = !filterLevel || d.level === filterLevel;
-    return matchSearch && matchTab && matchLevel;
-  });
-  if (sort === "Mới nhất") filtered = [...filtered].reverse();
-  else if (sort === "Nhiều thẻ nhất") filtered = [...filtered].sort((a, b) => b.cardCount - a.cardCount);
-  else if (sort === "Nhiều lượt xem") filtered = [...filtered].sort((a, b) => b.views - a.views);
+    fetchDecks();
 
-  const handleSave = (form) => {
-    if (!modal || modal === "add") {
-      setDecks(prev => [...prev, { ...form, id: Date.now(), cardCount: 0, views: 0, createdAt: new Date().toLocaleDateString("vi-VN") }]);
-    } else {
-      setDecks(prev => prev.map(d => d.id === modal.id ? { ...d, ...form } : d));
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const filteredDecks = useMemo(() => {
+    return decks.filter((deck) => {
+      const keyword = `${deck.title || ""} ${deck.subtitle || ""}`.toLowerCase();
+      const bySearch = keyword.includes(search.toLowerCase());
+      const byLevel = levelFilter === "Tat ca" || deck.level === levelFilter;
+      return bySearch && byLevel;
+    });
+  }, [decks, levelFilter, search]);
+
+  const totalCards = useMemo(
+    () => decks.reduce((sum, deck) => sum + (Number(deck.cardCount) || 0), 0),
+    [decks]
+  );
+
+  const handleDeleteDeck = async (deckId = deleteTarget?.id) => {
+    if (!deckId) return;
+
+    try {
+      setDeleting(true);
+      await deleteDeck(deckId);
+      setDecks((prev) => prev.filter((deck) => deck.id !== deckId));
+      setDeleteTarget(null);
+    } catch (err) {
+      setError(err.response?.data?.message || "Khong the xoa bo the nay.");
+    } finally {
+      setDeleting(false);
     }
-    setModal(null);
-  };
-
-  const handleDelete = () => {
-    setDecks(prev => prev.filter(d => d.id !== deleteId));
-    setDeleteId(null);
-  };
-
-  const handleDuplicate = (deck) => {
-    setDecks(prev => [...prev, { ...deck, id: Date.now(), title: deck.title + " (bản sao)", status: "Nháp", views: 0, createdAt: new Date().toLocaleDateString("vi-VN") }]);
-  };
-
-  const S = {
-    page: { display: "flex", minHeight: "100vh", background: "#f4f6fb", fontFamily: "'Segoe UI', system-ui, sans-serif" },
-    sidebar: { width: 240, flexShrink: 0, background: "#1a237e", minHeight: "100vh", display: "flex", flexDirection: "column" },
-    sidebarLogo: { padding: "20px 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", gap: 12 },
-    logoIcon: { width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" },
-    nav: { flex: 1, padding: "12px 10px", display: "flex", flexDirection: "column", gap: 2 },
-    navItem: (active) => ({
-      display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12,
-      fontSize: 13, fontWeight: active ? 700 : 500, cursor: "pointer", transition: "all 0.15s",
-      color: active ? "#fff" : "rgba(255,255,255,0.6)", background: active ? "rgba(255,255,255,0.15)" : "transparent",
-      border: "none", width: "100%", textAlign: "left",
-    }),
-    adminBar: { padding: "14px 16px", borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", gap: 10 },
-    main: { flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" },
-    topbar: { background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "16px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 20 },
-    content: { padding: "24px 32px", display: "flex", flexDirection: "column", gap: 20 },
-    statGrid: { display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16 },
-    statCard: { background: "#fff", borderRadius: 16, border: "1px solid #f1f5f9", padding: "18px 20px", display: "flex", alignItems: "center", gap: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" },
-    statIcon: (bg) => ({ width: 48, height: 48, borderRadius: 14, background: bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }),
-    section: { background: "#fff", borderRadius: 16, border: "1px solid #f1f5f9", boxShadow: "0 1px 4px rgba(0,0,0,0.05)", overflow: "hidden" },
-    th: { padding: "10px 18px", fontSize: 10, fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "left", whiteSpace: "nowrap" },
-    td: { padding: "14px 18px", verticalAlign: "middle" },
   };
 
   return (
-    <div style={S.page}>
+    <div className="flex min-h-screen bg-slate-50">
       <AdminSidebar />
 
-      {/* MAIN */}
-      <main style={S.main}>
-        {/* Topbar */}
-        <div style={S.topbar}>
-          <div>
-            <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 2 }}>
-              Nội dung &rsaquo; <span style={{ color: "#475569", fontWeight: 500 }}>Quản lý Flashcards</span>
+      <main className="flex-1">
+        <div className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
+          <div className="flex flex-wrap items-center justify-between gap-4 px-8 py-5">
+            <div>
+              <p className="text-sm text-slate-400">Noi dung / Quan ly flashcard</p>
+              <h1 className="text-2xl font-black text-slate-900">Admin Flashcard</h1>
             </div>
-            <h1 style={{ fontSize: 20, fontWeight: 900, color: "#1e293b", margin: 0 }}>Quản lý Flashcards</h1>
-          </div>
-          <div style={{ display: "flex", gap: 10 }}>
-            <button style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 16px", borderRadius: 12, border: "1px solid #e2e8f0", background: "#fff", fontSize: 13, fontWeight: 700, color: "#475569", cursor: "pointer", fontFamily: "inherit" }}>
-              ⬇ Xuất Excel
-            </button>
-            <button onClick={() => setModal("add")}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 16px", borderRadius: 12, border: "none", background: "#1a237e", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 2px 8px rgba(26,35,126,0.3)" }}>
-              ＋ Tạo bộ thẻ mới
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => navigate("/adminflashcardPage")}
+                className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50"
+              >
+                Xem danh sach
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/adminAddNewFlashcard")}
+                className="rounded-2xl bg-primary px-5 py-3 text-sm font-bold text-white transition hover:bg-primary-dark"
+              >
+                Tao bo the moi
+              </button>
+            </div>
           </div>
         </div>
 
-        <div style={S.content}>
-          {/* STAT CARDS */}
-          <div style={S.statGrid}>
+        <div className="space-y-6 px-8 py-6">
+          <div className="grid gap-4 md:grid-cols-3">
             {[
-              { label: "Tổng bộ thẻ", value: total, emoji: "🃏", bg: "#eff6ff", color: "#3b82f6" },
-              { label: "Công khai", value: cPublic, emoji: "✅", bg: "#f0fdf4", color: "#22c55e" },
-              { label: "Nháp / Ẩn", value: cDraft, emoji: "😑", bg: "#fffbeb", color: "#f59e0b" },
-              { label: "Tổng lượt xem", value: totalViews, emoji: "👥", bg: "#f5f3ff", color: "#8b5cf6" },
-            ].map(s => (
-              <div key={s.label} style={S.statCard}>
-                <div style={S.statIcon(s.bg)}>
-                  <span style={{ fontSize: 22 }}>{s.emoji}</span>
-                </div>
-                <div>
-                  <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 500, marginBottom: 2 }}>{s.label}</div>
-                  <div style={{ fontSize: 32, fontWeight: 900, color: "#1e293b", lineHeight: 1 }}>{s.value}</div>
+              { label: "Tong bo the", value: decks.length, icon: "style" },
+              { label: "Tong flashcard", value: totalCards, icon: "layers" },
+              { label: "Bo co noi dung", value: decks.filter((deck) => (Number(deck.cardCount) || 0) > 0).length, icon: "task_alt" },
+            ].map((item) => (
+              <div key={item.label} className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    <span className="material-symbols-outlined">{item.icon}</span>
+                  </div>
+                  <div>
+                    <p className="text-3xl font-black text-slate-900">{item.value}</p>
+                    <p className="text-sm text-slate-400">{item.label}</p>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* HSK CHART */}
-          <div style={{ ...S.section, padding: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#374151" }}>Phân bổ theo cấp độ HSK</span>
-              <span style={{ fontSize: 12, color: "#94a3b8" }}>Bấm vào cột để lọc</span>
+          <div className="rounded-[28px] border border-slate-200 bg-white shadow-sm">
+            <div className="flex flex-wrap items-center gap-4 border-b border-slate-100 px-6 py-5">
+              <div className="relative min-w-[260px] flex-1">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Tim theo ten bo the..."
+                  className="w-full rounded-2xl border border-slate-200 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-primary"
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {LEVELS.map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    onClick={() => setLevelFilter(level)}
+                    className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                      levelFilter === level ? "bg-primary text-white" : "bg-slate-100 text-slate-500 hover:text-primary"
+                    }`}
+                  >
+                    {level}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 16, height: 96 }}>
-              {hskCounts.map((h, i) => {
-                const barH = Math.max((h.count / maxCount) * 56, h.count > 0 ? 10 : 4);
-                const isActive = filterLevel === h.level;
-                const isFiltering = !!filterLevel;
-                return (
-                  <div key={h.level} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer" }}
-                    onClick={() => setFilterLevel(filterLevel === h.level ? null : h.level)}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>{h.count}</span>
-                    <div style={{
-                      width: "100%", borderRadius: "6px 6px 0 0", height: barH,
-                      background: isFiltering && !isActive ? "#e2e8f0" : BAR_COLORS[i],
-                      transition: "all 0.2s", boxShadow: isActive ? `0 4px 12px ${BAR_COLORS[i]}55` : "none",
-                    }} />
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: isActive ? "#1a237e" : "#94a3b8" }}>
-                        {h.level.replace("HSK ", "H")}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {filterLevel && (
-              <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 12, color: "#64748b" }}>Đang lọc:</span>
-                <LevelBadge level={filterLevel} />
-                <button onClick={() => setFilterLevel(null)} style={{ fontSize: 11, color: "#64748b", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Xóa lọc</button>
+
+            {loading ? (
+              <div className="px-6 py-20 text-center">
+                <div className="mx-auto h-14 w-14 animate-spin rounded-full border-4 border-slate-200 border-t-primary" />
+                <p className="mt-4 text-sm font-medium text-slate-500">Dang tai danh sach bo the...</p>
+              </div>
+            ) : error ? (
+              <div className="px-6 py-16 text-center">
+                <p className="text-lg font-black text-slate-900">Khong tai duoc du lieu</p>
+                <p className="mt-2 text-sm text-slate-500">{error}</p>
+              </div>
+            ) : filteredDecks.length === 0 ? (
+              <div className="px-6 py-16 text-center">
+                <p className="text-lg font-black text-slate-900">Chua co bo the nao</p>
+                <p className="mt-2 text-sm text-slate-500">Tao bo the moi de hien thi o trang flashcard nguoi dung.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+                      <th className="px-6 py-4">Bo the</th>
+                      <th className="px-6 py-4">Cap do</th>
+                      <th className="px-6 py-4">So the</th>
+                      <th className="px-6 py-4">Trang thai</th>
+                      <th className="px-6 py-4 text-right">Thao tac</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredDecks.map((deck) => (
+                      <tr key={deck.id} className="border-b border-slate-100 last:border-b-0">
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-4">
+                            {deck.imageUrl ? (
+                              <img
+                                src={deck.imageUrl}
+                                alt={deck.title}
+                                className="h-14 w-20 rounded-2xl object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-14 w-20 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                                <span className="material-symbols-outlined">style</span>
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-base font-black text-slate-900">{deck.title}</p>
+                              <p className="mt-1 text-sm text-slate-400">{deck.subtitle || "Bo the flashcard tieng Trung"}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5">
+                          <LevelBadge level={deck.level} />
+                        </td>
+                        <td className="px-6 py-5 text-sm font-bold text-slate-700">{deck.cardCount || 0} the</td>
+                        <td className="px-6 py-5">
+                          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">San sang</span>
+                        </td>
+                        <td className="px-6 py-5">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/flashcard/session/${deck.id}`)}
+                              title="Xem flashcard"
+                              aria-label="Xem flashcard"
+                              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:border-primary hover:text-primary"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">visibility</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/adminEditFlashcard/${deck.id}`)}
+                              title="Sua bo flashcard"
+                              aria-label="Sua bo flashcard"
+                              className="flex h-10 w-10 items-center justify-center rounded-xl border border-amber-200 text-amber-500 transition hover:bg-amber-50 hover:text-amber-600"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">edit</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setDeleteTarget(deck);
+                              }}
+                              title="Xoa bo flashcard"
+                              aria-label="Xoa bo flashcard"
+                              className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-200 text-red-500 transition hover:bg-red-50"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
-          </div>
-
-          {/* TABLE */}
-          <div style={S.section}>
-            {/* Controls */}
-            <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ position: "relative", flex: 1, maxWidth: 320 }}>
-                <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: "#94a3b8" }}>🔍</span>
-                <input value={search} onChange={e => setSearch(e.target.value)}
-                  placeholder="Tìm tên bộ thẻ..."
-                  style={{ width: "100%", paddingLeft: 36, paddingRight: 14, paddingTop: 8, paddingBottom: 8, borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 13, color: "#1e293b", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
-              </div>
-              <div style={{ display: "flex", gap: 4, marginLeft: "auto" }}>
-                {["Tất cả", "Công khai", "Nháp", "Ẩn"].map(t => (
-                  <button key={t} onClick={() => setTab(t)}
-                    style={{ padding: "8px 16px", borderRadius: 10, border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
-                      background: tab === t ? "#1a237e" : "transparent", color: tab === t ? "#fff" : "#64748b" }}>
-                    {t}
-                  </button>
-                ))}
-              </div>
-              <select value={sort} onChange={e => setSort(e.target.value)}
-                style={{ padding: "8px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 13, color: "#475569", outline: "none", cursor: "pointer", fontFamily: "inherit", background: "#fff" }}>
-                <option>Mới nhất</option>
-                <option>Nhiều thẻ nhất</option>
-                <option>Nhiều lượt xem</option>
-              </select>
-            </div>
-
-            {/* Table */}
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
-                    {["TÊN BỘ THẺ", "CẤP ĐỘ", "DẠNG THẺ", "SỐ THẺ", "LƯỢT XEM", "TRẠNG THÁI", "NGÀY TẠO", "THAO TÁC"].map(col => (
-                      <th key={col} style={S.th}>{col}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} style={{ ...S.td, textAlign: "center", padding: "48px 0", color: "#94a3b8", fontSize: 14 }}>
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-                          <span style={{ fontSize: 36 }}>🃏</span>
-                          Không tìm thấy bộ thẻ nào
-                        </div>
-                      </td>
-                    </tr>
-                  ) : filtered.map((deck, idx) => (
-                    <tr key={deck.id} style={{ borderBottom: idx < filtered.length - 1 ? "1px solid #f8fafc" : "none", transition: "background 0.1s" }}
-                      onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
-                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                      <td style={S.td}>
-                        <div style={{ fontWeight: 700, fontSize: 14, color: "#1e293b" }}>{deck.title}</div>
-                        <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3, maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{deck.description}</div>
-                      </td>
-                      <td style={S.td}><LevelBadge level={deck.level} /></td>
-                      <td style={S.td}>
-                        <span style={{ fontSize: 11, fontWeight: 700, padding: "5px 10px", borderRadius: 8, background: "#f1f5f9", color: "#475569" }}>{deck.type}</span>
-                      </td>
-                      <td style={S.td}>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: "#374151" }}>{deck.cardCount} thẻ</div>
-                        <div style={{ marginTop: 5, width: 56, height: 4, background: "#e2e8f0", borderRadius: 99, overflow: "hidden" }}>
-                          <div style={{ height: "100%", background: "#60a5fa", borderRadius: 99, width: `${Math.min((deck.cardCount / 30) * 100, 100)}%` }} />
-                        </div>
-                      </td>
-                      <td style={S.td}>
-                        <span style={{ fontWeight: 700, fontSize: 14, color: "#374151" }}>{deck.views}</span>
-                      </td>
-                      <td style={S.td}><StatusBadge status={deck.status} /></td>
-                      <td style={S.td}><span style={{ fontSize: 12, color: "#64748b" }}>{deck.createdAt}</span></td>
-                      <td style={S.td}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                          <button onClick={() => setModal(deck)}
-                            style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", borderRadius: 8, border: "none", background: "none", fontSize: 12, fontWeight: 700, color: "#3b82f6", cursor: "pointer", fontFamily: "inherit" }}
-                            onMouseEnter={e => e.currentTarget.style.background = "#eff6ff"}
-                            onMouseLeave={e => e.currentTarget.style.background = "none"}>
-                            ✏️ Sửa
-                          </button>
-                          <button title="Quản lý thẻ"
-                            style={{ width: 30, height: 30, borderRadius: 8, border: "none", background: "none", cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center" }}
-                            onMouseEnter={e => e.currentTarget.style.background = "#f1f5f9"}
-                            onMouseLeave={e => e.currentTarget.style.background = "none"}>⚙️</button>
-                          <button onClick={() => handleDuplicate(deck)} title="Nhân bản"
-                            style={{ width: 30, height: 30, borderRadius: 8, border: "none", background: "none", cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center" }}
-                            onMouseEnter={e => e.currentTarget.style.background = "#f5f3ff"}
-                            onMouseLeave={e => e.currentTarget.style.background = "none"}>📋</button>
-                          <button onClick={() => setDeleteId(deck.id)}
-                            style={{ width: 30, height: 30, borderRadius: 8, border: "none", background: "none", cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center" }}
-                            onMouseEnter={e => e.currentTarget.style.background = "#fef2f2"}
-                            onMouseLeave={e => e.currentTarget.style.background = "none"}>🗑️</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination footer */}
-            <div style={{ padding: "12px 20px", borderTop: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 12, color: "#94a3b8" }}>Hiển thị {filtered.length} / {decks.length} bộ thẻ</span>
-              <div style={{ display: "flex", gap: 4 }}>
-                {["‹", "1", "›"].map((p, i) => (
-                  <button key={p} style={{ width: 32, height: 32, borderRadius: 8, border: i === 1 ? "none" : "1px solid #e2e8f0", background: i === 1 ? "#1a237e" : "#fff", color: i === 1 ? "#fff" : "#475569", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {p}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </main>
 
-      {/* Modals */}
-      {modal && <DeckFormModal deck={modal === "add" ? null : modal} onSave={handleSave} onClose={() => setModal(null)} />}
-      {deleteId && <DeleteConfirm onConfirm={handleDelete} onClose={() => setDeleteId(null)} />}
+      <DeleteModal
+        deck={deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => handleDeleteDeck(deleteTarget?.id)}
+        deleting={deleting}
+      />
     </div>
   );
 }
-

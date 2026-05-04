@@ -1,158 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const SUBJECTS = ["HSK 1", "HSK 2", "HSK 3", "HSK 4", "HSK 5", "HSK 6"];
-const EXAM_SUBJECTS = ["HSK 1", "HSK 2", "HSK 3", "HSK 4", "HSK 5", "HSK 6"];
-
-const DOC_DATA = [
-  {
-    id: 1,
-    level: "HSK 1",
-    brand: "Tài liệu tổng hợp HSK 1",
-    titleInner: "Từ vựng cơ bản và pinyin",
-    subtitle: "Tài liệu ôn tập nhập môn dành cho người mới bắt đầu",
-    author: "Biên soạn: Tổ chuyên môn TOXI",
-    name: "HSK 1 tổng hợp từ vựng cơ bản, pinyin và mẫu câu giao tiếp hằng ngày",
-    date: "05/04/2026",
-    views: 2671,
-    thumbColor: ["#e8f4fd", "#c3ddf5"],
-  },
-  {
-    id: 2,
-    level: "HSK 2",
-    brand: "Tài liệu tổng hợp HSK 2",
-    titleInner: "Hệ thống mẫu câu thông dụng",
-    subtitle: "Mẫu câu tần suất cao và bài luyện hội thoại cơ bản",
-    author: "Biên soạn: Tổ chuyên môn TOXI",
-    name: "HSK 2 tổng hợp mẫu câu thông dụng, cấu trúc hỏi đáp và từ vựng theo chủ đề",
-    date: "05/04/2026",
-    views: 1840,
-    thumbColor: ["#e8f4fd", "#c3ddf5"],
-  },
-  {
-    id: 3,
-    level: "HSK 3",
-    brand: "Tài liệu tổng hợp HSK 3",
-    titleInner: "Tổng hợp ngữ pháp trọng điểm",
-    subtitle: "Hệ thống các điểm ngữ pháp thường gặp trong bài thi",
-    author: "Biên soạn: Tổ chuyên môn TOXI",
-    name: "HSK 3 tổng hợp ngữ pháp tần suất cao, từ nối và kỹ năng đọc hiểu",
-    date: "25/03/2026",
-    views: 2695,
-    thumbColor: ["#e8f4fd", "#c3ddf5"],
-  },
-  {
-    id: 4,
-    level: "HSK 4",
-    brand: "Tài liệu tổng hợp HSK 4",
-    titleInner: "Chuyên đề đọc hiểu",
-    subtitle: "Nâng cao tốc độ đọc và độ chính xác khi làm bài",
-    author: "Biên soạn: Tổ chuyên môn TOXI",
-    name: "HSK 4 tuyển tập bài đọc hiểu, cụm từ đi kèm và bài luyện chọn lọc",
-    date: "02/02/2026",
-    views: 5086,
-    thumbColor: ["#e8f4fd", "#c3ddf5"],
-  },
-  {
-    id: 5,
-    level: "HSK 5",
-    brand: "Tài liệu tổng hợp HSK 5",
-    titleInner: "Chuyên sâu từ vựng nâng cao",
-    subtitle: "Phân biệt từ khó và tích lũy cách diễn đạt trong đề thật",
-    author: "Biên soạn: Tổ chuyên môn TOXI",
-    name: "HSK 5 chuyên đề từ vựng nâng cao, diễn đạt viết và đọc hiểu chuyên sâu",
-    date: "01/02/2026",
-    views: 3243,
-    thumbColor: ["#e8f4fd", "#c3ddf5"],
-  },
-  {
-    id: 6,
-    level: "HSK 6",
-    brand: "Tài liệu tổng hợp HSK 6",
-    titleInner: "Tổng hợp điểm khó đề thật",
-    subtitle: "Phá vỡ các phần khó trong đọc hiểu và nghe hiểu nâng cao",
-    author: "Biên soạn: Tổ chuyên môn TOXI",
-    name: "HSK 6 tổng hợp điểm khó thường gặp, từ gần nghĩa và kỹ năng viết nâng cao",
-    date: "15/01/2026",
-    views: 3891,
-    thumbColor: ["#fff8e1", "#ffe082"],
-  },
-];
-
-const EXAM_DATA = [
-  {
-    id: 1,
-    level: "HSK 1",
-    brand: "Đề thi thử HSK 1",
-    titleInner: "Đề mô phỏng HSK 1",
-    subtitle: "Từ vựng - Nghe - Đọc",
-    note: "Thời gian gợi ý: 40 phút",
-    author: "Biên soạn: Tổ chuyên môn TOXI",
-    name: "Đề thi thử HSK 1 số 1: luyện từ vựng cơ bản và nghe hiểu nhập môn",
-    date: "03/04/2026",
-    views: 4120,
-  },
-  {
-    id: 2,
-    level: "HSK 2",
-    brand: "Đề thi thử HSK 2",
-    titleInner: "Đề mô phỏng HSK 2",
-    subtitle: "Mẫu câu - Ngữ pháp - Nghe",
-    note: "Thời gian gợi ý: 55 phút",
-    author: "Biên soạn: Tổ chuyên môn TOXI",
-    name: "Đề thi thử HSK 2 số 2: luyện mẫu câu thường gặp và nghe hiểu cơ bản",
-    date: "02/04/2026",
-    views: 3870,
-  },
-  {
-    id: 3,
-    level: "HSK 3",
-    brand: "Đề thi thử HSK 3",
-    titleInner: "Đề mô phỏng HSK 3",
-    subtitle: "Ngữ pháp - Đọc - Viết cơ bản",
-    note: "Thời gian gợi ý: 90 phút",
-    author: "Biên soạn: Tổ chuyên môn TOXI",
-    name: "Đề thi thử HSK 3 số 3: kiểm tra tổng hợp ngữ pháp, đọc và viết cơ bản",
-    date: "28/03/2026",
-    views: 5201,
-  },
-  {
-    id: 4,
-    level: "HSK 4",
-    brand: "Đề thi thử HSK 4",
-    titleInner: "Đề mô phỏng HSK 4",
-    subtitle: "Đọc - Nghe - Diễn đạt viết",
-    note: "Thời gian gợi ý: 105 phút",
-    author: "Biên soạn: Tổ chuyên môn TOXI",
-    name: "Đề thi thử HSK 4 số 4: luyện tốc độ đọc và kỹ năng diễn đạt viết",
-    date: "20/03/2026",
-    views: 2984,
-  },
-  {
-    id: 5,
-    level: "HSK 5",
-    brand: "Đề thi thử HSK 5",
-    titleInner: "Đề mô phỏng HSK 5",
-    subtitle: "Từ vựng nâng cao - Đọc - Nghe",
-    note: "Thời gian gợi ý: 125 phút",
-    author: "Biên soạn: Tổ chuyên môn TOXI",
-    name: "Đề thi thử HSK 5 số 5: luyện tổng hợp đọc hiểu, nghe hiểu và từ vựng nâng cao",
-    date: "12/03/2026",
-    views: 3568,
-  },
-  {
-    id: 6,
-    level: "HSK 6",
-    brand: "Đề thi thử HSK 6",
-    titleInner: "Đề mô phỏng HSK 6",
-    subtitle: "Hiểu tổng hợp - Viết - Nghe",
-    note: "Thời gian gợi ý: 140 phút",
-    author: "Biên soạn: Tổ chuyên môn TOXI",
-    name: "Đề thi thử HSK 6 số 6: luyện hiểu tổng hợp và nâng cao kỹ năng viết",
-    date: "05/03/2026",
-    views: 4412,
-  },
-];
+import { DOC_DATA, EXAM_DATA, EXAM_SUBJECTS, SUBJECTS } from "../documentData";
 
 const heroImages = [
   "https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=1400&q=80",
@@ -209,7 +57,7 @@ const styles = {
     overflow: "hidden",
     border: "1px solid #eee",
     cursor: "pointer",
-    transition: "box-shadow 0.2s",
+    transition: "box-shadow 0.2s, transform 0.2s",
   },
   cardInfo: {
     padding: "10px 12px",
@@ -260,18 +108,23 @@ function TabGroup({ subjects, activeTab, onTabChange }) {
   );
 }
 
-function DocCard({ item }) {
+function DocCard({ item, onOpen, gradient }) {
   const [hovered, setHovered] = useState(false);
 
   return (
     <div
-      style={{ ...styles.card, boxShadow: hovered ? "0 4px 16px rgba(0,0,0,0.10)" : "none" }}
+      style={{
+        ...styles.card,
+        boxShadow: hovered ? "0 4px 16px rgba(0,0,0,0.10)" : "none",
+        transform: hovered ? "translateY(-2px)" : "translateY(0)",
+      }}
+      onClick={() => onOpen(item)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       <div
         style={{
-          background: `linear-gradient(135deg, ${item.thumbColor[0]}, ${item.thumbColor[1]})`,
+          background: gradient ?? `linear-gradient(135deg, ${item.thumbColor[0]}, ${item.thumbColor[1]})`,
           padding: 14,
           minHeight: 130,
           display: "flex",
@@ -284,48 +137,6 @@ function DocCard({ item }) {
           {item.brand}
         </div>
         <div style={{ fontSize: 13, fontWeight: 800, color: "#c0392b", marginBottom: 4 }}>
-          {item.titleInner}
-        </div>
-        <div style={{ fontSize: 11, color: "#1565c0", fontWeight: 700 }}>{item.subtitle}</div>
-        <div style={{ fontSize: 10, color: "#555", marginTop: "auto", fontStyle: "italic" }}>
-          {item.author}
-        </div>
-      </div>
-      <div style={styles.cardInfo}>
-        <div style={styles.cardName}>{item.name}</div>
-        <div style={styles.cardMeta}>
-          <span>📅 {item.date}</span>
-          <span>👁 {item.views.toLocaleString("vi-VN")} lượt xem</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ExamCard({ item }) {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <div
-      style={{ ...styles.card, boxShadow: hovered ? "0 4px 16px rgba(0,0,0,0.10)" : "none" }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <div
-        style={{
-          background: "linear-gradient(135deg, #fff3e0, #ffe0b2)",
-          padding: 14,
-          minHeight: 130,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "flex-start",
-          borderBottom: "1px solid #eee",
-        }}
-      >
-        <div style={{ fontSize: 9, color: "#e8192c", fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>
-          {item.brand}
-        </div>
-        <div style={{ fontSize: 12, fontWeight: 800, color: "#b71c1c", marginBottom: 4 }}>
           {item.titleInner}
         </div>
         <div style={{ fontSize: 11, color: "#1565c0", fontWeight: 700, whiteSpace: "pre-line" }}>
@@ -399,6 +210,10 @@ export default function DocumentMain() {
     return () => window.clearInterval(timer);
   }, [heroSlides.length]);
 
+  const openDocumentDetail = (item) => {
+    navigate(`/documents/${item.type}/${item.id}`);
+  };
+
   return (
     <>
       <section className="w-full bg-[#f4f7ff] pt-3 md:pt-5 lg:pt-6">
@@ -410,10 +225,6 @@ export default function DocumentMain() {
                   <button
                     key={slide.id}
                     type="button"
-                    onClick={() => {
-                      if (String(slide.id).startsWith("hero-")) return;
-                      navigate(`/courses/${slide.id}`);
-                    }}
                     className={`absolute inset-0 cursor-default text-left transition-all duration-700 ${
                       activeHero === index
                         ? "opacity-100 translate-x-0"
@@ -479,7 +290,7 @@ export default function DocumentMain() {
           <TabGroup subjects={SUBJECTS} activeTab={docTab} onTabChange={setDocTab} />
           <div style={styles.grid}>
             {filteredDocs.map((item) => (
-              <DocCard key={item.id} item={item} />
+              <DocCard key={item.id} item={item} onOpen={openDocumentDetail} />
             ))}
           </div>
         </div>
@@ -494,7 +305,12 @@ export default function DocumentMain() {
           <TabGroup subjects={EXAM_SUBJECTS} activeTab={examTab} onTabChange={setExamTab} />
           <div style={styles.grid}>
             {filteredExams.map((item) => (
-              <ExamCard key={item.id} item={item} />
+              <DocCard
+                key={item.id}
+                item={item}
+                onOpen={openDocumentDetail}
+                gradient="linear-gradient(135deg, #fff3e0, #ffe0b2)"
+              />
             ))}
           </div>
         </div>
