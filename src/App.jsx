@@ -89,10 +89,12 @@ import AdminAddNewVideo from './Layouts/admin/AdminAddNewVideo.jsx';
 import AdminCourseContent from './Layouts/admin/AdminCourseContent.jsx';
 import AdminFlashCard from './Layouts/admin/AdminFlashCard.jsx';
 import DocumentPage from './Layouts/document/DocumentPage.jsx';
+import DocumentDetailPage from './Layouts/document/DocumentDetailPage.jsx';
 import Flashcard from './Layouts/flashcard/FlashCard.jsx';
 import FlashcardMain from './Layouts/flashcard/FlashcardMain.jsx';
 import AdminFlashCardPage from './Layouts/admin/AdminFlashCardPage.jsx';
 import AddNewFlashcard from './Layouts/admin/addflashcard/AddNewFlashcard.jsx';
+import EditFlashcard from './Layouts/admin/addflashcard/EditFlashcard.jsx';
 import LearnRoute from './LearnRoute.jsx';
 
 function App() {
@@ -114,6 +116,7 @@ function App() {
         <Route path="/Introduction" element={<IntroSection />} />
         <Route path="/blogintroduce" element={<BlogIntrodution />} />
         <Route path="/documents" element={<DocumentPage />} />
+        <Route path="/documents/:type/:id" element={<DocumentDetailPage />} />
           <Route path="/flashcard" element={<Flashcard />} />
          
         </Route>
@@ -131,7 +134,7 @@ function App() {
       <Route path="/learn/:courseId/:lessonId" element={<LearnRoute><VideoPage /></LearnRoute>} />
       <Route path="/Exam/:id" element={<ExamPage />} />
       <Route path="/result/:id" element={<ExamResultPage />} />
-       <Route path="/flashcard/session" element={<FlashcardMain />} />
+      <Route path="/flashcard/session/:deckId" element={<FlashcardMain />} />
       <Route path="/MyCourse" element={<MyCoursePage />} />
       <Route path="/Profile" element={<MyInformationPage />} />
       <Route path="/MyProduct" element={<MyProductMain />} />
@@ -217,6 +220,7 @@ function App() {
 <Route path="/adminFlashCards" element={<AdminRoute><AdminFlashCard /></AdminRoute>} />
 <Route path="/adminflashcardPage" element={<AdminRoute><AdminFlashCardPage /></AdminRoute>} />
 <Route path="/adminAddNewFlashcard" element={<AdminRoute><AddNewFlashcard /></AdminRoute>} />
+<Route path="/adminEditFlashcard/:deckId" element={<AdminRoute><EditFlashcard /></AdminRoute>} />
 
     </Routes>
   )

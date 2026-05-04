@@ -1,306 +1,233 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useLocation } from 'react-router-dom';
-import MyHeader from '../mycourse/component/MyHeader.jsx';
-
-const initialFlashcards = [
-  {
-    id: 1, title: 'Chào hỏi', hanzi: '你好', pinyin: 'Nǐ hǎo', meaning: 'Xin chào',
-    exampleZh: '你好，很高兴认识你。', exampleVi: 'Xin chào, rất vui được làm quen.',
-    stroke: '5 nét', radical: '你 (nǐ)', level: 'HSK 1',
-    tips: 'Dùng khi gặp người lần đầu hoặc chào hỏi thông thường.',
-    related: ['你好吗', '大家好'],
-  },
-  {
-    id: 2, title: 'Vận mẫu & Thanh mẫu', hanzi: '妈', pinyin: 'mā', meaning: 'Mẹ',
-    exampleZh: '妈，我回来了。', exampleVi: 'Mẹ ơi, con về rồi.',
-    stroke: '6 nét', radical: '女 (nǚ)', level: 'HSK 1',
-    tips: 'Thanh 1 (mā) = mẹ. Đổi thanh thành mǎ = ngựa, mà = mắng.',
-    related: ['爸爸', '妈妈'],
-  },
-  {
-    id: 3, title: 'Biến điệu', hanzi: '好', pinyin: 'hǎo', meaning: 'Tốt / Được',
-    exampleZh: '这个很好吃。', exampleVi: 'Cái này rất ngon.',
-    stroke: '6 nét', radical: '女 (nǚ)', level: 'HSK 1',
-    tips: 'Kết hợp 女 (nữ) và 子 (con) → nghĩa gốc: bình an, tốt đẹp.',
-    related: ['很好', '好吃', '好看'],
-  },
-  {
-    id: 4, title: 'Chào hỏi', hanzi: '谢谢', pinyin: 'Xièxiè', meaning: 'Cảm ơn',
-    exampleZh: '谢谢你的帮助。', exampleVi: 'Cảm ơn bạn đã giúp đỡ.',
-    stroke: '12 nét', radical: '言 (yán)', level: 'HSK 1',
-    tips: 'Lặp hai lần để nhấn mạnh sự cảm ơn chân thành hơn.',
-    related: ['不谢', '多谢'],
-  },
-  {
-    id: 5, title: 'Biến điệu', hanzi: '再见', pinyin: 'Zàijiàn', meaning: 'Tạm biệt',
-    exampleZh: '明天见，再见！', exampleVi: 'Hẹn gặp lại ngày mai, tạm biệt!',
-    stroke: '9 nét', radical: '见 (jiàn)', level: 'HSK 1',
-    tips: '再 (zài) = lại/nữa + 见 (jiàn) = gặp → hẹn gặp lại.',
-    related: ['明天见', '回见'],
-  },
-];
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
+import MyHeader from "../mycourse/component/MyHeader.jsx";
+import { getFlashcardsByDeckId } from "../admin/api/apiFlashCard";
 
 function speak(text, lang) {
-  if (!window.speechSynthesis) return;
+  if (!text || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = lang; utt.rate = 0.85;
-  window.speechSynthesis.speak(utt);
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = lang;
+  utterance.rate = 0.85;
+  window.speechSynthesis.speak(utterance);
 }
 
-function SpeakerButton({ text, lang, variant = 'light', label, size = 'sm' }) {
+function SpeakerButton({ text, lang, variant = "light", label, size = "sm" }) {
   const [playing, setPlaying] = useState(false);
-  const handleSpeak = (e) => {
-    e.stopPropagation(); setPlaying(true);
+
+  const handleSpeak = (event) => {
+    event.stopPropagation();
+    setPlaying(true);
     speak(text, lang);
     setTimeout(() => setPlaying(false), 1500);
   };
-  const base = `flex items-center gap-1.5 rounded-full font-semibold border transition-all duration-150 cursor-pointer ${size === 'xs' ? 'px-2 py-1 text-[11px]' : 'px-3 py-1.5 text-xs'}`;
-  const styles = variant === 'dark'
-    ? playing ? 'bg-white/30 border-white/60 text-white' : 'bg-white/10 border-white/30 text-white/80 hover:bg-white/20'
-    : playing ? 'bg-primary/20 border-primary text-primary' : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-primary hover:text-primary';
+
+  const baseClass = `flex items-center gap-1.5 rounded-full border font-semibold transition-all duration-150 ${
+    size === "xs" ? "px-2 py-1 text-[11px]" : "px-3 py-1.5 text-xs"
+  }`;
+
+  const variantClass =
+    variant === "dark"
+      ? playing
+        ? "border-white/60 bg-white/30 text-white"
+        : "border-white/30 bg-white/10 text-white/80 hover:bg-white/20"
+      : playing
+        ? "border-primary bg-primary/20 text-primary"
+        : "border-slate-200 bg-slate-100 text-slate-500 hover:border-primary hover:text-primary";
+
   return (
-    <button onClick={handleSpeak} className={`${base} ${styles}`}>
-      <span className={`material-symbols-outlined ${size === 'xs' ? 'text-[13px]' : 'text-[15px]'} ${playing ? 'animate-pulse' : ''}`}>
-        {playing ? 'graphic_eq' : 'volume_up'}
+    <button type="button" onClick={handleSpeak} className={`${baseClass} ${variantClass}`}>
+      <span className={`material-symbols-outlined ${size === "xs" ? "text-[13px]" : "text-[15px]"} ${playing ? "animate-pulse" : ""}`}>
+        {playing ? "graphic_eq" : "volume_up"}
       </span>
       {label}
     </button>
   );
 }
 
-function ProgressRing({ pct, size = 48, stroke = 4, color = '#1D9E75' }) {
-  const r = (size - stroke) / 2;
-  const circ = 2 * Math.PI * r;
-  const offset = circ - (pct / 100) * circ;
+function ProgressRing({ pct, size = 48, stroke = 4, color = "#1D9E75" }) {
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (pct / 100) * circumference;
+
   return (
-    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#e2e8f0" strokeWidth={stroke} />
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
-        strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
-        style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
+    <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#e2e8f0" strokeWidth={stroke} />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke={color}
+        strokeWidth={stroke}
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        style={{ transition: "stroke-dashoffset 0.5s ease" }}
+      />
     </svg>
   );
 }
 
-function AppHeader({ navigate }) {
-  return (
-    <header className="sticky top-0 z-50 bg-primary text-white shadow-xl relative">
-      <div className="absolute inset-0 bg-chinese-pattern opacity-10 pointer-events-none" />
-      <div className="max-w-[1920px] mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-8 relative z-10">
-        <Link to="/Home" className="flex items-center gap-3 shrink-0">
-          <img src={logo} alt="TOXI Logo" className="h-12 w-12 rounded-xl shadow-lg" />
-          <div>
-            <h1 className="text-2xl font-black tracking-tighter leading-none">TOXI</h1>
-            <p className="text-[8px] uppercase tracking-widest text-secondary font-bold">学以致用</p>
-          </div>
-        </Link>
-        <div className="flex-1 max-w-2xl hidden md:block">
-          <div className="relative group">
-            <input type="text" placeholder="Tìm kiếm sản phẩm, giáo trình, dụng cụ..."
-              className="w-full pl-12 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-full text-sm focus:ring-2 focus:ring-secondary focus:bg-white focus:text-primary transition-all placeholder-white/60" />
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/60 group-focus-within:text-primary">search</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-4 shrink-0">
-          <button onClick={() => navigate('/cart')} className="flex items-center justify-center size-10 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors">
-            <span className="material-symbols-outlined">shopping_cart</span>
-          </button>
-          <div className="bg-center bg-no-repeat bg-cover rounded-full size-9 border-2 border-white shadow-sm cursor-pointer hidden sm:block"
-            style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuANadJSyOfDTclENxTAo2sw3Zjh7pnp9KKg6h2O4DPIjBYyTW71cyBejL6epjf4bncopuLtFsS_S28mcoEHv7h1zzA9eQlltIXtwDZfsYjCeMxjDdAPnQkvKLCnuYjrECMphza2dJScBgPHRGqoIUccTQUhZWLevuqN5gbt-Gdi0v_35rRW79Z__1-tjeWPfsTpAYBzqjrPwvrzKlKTY8K7uLo1-SOwA3-7T7eW-upJSD1KOVr7iIff5utR8-CjWJTlAFJYfsztm9s")' }} />
-        </div>
-      </div>
-    </header>
-  );
+function normalizeFlashcard(card) {
+  return {
+    id: card.id,
+    deckId: card.deckId,
+    hanzi: card.hanzi || "",
+    pinyin: card.pinyin || "",
+    meaning: card.meaning || "",
+    exampleZh: card.exampleZh || "",
+    exampleVi: card.exampleVi || "",
+    stroke: card.stroke || "Chua cap nhat",
+    radical: card.radical || "Chua cap nhat",
+    tip: card.tip || "Chua co meo ghi nho cho the nay.",
+    related: Array.isArray(card.related) ? card.related : [],
+  };
 }
 
-// ─── LEFT SIDEBAR ───────────────────────────────────────────────────────────
 function LeftSidebar({ flashcards, currentIdx, setCurrentIdx, setIsFlipped, knownIds, unknownIds }) {
-  const progress = Math.round((knownIds.size / flashcards.length) * 100);
+  const progress = flashcards.length > 0 ? Math.round((knownIds.size / flashcards.length) * 100) : 0;
 
   return (
-    <aside className="w-[280px] shrink-0 hidden lg:flex flex-col gap-4 py-6 pl-6 pr-2">
-      {/* Progress card */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl border border-slate-100 dark:border-slate-800 p-5 flex flex-col gap-4">
+    <aside className="hidden w-[280px] shrink-0 flex-col gap-4 py-6 pl-6 pr-2 lg:flex">
+      <div className="rounded-2xl border border-slate-100 bg-white p-5">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Tiến độ học</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Tien do hoc</span>
           <span className="text-xs font-black text-primary">{progress}%</span>
         </div>
-        <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-          <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+        <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+          <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
         </div>
-        <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
           {[
-            { label: 'Tổng', val: flashcards.length, color: 'text-slate-700 dark:text-slate-300', bg: 'bg-slate-50 dark:bg-slate-800' },
-            { label: 'Đã thuộc', val: knownIds.size, color: 'text-green-700', bg: 'bg-green-50 dark:bg-green-900/20' },
-            { label: 'Chưa thuộc', val: unknownIds.size, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
-          ].map(({ label, val, color, bg }) => (
-            <div key={label} className={`${bg} rounded-xl p-2`}>
-              <p className={`text-xl font-black ${color}`}>{val}</p>
-              <p className="text-[9px] font-semibold text-slate-400 mt-0.5">{label}</p>
+            { label: "Tong", value: flashcards.length, className: "bg-slate-50 text-slate-700" },
+            { label: "Da thuoc", value: knownIds.size, className: "bg-green-50 text-green-700" },
+            { label: "Chua thuoc", value: unknownIds.size, className: "bg-red-50 text-red-600" },
+          ].map((item) => (
+            <div key={item.label} className={`rounded-xl p-2 ${item.className}`}>
+              <p className="text-xl font-black">{item.value}</p>
+              <p className="mt-0.5 text-[9px] font-semibold text-slate-400">{item.label}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Card list */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col">
-        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary text-[16px]">style</span>
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Danh sách thẻ</span>
+      <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white">
+        <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3">
+          <span className="material-symbols-outlined text-[16px] text-primary">style</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Danh sach the</span>
         </div>
-        <div className="flex flex-col overflow-y-auto max-h-[360px] custom-scrollbar">
-          {flashcards.map((card, i) => {
-            const isActive = i === currentIdx;
+        <div className="custom-scrollbar flex max-h-[360px] flex-col overflow-y-auto">
+          {flashcards.map((card, index) => {
+            const isActive = index === currentIdx;
             const isKnown = knownIds.has(card.id);
             const isUnknown = unknownIds.has(card.id);
+
             return (
               <button
                 key={card.id}
-                onClick={() => { setCurrentIdx(i); setIsFlipped(false); }}
-                className={`flex items-center gap-3 px-4 py-3 text-left border-b border-slate-50 dark:border-slate-800/60 last:border-0 transition-all ${isActive ? 'bg-primary/8 dark:bg-primary/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
+                type="button"
+                onClick={() => {
+                  setCurrentIdx(index);
+                  setIsFlipped(false);
+                }}
+                className={`flex items-center gap-3 border-b border-slate-50 px-4 py-3 text-left transition-all last:border-0 ${
+                  isActive ? "bg-primary/8" : "hover:bg-slate-50"
+                }`}
               >
-                <div className={`size-8 rounded-xl flex items-center justify-center text-lg font-black shrink-0 ${isActive ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                  {card.hanzi[0]}
+                <div className={`flex size-8 shrink-0 items-center justify-center rounded-xl text-lg font-black ${
+                  isActive ? "bg-primary text-white" : "bg-slate-100 text-slate-400"
+                }`}>
+                  {card.hanzi?.[0] || "?"}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-bold truncate ${isActive ? 'text-primary' : 'text-slate-700 dark:text-slate-300'}`}>{card.hanzi}</p>
-                  <p className="text-[11px] text-slate-400 truncate">{card.pinyin} · {card.meaning}</p>
+                <div className="min-w-0 flex-1">
+                  <p className={`truncate text-sm font-bold ${isActive ? "text-primary" : "text-slate-700"}`}>{card.hanzi}</p>
+                  <p className="truncate text-[11px] text-slate-400">{card.pinyin} · {card.meaning}</p>
                 </div>
-                {isKnown && <span className="material-symbols-outlined text-green-500 text-[16px] shrink-0">check_circle</span>}
-                {isUnknown && <span className="material-symbols-outlined text-red-400 text-[16px] shrink-0">cancel</span>}
-                {!isKnown && !isUnknown && <span className="size-2 rounded-full bg-slate-200 dark:bg-slate-600 shrink-0" />}
+                {isKnown ? <span className="material-symbols-outlined shrink-0 text-[16px] text-green-500">check_circle</span> : null}
+                {isUnknown ? <span className="material-symbols-outlined shrink-0 text-[16px] text-red-400">cancel</span> : null}
+                {!isKnown && !isUnknown ? <span className="size-2 shrink-0 rounded-full bg-slate-200" /> : null}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Study tip box */}
-      <div className="bg-primary/5 dark:bg-primary/10 rounded-2xl border border-primary/15 p-4 flex flex-col gap-2">
+      <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary text-[16px]">lightbulb</span>
-          <span className="text-xs font-bold uppercase tracking-widest text-primary">Mẹo học</span>
+          <span className="material-symbols-outlined text-[16px] text-primary">lightbulb</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-primary">Meo hoc</span>
         </div>
-        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-          Hãy đọc to chữ Hán khi lật thẻ — não bộ ghi nhớ tốt hơn khi kết hợp thị giác và thính giác.
+        <p className="mt-2 text-xs leading-relaxed text-slate-600">
+          Hay doc to chu Han khi lat the de ket hop ca tri nho thi giac va thinh giac.
         </p>
       </div>
     </aside>
   );
 }
 
-// ─── RIGHT SIDEBAR ──────────────────────────────────────────────────────────
 function RightSidebar({ card, flashcards, knownIds }) {
+  const masteryPct = flashcards.length > 0 ? Math.round((knownIds.size / flashcards.length) * 100) : 0;
+
   if (!card) return null;
-  const masteryPct = Math.round((knownIds.size / flashcards.length) * 100);
 
   return (
-    <aside className="w-[280px] shrink-0 hidden lg:flex flex-col gap-4 py-6 pr-6 pl-2">
-
-      {/* Google-translate panel */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 bg-slate-50 dark:bg-slate-900/50">
-          <span className="material-symbols-outlined text-primary text-[16px]">g_translate</span>
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Bản dịch</span>
-        </div>
-        <div className="p-4 flex flex-col gap-4">
-          {/* ZH */}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Tiếng Trung</span>
-            <div className="flex items-end justify-between gap-2">
-              <div>
-                <p className="text-4xl font-black text-slate-900 dark:text-white leading-none">{card.hanzi}</p>
-                <p className="text-sm text-primary font-semibold mt-1 tracking-wide">{card.pinyin}</p>
-              </div>
-              <SpeakerButton text={card.hanzi} lang="zh-CN" label="Nghe" size="xs" />
-            </div>
-          </div>
-
-          <div className="h-px bg-slate-100 dark:bg-slate-800" />
-
-          {/* VI */}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Tiếng Việt</span>
-            <div className="flex items-end justify-between gap-2">
-              <p className="text-2xl font-black text-slate-900 dark:text-white leading-tight">{card.meaning}</p>
-              <SpeakerButton text={card.meaning} lang="vi-VN" label="Nghe" size="xs" />
-            </div>
-          </div>
-
-          <div className="h-px bg-slate-100 dark:bg-slate-800" />
-
-          {/* Ví dụ */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Ví dụ</span>
-              <SpeakerButton text={card.exampleZh} lang="zh-CN" label="Đọc" size="xs" />
-            </div>
-            <p className="text-sm text-slate-700 dark:text-slate-300 italic font-medium leading-relaxed">"{card.exampleZh}"</p>
-            <p className="text-xs text-slate-400 leading-relaxed">{card.exampleVi}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Card info */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl border border-slate-100 dark:border-slate-800 p-4 flex flex-col gap-3">
+    <aside className="hidden w-[280px] shrink-0 flex-col gap-4 py-6 pr-6 pl-2 lg:flex">
+      <div className="rounded-2xl border border-slate-100 bg-white p-4">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary text-[16px]">info</span>
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Thông tin từ</span>
+          <span className="material-symbols-outlined text-[16px] text-primary">info</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Thong tin tu</span>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           {[
-            { icon: 'gesture', label: 'Số nét', val: card.stroke },
-            { icon: 'category', label: 'Bộ thủ', val: card.radical },
-            { icon: 'school', label: 'Cấp độ', val: card.level },
-            { icon: 'auto_stories', label: 'Chủ đề', val: card.title },
-          ].map(({ icon, label, val }) => (
-            <div key={label} className="bg-slate-50 dark:bg-slate-800 rounded-xl p-2.5">
-              <div className="flex items-center gap-1 mb-1">
-                <span className="material-symbols-outlined text-slate-400 text-[12px]">{icon}</span>
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wide">{label}</span>
+            { icon: "gesture", label: "So net", value: card.stroke },
+            { icon: "category", label: "Bo thu", value: card.radical },
+          ].map((item) => (
+            <div key={item.label} className="rounded-xl bg-slate-50 p-2.5">
+              <div className="mb-1 flex items-center gap-1">
+                <span className="material-symbols-outlined text-[12px] text-slate-400">{item.icon}</span>
+                <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">{item.label}</span>
               </div>
-              <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{val}</p>
+              <p className="text-xs font-bold text-slate-700">{item.value}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Mẹo ghi nhớ */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl border border-slate-100 dark:border-slate-800 p-4 flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-amber-500 text-[16px]">lightbulb</span>
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Mẹo ghi nhớ</span>
+      {card.related.length > 0 ? (
+        <div className="rounded-2xl border border-slate-100 bg-white p-4">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px] text-primary">hub</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Tu lien quan</span>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {card.related.map((item) => (
+              <div key={item} className="flex items-center gap-1.5 rounded-xl border border-primary/20 bg-primary/5 px-2.5 py-1.5">
+                <span className="text-sm font-black text-primary">{item}</span>
+                <SpeakerButton text={item} lang="zh-CN" size="xs" />
+              </div>
+            ))}
+          </div>
         </div>
-        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{card.tips}</p>
+      ) : null}
+
+      <div className="rounded-2xl border border-slate-100 bg-white p-4">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-[16px] text-amber-500">lightbulb</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Meo ghi nho</span>
+        </div>
+        <p className="mt-3 text-xs leading-relaxed text-slate-600">{card.tip}</p>
       </div>
 
-      {/* Từ liên quan */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl border border-slate-100 dark:border-slate-800 p-4 flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary text-[16px]">hub</span>
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Từ liên quan</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {card.related.map((w) => (
-            <div key={w} className="flex items-center gap-1.5 bg-primary/8 dark:bg-primary/15 border border-primary/20 rounded-xl px-2.5 py-1.5">
-              <span className="text-sm font-black text-primary">{w}</span>
-              <SpeakerButton text={w} lang="zh-CN" size="xs" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Mastery ring */}
-      <div className="bg-white dark:bg-surface-dark rounded-2xl border border-slate-100 dark:border-slate-800 p-4 flex items-center gap-4">
-        <div className="relative flex items-center justify-center shrink-0">
+      <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4">
+        <div className="relative flex shrink-0 items-center justify-center">
           <ProgressRing pct={masteryPct} size={60} stroke={6} color="#1D9E75" />
           <span className="absolute text-[11px] font-black text-primary">{masteryPct}%</span>
         </div>
         <div>
-          <p className="text-sm font-black text-slate-800 dark:text-white">Mức thành thạo</p>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Đã thuộc <span className="font-bold text-green-600">{knownIds.size}/{flashcards.length}</span> thẻ
+          <p className="text-sm font-black text-slate-800">Muc thanh thao</p>
+          <p className="mt-0.5 text-xs text-slate-400">
+            Da thuoc <span className="font-bold text-green-600">{knownIds.size}/{flashcards.length}</span> the
           </p>
         </div>
       </div>
@@ -308,96 +235,216 @@ function RightSidebar({ card, flashcards, knownIds }) {
   );
 }
 
-// ─── MAIN COMPONENT ─────────────────────────────────────────────────────────
 export default function FlashcardMain() {
   const location = useLocation();
+  const { deckId } = useParams();
 
-  const [flashcards] = useState(initialFlashcards);
+  const [flashcards, setFlashcards] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [knownIds, setKnownIds] = useState(new Set());
   const [unknownIds, setUnknownIds] = useState(new Set());
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [activeFilter, setActiveFilter] = useState("all");
   const [showResult, setShowResult] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const filtered = flashcards.filter((c) => {
-    if (activeFilter === 'known') return knownIds.has(c.id);
-    if (activeFilter === 'unknown') return unknownIds.has(c.id);
-    return true;
-  });
+  useEffect(() => {
+    let mounted = true;
 
-  const card = filtered[currentIdx] ?? filtered[0];
-  const progress = Math.round((knownIds.size / flashcards.length) * 100);
+    const fetchFlashcards = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const response = await getFlashcardsByDeckId(deckId);
+        const payload = Array.isArray(response.data) ? response.data.map(normalizeFlashcard) : [];
+
+        if (!mounted) return;
+        setFlashcards(payload);
+        setCurrentIdx(0);
+        setIsFlipped(false);
+        setKnownIds(new Set());
+        setUnknownIds(new Set());
+        setActiveFilter("all");
+        setShowResult(false);
+      } catch (err) {
+        if (!mounted) return;
+        setError(err.response?.data?.message || "Khong the tai flashcard cua bo the nay.");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    if (deckId) {
+      fetchFlashcards();
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [deckId]);
+
+  const filtered = useMemo(() => {
+    return flashcards.filter((card) => {
+      if (activeFilter === "known") return knownIds.has(card.id);
+      if (activeFilter === "unknown") return unknownIds.has(card.id);
+      return true;
+    });
+  }, [activeFilter, flashcards, knownIds, unknownIds]);
+
+  useEffect(() => {
+    if (filtered.length === 0) {
+      setCurrentIdx(0);
+      return;
+    }
+
+    setCurrentIdx((prev) => Math.min(prev, filtered.length - 1));
+  }, [filtered.length]);
+
+  const card = filtered[currentIdx] ?? filtered[0] ?? null;
+  const progress = flashcards.length > 0 ? Math.round((knownIds.size / flashcards.length) * 100) : 0;
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const p = params.get('card');
-    if (p !== null) {
-      const i = parseInt(p, 10);
-      if (!isNaN(i) && i >= 0 && i < flashcards.length) setCurrentIdx(i);
+    const value = params.get("card");
+    if (value === null || flashcards.length === 0) return;
+
+    const index = Number.parseInt(value, 10);
+    if (!Number.isNaN(index) && index >= 0 && index < flashcards.length) {
+      setCurrentIdx(index);
     }
   }, [location.search, flashcards.length]);
 
-  const goNext = useCallback(() => { setCurrentIdx((p) => (p + 1) % filtered.length); setIsFlipped(false); }, [filtered.length]);
-  const goPrev = useCallback(() => { setCurrentIdx((p) => (p - 1 + filtered.length) % filtered.length); setIsFlipped(false); }, [filtered.length]);
+  const goNext = useCallback(() => {
+    if (filtered.length === 0) return;
+    setCurrentIdx((prev) => (prev + 1) % filtered.length);
+    setIsFlipped(false);
+  }, [filtered.length]);
+
+  const goPrev = useCallback(() => {
+    if (filtered.length === 0) return;
+    setCurrentIdx((prev) => (prev - 1 + filtered.length) % filtered.length);
+    setIsFlipped(false);
+  }, [filtered.length]);
 
   const markKnown = () => {
     if (!card) return;
+
     setKnownIds((prev) => new Set([...prev, card.id]));
-    setUnknownIds((prev) => { const s = new Set(prev); s.delete(card.id); return s; });
-    if (currentIdx < filtered.length - 1) goNext(); else setShowResult(true);
+    setUnknownIds((prev) => {
+      const next = new Set(prev);
+      next.delete(card.id);
+      return next;
+    });
+
+    if (currentIdx < filtered.length - 1) {
+      goNext();
+    } else {
+      setShowResult(true);
+    }
   };
 
   const markUnknown = () => {
     if (!card) return;
+
     setUnknownIds((prev) => new Set([...prev, card.id]));
-    setKnownIds((prev) => { const s = new Set(prev); s.delete(card.id); return s; });
+    setKnownIds((prev) => {
+      const next = new Set(prev);
+      next.delete(card.id);
+      return next;
+    });
+
     goNext();
   };
 
   const resetAll = () => {
-    setKnownIds(new Set()); setUnknownIds(new Set());
-    setCurrentIdx(0); setIsFlipped(false);
-    setShowResult(false); setActiveFilter('all');
+    setKnownIds(new Set());
+    setUnknownIds(new Set());
+    setCurrentIdx(0);
+    setIsFlipped(false);
+    setShowResult(false);
+    setActiveFilter("all");
   };
 
-  // ── RESULT SCREEN ──────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background-light">
+        <MyHeader />
+        <main className="flex min-h-[70vh] items-center justify-center p-6">
+          <div className="rounded-3xl bg-white p-10 text-center shadow-xl">
+            <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-slate-200 border-t-primary" />
+            <h2 className="mt-5 text-2xl font-black text-slate-900">Dang tai flashcard</h2>
+            <p className="mt-2 text-slate-500">Cho minh lay du lieu cua bo the nay nhe.</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background-light">
+        <MyHeader />
+        <main className="flex min-h-[70vh] items-center justify-center p-6">
+          <div className="max-w-md rounded-3xl bg-white p-10 text-center shadow-xl">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-400">
+              <span className="material-symbols-outlined text-[32px]">error</span>
+            </div>
+            <h2 className="mt-5 text-2xl font-black text-slate-900">Khong tai duoc flashcard</h2>
+            <p className="mt-2 text-slate-500">{error}</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (showResult) {
     return (
-      <div className="min-h-screen bg-background-light dark:bg-background-dark flex flex-col">
+      <div className="min-h-screen bg-background-light flex flex-col">
         <MyHeader />
-        <main className="flex-1 flex items-center justify-center p-6">
-          <div className="bg-white dark:bg-surface-dark rounded-3xl shadow-2xl p-10 max-w-md w-full text-center flex flex-col items-center gap-6">
+        <main className="flex flex-1 items-center justify-center p-6">
+          <div className="flex w-full max-w-md flex-col items-center gap-6 rounded-3xl bg-white p-10 text-center shadow-2xl">
             <div className="relative flex items-center justify-center">
               <ProgressRing pct={progress} size={100} stroke={7} color="#1D9E75" />
               <span className="absolute text-2xl font-black text-primary">{progress}%</span>
             </div>
             <div>
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1">Hoàn thành!</h2>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">
-                Bạn đã thuộc <span className="font-bold text-green-600">{knownIds.size}</span> / {flashcards.length} thẻ
+              <h2 className="mb-1 text-2xl font-black text-slate-900">Hoan thanh!</h2>
+              <p className="text-sm text-slate-500">
+                Ban da thuoc <span className="font-bold text-green-600">{knownIds.size}</span> / {flashcards.length} the
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-4 w-full">
-              <div className="bg-green-50 dark:bg-green-900/20 rounded-2xl p-4">
-                <p className="text-green-700 dark:text-green-400 font-black text-2xl">{knownIds.size}</p>
-                <p className="text-green-600 dark:text-green-500 text-xs font-semibold mt-1">Đã thuộc ✓</p>
+            <div className="grid w-full grid-cols-2 gap-4">
+              <div className="rounded-2xl bg-green-50 p-4">
+                <p className="text-2xl font-black text-green-700">{knownIds.size}</p>
+                <p className="mt-1 text-xs font-semibold text-green-600">Da thuoc</p>
               </div>
-              <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-4">
-                <p className="text-red-700 dark:text-red-400 font-black text-2xl">{unknownIds.size}</p>
-                <p className="text-red-600 dark:text-red-500 text-xs font-semibold mt-1">Chưa thuộc ✗</p>
+              <div className="rounded-2xl bg-red-50 p-4">
+                <p className="text-2xl font-black text-red-700">{unknownIds.size}</p>
+                <p className="mt-1 text-xs font-semibold text-red-600">Chua thuoc</p>
               </div>
             </div>
-            <div className="flex flex-col gap-3 w-full">
-              {unknownIds.size > 0 && (
-                <button onClick={() => { setActiveFilter('unknown'); setCurrentIdx(0); setIsFlipped(false); setShowResult(false); }}
-                  className="w-full py-3 bg-primary text-white rounded-2xl font-bold hover:bg-primary-dark transition-colors">
-                  Ôn lại thẻ chưa thuộc ({unknownIds.size})
+            <div className="flex w-full flex-col gap-3">
+              {unknownIds.size > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveFilter("unknown");
+                    setCurrentIdx(0);
+                    setIsFlipped(false);
+                    setShowResult(false);
+                  }}
+                  className="w-full rounded-2xl bg-primary py-3 font-bold text-white transition-colors hover:bg-primary-dark"
+                >
+                  On lai the chua thuoc ({unknownIds.size})
                 </button>
-              )}
-              <button onClick={resetAll}
-                className="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                Học lại từ đầu
+              ) : null}
+              <button
+                type="button"
+                onClick={resetAll}
+                className="w-full rounded-2xl bg-slate-100 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-200"
+              >
+                Hoc lai tu dau
               </button>
             </div>
           </div>
@@ -406,32 +453,30 @@ export default function FlashcardMain() {
     );
   }
 
-  // ── MAIN LAYOUT ────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark flex flex-col">
+    <div className="min-h-screen bg-background-light flex flex-col">
       <MyHeader />
 
-      <div className="flex flex-1 max-w-[1400px] mx-auto w-full">
-        {/* LEFT SIDEBAR */}
+      <div className="mx-auto flex w-full max-w-[1400px] flex-1">
         <LeftSidebar
-          flashcards={flashcards} currentIdx={currentIdx}
-          setCurrentIdx={setCurrentIdx} setIsFlipped={setIsFlipped}
-          knownIds={knownIds} unknownIds={unknownIds}
+          flashcards={flashcards}
+          currentIdx={currentIdx}
+          setCurrentIdx={setCurrentIdx}
+          setIsFlipped={setIsFlipped}
+          knownIds={knownIds}
+          unknownIds={unknownIds}
         />
 
-        {/* CENTER CONTENT */}
         <main className="flex-1 overflow-y-auto px-4 py-6">
-          <div className="max-w-xl mx-auto flex flex-col gap-5">
-
-            {/* Top bar */}
+          <div className="mx-auto flex max-w-xl flex-col gap-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-0.5">Học từ vựng</p>
-                <h2 className="text-xl font-black text-slate-900 dark:text-white">{card?.title ?? 'Flashcard'}</h2>
+                <p className="mb-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">Hoc tu vung</p>
+                <h2 className="text-xl font-black text-slate-900">Bo the {deckId}</h2>
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Tiến độ</p>
+                  <p className="text-xs text-slate-500">Tien do</p>
                   <p className="text-sm font-black text-primary">{knownIds.size}/{flashcards.length}</p>
                 </div>
                 <div className="relative flex items-center justify-center">
@@ -441,115 +486,178 @@ export default function FlashcardMain() {
               </div>
             </div>
 
-            {/* Filter tabs */}
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex flex-wrap gap-2">
               {[
-                { key: 'all', label: `Tất cả (${flashcards.length})` },
-                { key: 'unknown', label: `Chưa thuộc (${unknownIds.size})` },
-                { key: 'known', label: `Đã thuộc (${knownIds.size})` },
-              ].map(({ key, label }) => (
-                <button key={key}
-                  onClick={() => { setActiveFilter(key); setCurrentIdx(0); setIsFlipped(false); }}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${activeFilter === key
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-white dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary'}`}>
-                  {label}
+                { key: "all", label: `Tat ca (${flashcards.length})` },
+                { key: "unknown", label: `Chua thuoc (${unknownIds.size})` },
+                { key: "known", label: `Da thuoc (${knownIds.size})` },
+              ].map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => {
+                    setActiveFilter(item.key);
+                    setCurrentIdx(0);
+                    setIsFlipped(false);
+                  }}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${
+                    activeFilter === item.key
+                      ? "border-primary bg-primary text-white"
+                      : "border-slate-200 bg-white text-slate-500 hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  {item.label}
                 </button>
               ))}
             </div>
 
             {card ? (
               <>
-                {/* ── FLASHCARD ── */}
-                <div className="w-full cursor-pointer" style={{ perspective: '1200px' }}
-                  onClick={() => setIsFlipped((f) => !f)}>
-                  <div className="relative w-full transition-transform duration-700"
-                    style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)', minHeight: '300px' }}>
-
-                    {/* FRONT */}
-                    <div className="absolute inset-0 bg-white dark:bg-surface-dark rounded-3xl border border-primary/20 dark:border-primary/30 shadow-xl flex flex-col items-center justify-center gap-4 overflow-hidden"
-                      style={{ backfaceVisibility: 'hidden', minHeight: '300px' }}>
-                      <span className="absolute top-4 left-4 text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">{card.level}</span>
-                      <div className="absolute top-3 right-4" onClick={(e) => e.stopPropagation()}>
-                        <SpeakerButton text={card.hanzi} lang="zh-CN" label="Tiếng Trung" />
+                <div
+                  className="w-full cursor-pointer"
+                  style={{ perspective: "1200px" }}
+                  onClick={() => setIsFlipped((prev) => !prev)}
+                >
+                  <div
+                    className="relative w-full transition-transform duration-700"
+                    style={{
+                      transformStyle: "preserve-3d",
+                      transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                      minHeight: "380px",
+                    }}
+                  >
+                    <div
+                      className="absolute inset-0 flex min-h-[380px] flex-col items-center justify-center gap-4 overflow-hidden rounded-3xl border border-primary/20 bg-white shadow-xl"
+                      style={{ backfaceVisibility: "hidden" }}
+                    >
+                      <div className="absolute top-3 right-4" onClick={(event) => event.stopPropagation()}>
+                        <SpeakerButton text={card.hanzi} lang="zh-CN" label="Tieng Trung" />
                       </div>
-                      <h3 className="text-9xl font-black text-primary dark:text-accent tracking-tighter leading-none">{card.hanzi}</h3>
-                      <div className="flex items-center gap-4 text-xs text-slate-400 font-medium">
-                        <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[13px]">gesture</span>{card.stroke}</span>
-                        <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[13px]">category</span>{card.radical}</span>
+                      <h3 className="text-8xl font-black leading-none tracking-tighter text-primary sm:text-9xl">{card.hanzi}</h3>
+                      <div className="flex items-center gap-4 text-xs font-medium text-slate-400">
+                        <span className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[13px]">gesture</span>
+                          {card.stroke}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[13px]">category</span>
+                          {card.radical}
+                        </span>
                       </div>
-                      <p className="text-slate-400 dark:text-slate-500 text-sm animate-pulse">Nhấp để xem nghĩa</p>
+                      <p className="text-sm text-slate-400 animate-pulse">Nhan de xem nghia</p>
                       <div className="flex items-center justify-center gap-1.5">
-                        {filtered.map((_, i) => (
-                          <div key={i} className={`rounded-full transition-all duration-300 ${i === currentIdx ? 'w-5 h-2 bg-primary' : 'w-2 h-2 bg-slate-200 dark:bg-slate-700'}`} />
+                        {filtered.map((_, index) => (
+                          <div
+                            key={index}
+                            className={`rounded-full transition-all duration-300 ${
+                              index === currentIdx ? "h-2 w-5 bg-primary" : "h-2 w-2 bg-slate-200"
+                            }`}
+                          />
                         ))}
                       </div>
                     </div>
 
-                    {/* BACK */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary to-[#085041] rounded-3xl shadow-xl flex flex-col items-center justify-center gap-5 p-8 text-center overflow-hidden"
-                      style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', minHeight: '300px' }}>
-                      <span className="absolute text-[200px] font-black text-white/5 select-none leading-none -top-6">{card.hanzi}</span>
-                      <div className="relative flex flex-col items-center gap-2">
-                        <span className="text-3xl font-bold text-[#9FE1CB] tracking-widest">{card.pinyin}</span>
-                        <h3 className="text-5xl font-black text-white leading-tight">{card.meaning}</h3>
-                        <div className="w-12 h-0.5 bg-white/20 rounded-full mt-1" />
+                    <div
+                      className="absolute inset-0 flex min-h-[380px] flex-col overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-[#085041] px-6 py-7 pb-24 text-center shadow-xl sm:px-8"
+                      style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+                    >
+                      <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[140px] font-black leading-none text-white/5 select-none sm:text-[170px]">
+                        {card.hanzi}
+                      </span>
+
+                      <div className="relative z-10 flex flex-col items-center gap-3 pt-2">
+                        <span className="max-w-full break-words px-4 text-2xl font-black tracking-[0.16em] text-[#9FE1CB] sm:text-4xl">
+                          {card.pinyin}
+                        </span>
+                        <h3 className="max-w-[88%] break-words text-4xl font-black leading-tight text-white sm:text-6xl">
+                          {card.meaning}
+                        </h3>
+                        <div className="mt-1 h-0.5 w-12 rounded-full bg-white/20" />
                       </div>
-                      <div className="w-full bg-white/10 rounded-2xl p-5 flex flex-col gap-3">
-                        <div className="text-left">
-                          <p className="text-white font-semibold text-base italic leading-relaxed">"{card.exampleZh}"</p>
-                          <p className="text-white/70 text-sm mt-1 leading-relaxed">{card.exampleVi}</p>
-                        </div>
-                        <div className="flex gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
-                          <SpeakerButton text={card.hanzi} lang="zh-CN" variant="dark" label="Phát âm (TQ)" />
-                          <SpeakerButton text={card.meaning} lang="vi-VN" variant="dark" label="Phát âm (VN)" />
-                          <SpeakerButton text={card.exampleZh} lang="zh-CN" variant="dark" label="Đọc ví dụ" />
-                        </div>
+
+                      <div className="relative z-10 flex flex-1 items-center py-4">
+                        {(card.exampleZh || card.exampleVi) ? (
+                          <div className="w-full rounded-2xl bg-white/10 p-4 sm:p-5">
+                            <div className="text-left">
+                              {card.exampleZh ? <p className="text-sm font-semibold italic leading-relaxed text-white sm:text-base">"{card.exampleZh}"</p> : null}
+                              {card.exampleVi ? <p className="mt-1 text-xs leading-relaxed text-white/70 sm:text-sm">{card.exampleVi}</p> : null}
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="w-full text-sm font-medium text-white/70">Nhan nut loa de nghe phat am va nghia cua the.</p>
+                        )}
+                      </div>
+
+                      <div
+                        className="absolute inset-x-6 bottom-6 z-10 flex flex-wrap justify-center gap-2 sm:inset-x-8"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <SpeakerButton text={card.hanzi} lang="zh-CN" variant="dark" label="Phat am (TQ)" />
+                        <SpeakerButton text={card.meaning} lang="vi-VN" variant="dark" label="Phat am (VN)" />
+                        {card.exampleZh ? (
+                          <SpeakerButton text={card.exampleZh} lang="zh-CN" variant="dark" label="Doc vi du" />
+                        ) : null}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* ── ACTION BUTTONS ── */}
                 <div className="flex items-center gap-4">
-                  <button onClick={markUnknown}
-                    className="flex-1 h-14 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 rounded-2xl flex items-center justify-center gap-2 text-red-600 dark:text-red-400 font-bold text-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition-all">
-                    <span className="material-symbols-outlined text-[20px]">close</span>Chưa thuộc
+                  <button
+                    type="button"
+                    onClick={markUnknown}
+                    className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 text-sm font-bold text-red-600 transition-all hover:bg-red-100"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">close</span>
+                    Chua thuoc
                   </button>
-                  <button onClick={() => setIsFlipped((f) => !f)}
-                    className="w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center shadow-lg hover:scale-110 transition-all flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setIsFlipped((prev) => !prev)}
+                    className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all hover:scale-110"
+                  >
                     <span className="material-symbols-outlined text-[26px]">sync</span>
                   </button>
-                  <button onClick={markKnown}
-                    className="flex-1 h-14 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/40 rounded-2xl flex items-center justify-center gap-2 text-green-700 dark:text-green-400 font-bold text-sm hover:bg-green-100 dark:hover:bg-green-900/30 transition-all">
-                    <span className="material-symbols-outlined text-[20px]">check</span>Đã thuộc
+                  <button
+                    type="button"
+                    onClick={markKnown}
+                    className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl border border-green-200 bg-green-50 text-sm font-bold text-green-700 transition-all hover:bg-green-100"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">check</span>
+                    Da thuoc
                   </button>
                 </div>
 
-                {/* ── NAVIGATION ── */}
                 <div className="flex items-center justify-center gap-4 pb-2">
-                  <button onClick={goPrev}
-                    className="size-10 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all">
+                  <button
+                    type="button"
+                    onClick={goPrev}
+                    className="flex size-10 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition-all hover:border-primary hover:text-primary"
+                  >
                     <span className="material-symbols-outlined">chevron_left</span>
                   </button>
-                  <span className="text-sm font-bold text-slate-400">Thẻ {currentIdx + 1} / {filtered.length}</span>
-                  <button onClick={goNext}
-                    className="size-10 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all">
+                  <span className="text-sm font-bold text-slate-400">The {currentIdx + 1} / {filtered.length}</span>
+                  <button
+                    type="button"
+                    onClick={goNext}
+                    className="flex size-10 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition-all hover:border-primary hover:text-primary"
+                  >
                     <span className="material-symbols-outlined">chevron_right</span>
                   </button>
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center py-24 gap-3 text-slate-400">
+              <div className="flex flex-col items-center justify-center gap-3 py-24 text-slate-400">
                 <span className="material-symbols-outlined text-5xl">style</span>
-                <p className="font-semibold">Không có thẻ nào trong bộ lọc này</p>
-                <button onClick={() => setActiveFilter('all')} className="text-primary text-sm font-bold underline">Xem tất cả</button>
+                <p className="font-semibold">Khong co the nao trong bo loc nay</p>
+                <button type="button" onClick={() => setActiveFilter("all")} className="text-sm font-bold text-primary underline">
+                  Xem tat ca
+                </button>
               </div>
             )}
           </div>
         </main>
 
-        {/* RIGHT SIDEBAR */}
         <RightSidebar card={card} flashcards={flashcards} knownIds={knownIds} />
       </div>
     </div>
